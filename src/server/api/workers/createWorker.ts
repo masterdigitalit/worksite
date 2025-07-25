@@ -1,13 +1,15 @@
 import { prisma } from "@/server/db";
 
-type CreateWorkerInput = {
+export async function createWorker(data: {
   fullName: string;
   phone: string;
   telegramUsername?: string;
-};
-
-export async function createWorker(data: CreateWorkerInput) {
-  if (!data.fullName || !data.phone) throw new Error("Missing required fields");
-
-  return prisma.worker.create({ data });
+}) {
+  return prisma.worker.create({
+    data: {
+      fullName: data.fullName,
+      phone: data.phone,
+      telegramUsername: data.telegramUsername || null,
+    },
+  });
 }

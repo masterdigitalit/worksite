@@ -9,6 +9,10 @@ const statusMap: Record<string, string> = {
   IN_PROGRESS: "В работе",
   COMPLETED: "Выполнен",
   CANCELLED: "Отменён",
+  DECLINED: "Отменён",
+  ON_THE_WAY: "В пути",
+  IN_PROGRESS_SD: "В работе (СД)",
+  DONE: "Выполнен",
 };
 
 const visitTypeMap: Record<string, string> = {
@@ -63,10 +67,13 @@ export default function OrderPage({ params }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("info");
-    async function fetchOrder(){
-   
+  const [showModal, setShowModal] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  async function fetchOrder() {
     try {
-      const res = await   fetch(`/api/orders/${params.id}`)
+      const res = await fetch(`/api/orders/${params.id}`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Ошибка загрузки");
@@ -78,29 +85,13 @@ export default function OrderPage({ params }: Props) {
       setError(err.message);
       setOrder(null);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/orders/${params.id}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Ошибка загрузки");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setOrder(data);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setOrder(null);
-      })
-      .finally(() => setLoading(false));
+    fetchOrder();
   }, [params.id]);
 
   const copyText = order
@@ -119,7 +110,8 @@ export default function OrderPage({ params }: Props) {
 Выплата: ${order.outlay !== null ? order.outlay.toLocaleString() + " ₽" : "-"}
 Прибыль: ${order.receivedworker !== null ? order.receivedworker.toLocaleString() + " ₽" : "-"}
 Нужен звонок: ${order.callRequired ? "Да" : "Нет"}
-` : "";
+`
+    : "";
 
   const handleCopy = () => {
     if (!copyText) return;
@@ -128,6 +120,34 @@ export default function OrderPage({ params }: Props) {
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
+  async function handleCancelOrder() {
+    if (!order) return;
+    setCanceling(true);
+    setCancelError(null);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "DECLINED" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Ошибка отмены заказа");
+      }
+
+      const updatedOrder = await res.json();
+      setOrder(updatedOrder);
+      setShowModal(false);
+    } catch (err: any) {
+      setCancelError(err.message);
+    } finally {
+      setCanceling(false);
+    }
+  }
 
   if (loading) return <p className="p-6 text-center">Загрузка заказа...</p>;
   if (error) return <p className="p-6 text-center text-red-600">{error}</p>;
@@ -145,18 +165,62 @@ export default function OrderPage({ params }: Props) {
         </button>
       </div>
 
-      <div className="mb-6 flex space-x-6 border-b">
-        <TabButton active={activeTab === "info"} onClick={() => setActiveTab("info")}>Инфо</TabButton>
-        <TabButton active={activeTab === "documents"} onClick={() => setActiveTab("documents")}>Документы</TabButton>
-        {order.masterId && (
-          <TabButton active={activeTab === "master"} onClick={() => setActiveTab("master")}>Мастер</TabButton>
-        )}
+      <div className="mb-6 flex items-center justify-between border-b pb-2">
+        <div className="flex space-x-6">
+          <TabButton active={activeTab === "info"} onClick={() => setActiveTab("info")}>
+            Инфо
+          </TabButton>
+          <TabButton active={activeTab === "documents"} onClick={() => setActiveTab("documents")}>
+            Документы
+          </TabButton>
+          {order.masterId && (
+            <TabButton active={activeTab === "master"} onClick={() => setActiveTab("master")}>
+              Мастер
+            </TabButton>
+          )}
+        </div>
+        <button
+          className="text-sm rounded bg-red-600 px-3 py-1.5 text-white hover:bg-red-700 transition"
+          onClick={() => setShowModal(true)}
+          disabled={order.status === "DECLINED" || canceling}
+          title={order.status === "DECLINED" ? "Заказ уже отменён" : ""}
+        >
+          Отменить заказ
+        </button>
       </div>
 
       {activeTab === "info" && <InfoTabContent order={order} setActiveTab={setActiveTab} />}
       {activeTab === "documents" && <DocumentsTabContent documentsPhoto={order.documents} orderId={order.id} />}
       {activeTab === "master" && <MasterTabContent masterId={order.masterId} />}
-      {activeTab === "modify" && <ModifyTabContent order={order}  setTab={setActiveTab} refetch={fetchOrder}/>}
+      {activeTab === "modify" && <ModifyTabContent order={order} setTab={setActiveTab} refetch={fetchOrder} />}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="rounded-lg bg-white p-6 shadow-lg max-w-sm w-full">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">Вы уверены?</h2>
+            <p className="mb-6 text-gray-600">Вы действительно хотите отменить заказ #{order.id}?</p>
+            {cancelError && <p className="mb-4 text-center text-red-600">{cancelError}</p>}
+            <div className="flex justify-end space-x-4">
+              <button
+                className="rounded bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400"
+                onClick={() => {
+                  if (!canceling) setShowModal(false);
+                }}
+                disabled={canceling}
+              >
+                Отмена
+              </button>
+              <button
+                className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-60"
+                onClick={handleCancelOrder}
+                disabled={canceling}
+              >
+                {canceling ? "Отмена..." : "Подтвердить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -165,7 +229,9 @@ function TabButton({ active, children, onClick }: { active: boolean; children: R
   return (
     <button
       onClick={onClick}
-      className={`border-b-2 pb-2 transition ${active ? "border-blue-600 font-semibold text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"}`}
+      className={`border-b-2 pb-2 transition ${
+        active ? "border-blue-600 font-semibold text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"
+      }`}
     >
       {children}
     </button>
@@ -173,7 +239,7 @@ function TabButton({ active, children, onClick }: { active: boolean; children: R
 }
 
 function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (tab: Tab) => void }) {
-  const isDone = order.status === "DONE";
+  const isDone = order.status === "DONE" || order.status === "COMPLETED";
   const isPending = order.status === "PENDING";
 
   return (
@@ -194,7 +260,11 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
           <InfoBlock title="Зп работника" value={order.receivedworker !== null ? order.receivedworker.toLocaleString() + " ₽" : "-"} />
           <InfoBlock
             title="Чистая прибыль"
-            value={order.received != null && order.receivedworker != null && order.outlay != null ? (order.received - order.receivedworker - order.outlay).toLocaleString() + " ₽" : "-"}
+            value={
+              order.received != null && order.receivedworker != null && order.outlay != null
+                ? (order.received - order.receivedworker - order.outlay).toLocaleString() + " ₽"
+                : "-"
+            }
           />
         </>
       )}
@@ -205,24 +275,20 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
       </div>
 
       {["PENDING", "ON_THE_WAY", "IN_PROGRESS", "IN_PROGRESS_SD"].includes(order.status) && (
-  <div className="mt-6 text-center">
-    <button
-      className="rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 transition"
-      onClick={() => {
-        setActiveTab("modify");
-        // Здесь можно добавить другие действия под каждый статус
-      }}
-    >
-      {{
-        PENDING: "Назначить работника",
-        ON_THE_WAY: "Работник в пути",
-        IN_PROGRESS: "Работник на месте",
-        IN_PROGRESS_SD: "Подтвердить выполнение",
-      }[order.status]}
-    </button>
-  </div>
-)}
-
+        <div className="mt-6 justify-start">
+          <button
+            className="rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 transition"
+            onClick={() => setActiveTab("modify")}
+          >
+            {{
+              PENDING: "Назначить работника",
+              ON_THE_WAY: "Работник на месте",
+              IN_PROGRESS: "Закрыть заказ",
+              IN_PROGRESS_SD: "Закрыть заказ",
+            }[order.status]}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -230,9 +296,9 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
 function InfoBlock({ title, value }: { title: string; value: string }) {
   const isFinance = ["Клиент заплатил", "Затраты", "Чистая прибыль", "Зп работника", "Выплата", "Прибыль"].includes(title);
   return (
-    <div>
-      <h2 className="mb-1 text-lg font-medium">{title}</h2>
-      <p className={`text-base ${isFinance ? "font-semibold text-black" : ""}`}>{value}</p>
+    <div className={`mb-3 rounded-lg border p-3 text-sm ${isFinance ? "bg-gray-100" : ""}`}>
+      <h2 className="mb-1 font-semibold">{title}</h2>
+      <p className="text-base">{value}</p>
     </div>
   );
 }

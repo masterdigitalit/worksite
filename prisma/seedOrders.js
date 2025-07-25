@@ -190,39 +190,76 @@
 
 
 
-// scripts/seedDocuments.ts
+// // scripts/seedDocuments.ts
+// import { PrismaClient } from "@prisma/client";
+// import { v4 as uuidv4 } from "uuid";
+
+// const prisma = new PrismaClient();
+
+// async function addDocumentToOrder(orderId) {
+//   const filename = `${uuidv4()}.png`;
+//   const url = `/uploads/${filename}`; // без /public
+
+//   const document = await prisma.orderDocument.create({
+//     data: {
+//       orderId,
+//       type: "PNG", // замените на нужный enum, если используется
+//       url,
+//     },
+//   });
+
+//   console.log("Документ добавлен:", document);
+// }
+
+// async function run() {
+//   await addDocumentToOrder(2); // первый файл
+
+// }
+
+// run()
+//   .then(() => {
+//     console.log("Готово ✅");
+//   })
+//   .catch((error) => {
+//     console.error("Ошибка ❌", error);
+//   })
+//   .finally(async () => {
+//     await prisma.$disconnect();
+//   });
+
+
+
+import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
-async function addDocumentToOrder(orderId) {
-  const filename = `${uuidv4()}.png`;
-  const url = `/uploads/${filename}`; // без /public
+async function hashAllPasswords() {
+  const users = await prisma.user.findMany();
 
-  const document = await prisma.orderDocument.create({
-    data: {
-      orderId,
-      type: "PNG", // замените на нужный enum, если используется
-      url,
-    },
-  });
+  for (const user of users) {
+    const plainPassword = user.password;
 
-  console.log("Документ добавлен:", document);
+    // Проверим, вдруг пароль уже захеширован (например, если там 60 символов и начинается с $2)
+    if (plainPassword.startsWith("$2") && plainPassword.length === 60) {
+      console.log(`Пропускаем пользователя ${user.id} — пароль уже хеширован.`);
+      continue;
+    }
+
+    const hashed = await bcrypt.hash(plainPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed },
+    });
+
+    console.log(`Пароль пользователя ${user.id} захеширован.`);
+  }
+
+  console.log("Обновление паролей завершено.");
 }
 
-async function run() {
-  await addDocumentToOrder(2); // первый файл
-
-}
-
-run()
-  .then(() => {
-    console.log("Готово ✅");
-  })
-  .catch((error) => {
-    console.error("Ошибка ❌", error);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+hashAllPasswords()
+  .catch(console.error)
+  .finally(() => process.exit());

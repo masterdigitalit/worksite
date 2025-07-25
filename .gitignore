@@ -26,6 +26,7 @@ prisma/dev.db
 prisma/dev.db-journal
 prisma/migrations/
 
+
 # VS Code
 .vscode/
 
@@ -45,3 +46,4 @@ turbo/
 
 # Test coverage
 coverage/
+

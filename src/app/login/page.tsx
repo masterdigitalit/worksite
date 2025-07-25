@@ -1,5 +1,5 @@
-"use client";
-
+'use client'
+import { Suspense } from 'react'
 import { signIn } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,7 @@ export default function LoginPage() {
   };
 
   return (
+     <Suspense>
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <input
         placeholder="Логин"
@@ -44,5 +45,6 @@ export default function LoginPage() {
         Войти
       </button>
     </div>
+    </Suspense>
   );
 }

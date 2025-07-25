@@ -1,93 +1,47 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# database
-/prisma/db.sqlite
-/prisma/db.sqlite-journal
-db.sqlite
-
-# next.js
-/.next/
-/out/
-next-env.d.ts
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# local env files
-# do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
-.env
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-
-# idea files
-.idea
-
-
-# Node
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Build output
+# Next.js
 .next/
 out/
-dist/
+build/
 
-# Production
-.env
+# Vercel
+.vercel/
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# OS
-.DS_Store
-Thumbs.db
-
-# VSCode
-.vscode/
+# dotenv
+.env*
+!.env.example
 
 # Prisma
 prisma/dev.db
 prisma/dev.db-journal
 prisma/migrations/
 
-# Uploads (если ты сохраняешь во /public/uploads)
-public/uploads/
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
-logs
+logs/
 *.log
+
+# TypeScript
 *.tsbuildinfo
 
-# Typescript
-*.tsbuildinfo
+# Turbo repo (если используется)
+turbo/
 
-# Optional
-.idea/
-*.swp
-*.swo
+# Test coverage
+coverage/

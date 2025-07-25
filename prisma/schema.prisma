@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  role     String
+  fullName String?
+  createdAt        DateTime? @default(now())
+  telegramUsername String?
+  phone            String?
+}
+
+model Worker {
+  id               Int      @id @default(autoincrement())
+  fullName         String
+  telegramUsername String?
+  phone            String
+  ordersCompleted  Int      @default(0)
+  totalEarned      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+ 
+}
+
+model Order {
+  id                  Int           @id @default(autoincrement())
+
+  // Основные данные
+  address             String
+  fullName            String
+  phone               String
+  problem             String
+  arriveDate          DateTime
+  visitType           VisitType
+  callRequired        Boolean       @default(false)
+  isProfessional      Boolean       @default(false)
+  city                String
+  
+
+  equipmentType       String
+
+  // Комментарии
+  branchComment       String?
+  callCenterNote      String?
+
+  // Статус и мастер
+  status              OrderStatus   @default(PENDING)
+  masterId            Int?
+
+
+
+  checkType           CheckType?
+
+  //money
+  received            Int?
+  outlay              Int?
+  receivedworker      Int?
+ 
+
+//
+  documents           OrderDocument[]
+
+  // Временные поля
+  dateCreated         DateTime      @default(now())
+  dateStarted         DateTime?
+  dateDone            DateTime?
+}
+
+model OrderDocument {
+  id        Int           @id @default(autoincrement())
+  order     Order         @relation(fields: [orderId], references: [id])
+  orderId   Int
+  type      DocumentType
+  url       String
+}
+
+ enum DocumentType {
+  PNG
+  JPG 
+  JPEG
+  WEBP
+  GIF
+  BMP
+  PDF
+  DOC
+  DOCX
+  XLS 
+  XLSX
+  TXT 
+  MP4
+  MOV
+  AVI
+  MP3
+  WAV
+  OTHER
+}
+
+
+
+
+
+enum OrderStatus {
+  PENDING
+  ON_THE_WAY
+  IN_PROGRESS
+  IN_PROGRESS_SD
+  DECLINED
+  CANCEL_CC
+  CANCEL_BRANCH
+  DONE
+}
+
+enum VisitType {
+  FIRST
+  GARAGE
+  REPEAT
+}
+
+enum CheckType {
+  PURE
+  FULL
+  NONE
+}

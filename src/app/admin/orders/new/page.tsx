@@ -110,10 +110,17 @@ export default function AddNewOrderPage({
     switch (step) {
       case "fullName":
         return required(form.fullName);
-      case "phone":
-        return !/^(\+7|8)\d{10}$/.test(form.phone)
-          ? "Введите корректный номер (например, +79991234567)"
-          : null;
+      case "phone": {
+  const cleanedPhone = form.phone.replace(/\D/g, ""); // Удаляет все нецифровые символы
+
+  // Приводим к общему виду: +7 и 10 цифр
+  const isValid =
+    (cleanedPhone.length === 11 && cleanedPhone.startsWith("7")) || // +7XXXXXXXXXX
+    (cleanedPhone.length === 11 && cleanedPhone.startsWith("8"));   // 8XXXXXXXXXX
+
+  return !isValid ? "Введите корректный номер (например, +7 (999) 123-45-67)" : null;
+}
+
       case "address":
         return required(form.address);
       case "city":
@@ -317,7 +324,7 @@ export default function AddNewOrderPage({
                 {form.isProfessional ? "Да" : "Нет"}
               </ReviewItem>
               <ReviewItem label="Прибор">{form.equipmentType}</ReviewItem>
-              <ReviewItem label="Тип оплаты">{payLabels[form.paymentType]}</ReviewItem>
+              <ReviewItem label="Тип прибыли">{payLabels[form.paymentType]}</ReviewItem>
             </div>
           </div>
         );

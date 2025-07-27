@@ -100,21 +100,17 @@ export default function OrderPage({ params }: Props) {
     fetchOrder();
   }, [params.id]);
 
-  const copyText = order
-    ? `
-Заказ #${order.id}
-ФИО: ${order.fullName}
-Телефон: ${order.phone}
-Адрес: ${order.address}
-Статус: ${statusMap[order.status] || order.status}
-Дата визита: ${new Date(order.arriveDate).toLocaleString()}
-Тип визита: ${visitTypeMap[order.visitType] || order.visitType}
-Город: ${order.city}
-Компания: ${order.campaign}
-Оборудование: ${equipmentTypeMap[order.equipmentType] || order.equipmentType}
-Нужен звонок: ${order.callRequired ? "Да" : "Нет"}
-`
-    : "";
+const copyText = order
+  ? `Заявка #${order.id} ${visitTypeMap[order.visitType] || order.visitType}
+${new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)} 
+${order.city}
+${order.address}
+${order.problem}
+${order.phone} ${order.fullName}
+${order.timeRange || ""}
+`.trim()
+  : "";
+// ${order.campaign ? `Листовка ${order.campaign}` : ""}
 
   const handleCopy = () => {
     if (!copyText) return;
@@ -279,7 +275,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
         </>
       )}
          <InfoBlock title="Нужен звонок" value={order.callRequired ? "✅ Да" : "❌ Нет"} />
-                  <InfoBlock title="Тип оплаты" value={payLabels[order.paymentType]} />
+                  <InfoBlock title="Тип прибыли" value={payLabels[order.paymentType]} />
            <InfoBlock title="Описание проблемы" value={order.problem} />
 
  

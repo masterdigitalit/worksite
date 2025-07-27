@@ -46,8 +46,8 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
       let percent = 0.5;
 
 
-      if (order.paymentType === "LOW") percent = 0.3;
-      else if (order.paymentType === "MEDIUM") percent = 0.4;
+      if (order.paymentType === "LOW") percent = 0.7;
+      else if (order.paymentType === "MEDIUM") percent = 0.6;
       else if (order.paymentType === "HIGH") percent = 0.5;
 
       const calculated = Math.floor(profit * percent);

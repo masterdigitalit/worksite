@@ -8,6 +8,11 @@ const visitTypeLabels = {
   GARAGE: "Гарантийный",
   REPEAT: "Повторный",
 };
+const visitTypeRowColors = {
+  FIRST: "bg-pink-100",      // Мягкий розовый
+  REPEAT: "bg-teal-100",     // Светлый бирюзовый
+  GARAGE: "bg-slate-100",    // Светло-серый с холодным оттенком
+};
 
 const statusLabels = {
   PENDING: "Ожидает",
@@ -53,13 +58,13 @@ const statuses = [
 function isOverdue(date) {
   const now = new Date();
   const d = new Date(date);
+  now.setHours(0, 0, 0, 0);
   d.setHours(0, 0, 0, 0);
   return d < now;
 }
 
 function canHighlight(status) {
-  const takenStatuses = ["PENDING", "ON_THE_WAY"];
-  return takenStatuses.includes(status);
+  return ["PENDING", "ON_THE_WAY"].includes(status);
 }
 
 export default function OrdersPage() {
@@ -75,10 +80,8 @@ export default function OrdersPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const statusFromParams = searchParams.get("status") || "";
-    const visitTypeFromParams = searchParams.get("visitType") || "";
-    setStatus(statusFromParams);
-    setVisitType(visitTypeFromParams);
+    setStatus(searchParams.get("status") || "");
+    setVisitType(searchParams.get("visitType") || "");
   }, [searchParams]);
 
   useEffect(() => {
@@ -92,6 +95,11 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const filtered = orders.filter((o) => {
+      if (search.startsWith("#")) {
+        const idSearch = search.slice(1);
+        return o.id.toString().includes(idSearch);
+      }
+
       const matchesSearch =
         o.fullName.toLowerCase().includes(search.toLowerCase()) ||
         o.phone.includes(search) ||
@@ -101,7 +109,6 @@ export default function OrdersPage() {
       const matchesVisitType = !visitType || o.visitType === visitType;
 
       const orderDate = new Date(o.arriveDate).toISOString().slice(0, 10);
-
       const matchesFrom = !arriveDateFrom || orderDate >= arriveDateFrom;
       const matchesTo = !arriveDateTo || orderDate <= arriveDateTo;
 
@@ -128,27 +135,27 @@ export default function OrdersPage() {
 
       <style>
         {`
-          @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-          }
-          .blinking-red {
-            color: red;
-            animation: blink 1s infinite;
-            font-weight: bold;
-          }
-          .overdue-label {
-            color: red;
-            font-weight: 700;
-            font-size: 0.75rem;
-            margin-bottom: 2px;
-          }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .blinking-red {
+          color: red;
+          animation: blink 1s infinite;
+          font-weight: bold;
+        }
+        .overdue-label {
+          color: red;
+          font-weight: 700;
+          font-size: 0.75rem;
+          margin-bottom: 2px;
+        }
         `}
       </style>
 
       <div className="flex flex-col flex-wrap gap-2 md:flex-row">
         <input
-          placeholder="Поиск (ФИО, адрес, телефон)"
+          placeholder="Поиск (ФИО, адрес, телефон, #ID)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded border p-2 md:w-1/3"
@@ -158,9 +165,7 @@ export default function OrdersPage() {
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
-            router.push(
-              `/admin/orders?status=${e.target.value}&visitType=${visitType}`,
-            );
+            router.push(`/admin/orders?status=${e.target.value}&visitType=${visitType}`);
           }}
           className="w-full rounded border p-2 md:w-1/4"
         >
@@ -175,9 +180,7 @@ export default function OrdersPage() {
           value={visitType}
           onChange={(e) => {
             setVisitType(e.target.value);
-            router.push(
-              `/admin/orders?status=${status}&visitType=${e.target.value}`,
-            );
+            router.push(`/admin/orders?status=${status}&visitType=${e.target.value}`);
           }}
           className="w-full rounded border p-2 md:w-1/4"
         >
@@ -206,69 +209,76 @@ export default function OrdersPage() {
 
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
-          <thead className="bg-gray-200 text-left">
-            <tr>
-              <th className="border p-2">ФИО</th>
-              <th className="border p-2">Телефон</th>
-              <th className="border p-2">Адрес</th>
-              <th className="border p-2">Тип</th>
-              <th className="border p-2">Статус</th>
-              <th className="border p-2">Дата визита</th>
-              <th className="border p-2">Город</th>
-              <th className="border p-2">Прибор</th>
-              <th className="border p-2">Прибыль</th>
-              <th className="border p-2">Затраты</th>
-              <th className="border p-2">Нужен звонок</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((order) => {
-              const highlight = canHighlight(order.status);
-              const overdue = highlight && isOverdue(order.arriveDate);
+<thead className="bg-gray-200 text-left">
+  <tr>
+    <th className="border p-2 w-12 text-center">ID</th>
+    <th className="border p-2 w-max whitespace-nowrap">ФИО</th>
+    <th className="border p-2  ">Телефон</th>
+    <th className="border p-2 ">Адрес</th>
+    <th className="border p-2  ">Тип</th>
+    <th className="border p-2  w-34 p-0 m-0">Статус</th>
+    <th className="border p-2 w-36 text-start whitespace-nowrap">Дата визита</th>
+    <th className="border p-2 w-12 ">Город</th>
+    <th className="border p-2 w-12 text-center">Прибор</th>
+    <th className="border p-2 w-12 text-center">Прибыль</th>
+    <th className="border p-2 w-12 text-center">Затраты</th>
+    <th className="border p-2 w-12 text-center">Оплата</th>
+    <th className="border p-2 w-12 text-center">📞</th>
+  </tr>
+</thead>
+<tbody>
+  {filtered.map((order) => {
+    const highlight = canHighlight(order.status);
+    const overdue = highlight && isOverdue(order.arriveDate);
 
-              return (
-                <tr
-                  key={order.id}
-                  className="cursor-pointer border-b hover:bg-gray-100"
-                  onClick={() => router.push(`/admin/orders/${order.id}`)}
-                >
-                  <td className="border p-4">{order.fullName}</td>
-                  <td className="border p-2">{order.phone}</td>
-                  <td className="border p-2">{order.address}</td>
-                  <td className="border p-2">
-                    {visitTypeLabels[order.visitType] || order.visitType}
-                  </td>
-                  <td
-                    className={`border p-2 font-medium ${statusColors[order.status] || ""}`}
-                  >
-                    {statusLabels[order.status] || order.status}
-                  </td>
-                  <td className="border p-2">
-                    {overdue && <div className="overdue-label">Просрочено</div>}
-                    <div className={overdue ? "blinking-red" : ""}>
-                      {new Date(order.arriveDate).toLocaleString("ru-RU", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                  </td>
-                  <td className="border p-2">{order.city}</td>
-                  <td className="border p-2">{order.equipmentType}</td>
-                  <td className="border p-2">
-                    {order.received - order.outlay - order.receivedworker ??
-                      "-"}
-                  </td>
-                  <td className="border p-2">{order.outlay ?? "-"}</td>
-                  <td className="border p-2 text-center">
-                    {order.callRequired ? "✅" : "❌"}
-                  </td>
-                </tr>
-              );
+    return (
+      <tr
+        key={order.id}
+        className="cursor-pointer border-b hover:bg-gray-100 "
+        onClick={() => router.push(`/admin/orders/${order.id}`)}
+      >
+        <td className="border p-2 text-center">{order.id}</td>
+        <td className="border p-2  truncate overflow-hidden whitespace-nowrap">
+          {order.fullName}
+        </td>
+        <td className="border p-2">{order.phone}</td>
+        <td className="border p-2 max-w-[12rem] truncate overflow-hidden whitespace-nowrap">
+          {order.address}
+        </td>
+        <td className={`border p2 text-center ${
+    visitTypeRowColors[order.visitType]
+  }`}>
+          {visitTypeLabels[order.visitType] || order.visitType}
+        </td>
+        <td className={`border p-2 font-medium ${statusColors[order.status] || ""}`}>
+          {statusLabels[order.status] || order.status}
+        </td>
+        <td className="border p-2 text-center">
+          {overdue && <div className="overdue-label">Просрочено</div>}
+          <div className={overdue ? "blinking-red" : ""}>
+            {new Date(order.arriveDate).toLocaleString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
             })}
-          </tbody>
+          </div>
+        </td>
+        <td className="border p-2">{order.city}</td>
+        <td className="border p-2">{order.equipmentType}</td>
+        <td className="border p-2 text-center"> {order.received && order.outlay != null && order.receivedworker != null? (order.received - order.outlay - order.receivedworker || "-"): "-"}</td>
+        <td className="border p-2 text-center">{order.outlay ?? "-"}</td>
+        <td className="border p-2 text-center">{order.received ?? "-"}</td>
+        <td className="border p-2 text-center">
+          {order.callRequired ? "✅" : "❌"}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
+
         </table>
       </div>
     </div>

@@ -32,13 +32,12 @@ interface Order {
   phone: string;
   address: string;
   status: string;
+  problem?: string;
   arriveDate: string;
   visitType: string;
   city: string;
   campaign: string;
   equipmentType: string;
-  clientPrice: number | null;
-  workerPrice: number | null;
   pureCheck: number | null;
   callRequired: boolean;
   documents?: Array<documents>;
@@ -268,11 +267,11 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
           />
         </>
       )}
+         <InfoBlock title="Нужен звонок" value={order.callRequired ? "✅ Да" : "❌ Нет"} />
+           <InfoBlock title="Описание проблемы" value={order.problem} />
 
-      <div className="md:col-span-2">
-        <h2 className="mb-1 text-lg font-medium">Нужен звонок</h2>
-        <p className="text-base">{order.callRequired ? "✅ Да" : "❌ Нет"}</p>
-      </div>
+ 
+  
 
       {["PENDING", "ON_THE_WAY", "IN_PROGRESS", "IN_PROGRESS_SD"].includes(order.status) && (
         <div className="mt-6 justify-start">

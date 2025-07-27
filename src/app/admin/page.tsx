@@ -11,7 +11,12 @@ import { getStatusCounts } from "@/server/api/stats/countByStatus";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-  const fullName = session?.user?.fullName || "Админ";
+const fullName =
+  session?.user?.fullName === "Апти"
+    ? "Салам Алейкум Апти"
+    : 'Привет, '+session?.user?.fullName || 'Привет, '+"Админ";
+    console.log(session?.user?.fullName)
+
 
   const [todayStats, monthStats, profitStats, statusCounts] = await Promise.all([
     getTodayStats(),
@@ -22,7 +27,7 @@ export default async function AdminPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Привет, {fullName}</h1>
+      <h1 className="text-2xl font-bold"> {fullName}</h1>
 
       {/* Первая строка: статистика */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -33,6 +38,7 @@ export default async function AdminPage() {
           received={todayStats.received}
           outlay={todayStats.outlay}
           receivedworker={todayStats.receivedworker}
+          type="day"
         />
 
         <StatCard
@@ -42,6 +48,7 @@ export default async function AdminPage() {
           received={monthStats.received}
           outlay={monthStats.outlay}
           receivedworker={monthStats.receivedworker}
+              type="month"
         />
 
         <div className="p-4 border rounded-lg shadow">
@@ -99,6 +106,7 @@ function StatCard({
   received,
   outlay,
   receivedworker,
+  type,
 }: {
   title: string;
   total: number;
@@ -106,29 +114,82 @@ function StatCard({
   received: number;
   outlay: number;
   receivedworker: number;
+  type: string;
 }) {
-  const base = received || 1;
-  const profitPercent = Math.round((total / base) * 100);
+  let profitPercent = 0;
+  let costPercent = 0;
+  let base = 0;
+
+  switch (type) {
+    case "day": {
+      base = 30000;
+      profitPercent = Math.round((total / base) * 100);
+      costPercent = Math.min(100 - profitPercent, 100);
+      break;
+    }
+
+    case "month": {
+      base = 1000000;
+      profitPercent = Math.round((total / base) * 100);
+      costPercent = Math.min(100 - profitPercent, 100);
+      break;
+    }
+
+    default: {
+      console.warn("Неизвестный тип:", type);
+      profitPercent = 0;
+      costPercent = 0;
+      break;
+    }
+  }
 
   return (
     <div className="p-4 border rounded-lg shadow">
       <h2 className="text-xl font-bold mb-2">{title}</h2>
-      <p className="text-green-600 text-2xl font-bold mb-2">{total} ₽</p>
 
-      <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+      {/* Сумма закрытия */}
+      <p className="text-xl text-black-500 mb-2">
+        Cумма закрытия - {received} ₽
+      </p>
+
+      {/* Прогресс-бар: прибыль vs затраты */}
+      <div className="w-full bg-gray-200 rounded-full h-4 mb-4 flex overflow-hidden relative group">
         <div
-          className="bg-green-500 h-4 rounded-full transition-all duration-300"
+          className="bg-green-500 h-4 transition-all duration-300"
           style={{ width: `${profitPercent}%` }}
+        >
+          {/* Tooltip */}
+          <div className="absolute left-0 -top-8 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+            Прибыль: {profitPercent}% от цели ({base.toLocaleString("ru-RU")} ₽)
+          </div>
+        </div>
+        <div
+          className="bg-red-400 h-4 transition-all duration-300"
+          style={{ width: `${costPercent}%` }}
         />
       </div>
 
-      <p className="text-sm text-gray-600">
-        Заказов: {count} | Получено: {received} ₽<br />
-        Расходы: {outlay} ₽ | Выплаты: {receivedworker} ₽
-      </p>
+      {/* Детализация */}
+      <div className="text-sm text-gray-700 space-y-1">
+        <p>
+          📈 Прибыль: <span className="text-green-600 font-semibold">{total} ₽</span>
+        </p>
+        <p>
+          📦 Заказов: <span className="font-semibold">{count}</span>
+        </p>
+        <p>
+          🏢 Расходы офис/закуп: <span className="text-red-600 font-semibold">{outlay} ₽</span>
+        </p>
+        <p>
+          👷 Зарплата сотрудников:{" "}
+          <span className="text-orange-600 font-semibold">{receivedworker} ₽</span>
+        </p>
+      </div>
     </div>
   );
 }
+
+
 
 // UI для статусов
 const statusesUI: Record<string, { label: string; color: string }> = {

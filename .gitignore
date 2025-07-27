@@ -46,4 +46,5 @@ turbo/
 
 # Test coverage
 coverage/
+package.json
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 
@@ -8,6 +8,14 @@ export default function LoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
+  return (
+    <Suspense fallback={null}>
+      <InnerLoginForm username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
+    </Suspense>
+  )
+}
+
+function InnerLoginForm({ username, setUsername, password, setPassword }) {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -15,7 +23,7 @@ export default function LoginForm() {
     await signIn('credentials', {
       username,
       password,
-      callbackUrl: window.location.origin,
+      callbackUrl: '/',
     })
   }
 

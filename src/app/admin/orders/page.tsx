@@ -9,9 +9,9 @@ const visitTypeLabels = {
   REPEAT: "Повторный",
 };
 const visitTypeRowColors = {
-  FIRST: "bg-pink-100",      // Мягкий розовый
-  REPEAT: "bg-teal-100",     // Светлый бирюзовый
-  GARAGE: "bg-slate-100",    // Светло-серый с холодным оттенком
+  FIRST: "bg-pink-100", // Мягкий розовый
+  REPEAT: "bg-teal-100", // Светлый бирюзовый
+  GARAGE: "bg-slate-100", // Светло-серый с холодным оттенком
 };
 
 const statusLabels = {
@@ -165,7 +165,9 @@ export default function OrdersPage() {
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
-            router.push(`/admin/orders?status=${e.target.value}&visitType=${visitType}`);
+            router.push(
+              `/admin/orders?status=${e.target.value}&visitType=${visitType}`,
+            );
           }}
           className="w-full rounded border p-2 md:w-1/4"
         >
@@ -180,7 +182,9 @@ export default function OrdersPage() {
           value={visitType}
           onChange={(e) => {
             setVisitType(e.target.value);
-            router.push(`/admin/orders?status=${status}&visitType=${e.target.value}`);
+            router.push(
+              `/admin/orders?status=${status}&visitType=${e.target.value}`,
+            );
           }}
           className="w-full rounded border p-2 md:w-1/4"
         >
@@ -209,76 +213,89 @@ export default function OrdersPage() {
 
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
-<thead className="bg-gray-200 text-left">
-  <tr>
-    <th className="border p-2 w-12 text-center">ID</th>
-    <th className="border p-2 w-max whitespace-nowrap">ФИО</th>
-    <th className="border p-2  ">Телефон</th>
-    <th className="border p-2 ">Адрес</th>
-    <th className="border p-2  ">Тип</th>
-    <th className="border p-2  w-34 p-0 m-0">Статус</th>
-    <th className="border p-2 w-36 text-start whitespace-nowrap">Дата визита</th>
-    <th className="border p-2 w-12 ">Город</th>
-    <th className="border p-2 w-12 text-center">Прибор</th>
-    <th className="border p-2 w-12 text-center">Прибыль</th>
-    <th className="border p-2 w-12 text-center">Затраты</th>
-    <th className="border p-2 w-12 text-center">Оплата</th>
-    <th className="border p-2 w-12 text-center">📞</th>
-  </tr>
-</thead>
-<tbody>
-  {filtered.map((order) => {
-    const highlight = canHighlight(order.status);
-    const overdue = highlight && isOverdue(order.arriveDate);
+          <thead className="bg-gray-200 text-left">
+            <tr>
+              <th className="w-12 border p-2 text-center">ID</th>
+              <th className="w-max border p-2 whitespace-nowrap">ФИО</th>
+              <th className="border p-2">Телефон</th>
+              <th className="border p-2">Адрес</th>
+              <th className="border p-2">Тип</th>
+              <th className="m-0 w-34 border p-0 p-2">Статус</th>
+              <th className="w-36 border p-2 text-start whitespace-nowrap">
+                Дата визита
+              </th>
+              <th className="w-12 border p-2">Город</th>
+              <th className="w-12 border p-2 text-center">Прибор</th>
+              <th className="w-12 border p-2 text-center">Прибыль</th>
+              <th className="w-12 border p-2 text-center">Затраты</th>
+              <th className="w-12 border p-2 text-center">Оплата</th>
+              <th className="w-12 border p-2 text-center">📞</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((order) => {
+              const highlight = canHighlight(order.status);
+              const overdue = highlight && isOverdue(order.arriveDate);
 
-    return (
-      <tr
-        key={order.id}
-        className="cursor-pointer border-b hover:bg-gray-100 "
-        onClick={() => router.push(`/admin/orders/${order.id}`)}
-      >
-        <td className="border p-2 text-center">{order.id}</td>
-        <td className="border p-2  truncate overflow-hidden whitespace-nowrap">
-          {order.fullName}
-        </td>
-        <td className="border p-2">{order.phone}</td>
-        <td className="border p-2 max-w-[12rem] truncate overflow-hidden whitespace-nowrap">
-          {order.address}
-        </td>
-        <td className={`border p2 text-center ${
-    visitTypeRowColors[order.visitType]
-  }`}>
-          {visitTypeLabels[order.visitType] || order.visitType}
-        </td>
-        <td className={`border p-2 font-medium ${statusColors[order.status] || ""}`}>
-          {statusLabels[order.status] || order.status}
-        </td>
-        <td className="border p-2 text-center">
-          {overdue && <div className="overdue-label">Просрочено</div>}
-          <div className={overdue ? "blinking-red" : ""}>
-            {new Date(order.arriveDate).toLocaleString("ru-RU", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
+              return (
+                <tr
+                  key={order.id}
+                  className="cursor-pointer border-b hover:bg-gray-100"
+                  onClick={() => router.push(`/admin/orders/${order.id}`)}
+                >
+                  <td className="border p-2 text-center">{order.id}</td>
+                  <td className="truncate overflow-hidden border p-2 whitespace-nowrap">
+                    {order.fullName}
+                  </td>
+                  <td className="border p-2">{order.phone}</td>
+                  <td className="max-w-[12rem] truncate overflow-hidden border p-2 whitespace-nowrap">
+                    {order.address}
+                  </td>
+                  <td
+                    className={`p2 border text-center ${
+                      visitTypeRowColors[order.visitType]
+                    }`}
+                  >
+                    {visitTypeLabels[order.visitType] || order.visitType}
+                  </td>
+                  <td
+                    className={`border p-2 font-medium ${statusColors[order.status] || ""}`}
+                  >
+                    {statusLabels[order.status] || order.status}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {overdue && <div className="overdue-label">Просрочено</div>}
+                    <div className={overdue ? "blinking-red" : ""}>
+                      {new Date(order.arriveDate)
+                        .toISOString()
+                        .replace("T", " ")
+                        .slice(0, 16)}
+                    </div>
+                  </td>
+                  <td className="border p-2">{order.city}</td>
+                  <td className="border p-2">{order.equipmentType}</td>
+                  <td className="border p-2 text-center">
+                    {" "}
+                    {order.received &&
+                    order.outlay != null &&
+                    order.receivedworker != null
+                      ? order.received - order.outlay - order.receivedworker ||
+                        "-"
+                      : "-"}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {order.outlay ?? "-"}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {order.received ?? "-"}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {order.callRequired ? "✅" : "❌"}
+                  </td>
+                </tr>
+              );
             })}
-          </div>
-        </td>
-        <td className="border p-2">{order.city}</td>
-        <td className="border p-2">{order.equipmentType}</td>
-        <td className="border p-2 text-center"> {order.received && order.outlay != null && order.receivedworker != null? (order.received - order.outlay - order.receivedworker || "-"): "-"}</td>
-        <td className="border p-2 text-center">{order.outlay ?? "-"}</td>
-        <td className="border p-2 text-center">{order.received ?? "-"}</td>
-        <td className="border p-2 text-center">
-          {order.callRequired ? "✅" : "❌"}
-        </td>
-      </tr>
-    );
-  })}
-</tbody>
-
-
+          </tbody>
         </table>
       </div>
     </div>

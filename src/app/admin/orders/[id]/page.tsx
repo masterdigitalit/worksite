@@ -244,7 +244,14 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
       <InfoBlock title="Телефон" value={order.phone} />
       <InfoBlock title="Адрес" value={order.address} />
       <InfoBlock title="Статус" value={statusMap[order.status] || order.status} />
-      <InfoBlock title="Дата визита" value={new Date(order.arriveDate, ).toLocaleString()} />
+  <InfoBlock
+  title="Дата визита"
+  value={new Date(order.arriveDate)
+    .toISOString()
+    .replace("T", " ")
+    .slice(0, 16)} // 2025-07-27 20:00
+/>
+
       <InfoBlock title="Тип визита" value={visitTypeMap[order.visitType] || order.visitType} />
       <InfoBlock title="Город" value={order.city} />
       <InfoBlock title="Прибор" value={equipmentTypeMap[order.equipmentType] || order.equipmentType} />

@@ -125,43 +125,62 @@ export default function AddNewOrderPage({
     }
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("/api/orders/new", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+ const handleSubmit = async () => {
+  setIsSubmitting(true);
+  try {
+  function preserveUserInputAsUTC(datetimeStr: string): Date {
+  const [datePart, timePart] = datetimeStr.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
 
-      if (!response.ok) throw new Error("Ошибка при создании");
+  // Считаем, что пользователь имел в виду это время в своей форме
+  // и сохраняем как UTC напрямую, без локального смещения
+  return new Date(Date.UTC(year, month - 1, day, hour, minute));
+}
 
-      const created = await response.json();
 
-      setSubmitSuccess(true);
-      setForm({
-        fullName: "",
-        phone: "",
-        address: "",
-        city: "",
-        problem: "",
-        arriveDate: "",
-        visitType: "",
-        callRequired: false,
-        isProfessional: false,
-        equipmentType: "",
-      });
-      setStepIndex(0);
+   
 
-      setTimeout(() => {
-        router.push(`/admin/orders/${created.id}`);
-      }, 1000);
-    } catch (e) {
-      alert("Произошла ошибка");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const body = {
+      ...form,
+      arriveDate: preserveUserInputAsUTC(form.arriveDate),
+    };
+
+    const response = await fetch("/api/orders/new", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) throw new Error("Ошибка при создании");
+
+    const created = await response.json();
+
+    setSubmitSuccess(true);
+    setForm({
+      fullName: "",
+      phone: "",
+      address: "",
+      city: "",
+      problem: "",
+      arriveDate: "",
+      visitType: "",
+      callRequired: false,
+      isProfessional: false,
+      equipmentType: "",
+    });
+    setStepIndex(0);
+
+    setTimeout(() => {
+      router.push(`/admin/orders/${created.id}`);
+    }, 1000);
+  } catch (e) {
+    alert("Произошла ошибка");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const renderStep = () => {
     switch (step) {

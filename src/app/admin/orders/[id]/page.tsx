@@ -40,6 +40,7 @@ interface Order {
   equipmentType: string;
   pureCheck: number | null;
   callRequired: boolean;
+  paymentType : string;
   documents?: Array<documents>;
   masterId?: number | null;
   received?: number | null;
@@ -47,6 +48,12 @@ interface Order {
   receivedworker?: number | null;
 }
 
+
+const payLabels: Record<string, string> = {
+ "HIGH": "Высокая",
+ "MEDIUM": "Средняя" ,
+ "LOW": "Низкая" ,
+};
 interface documents {
   id: number;
   orderId: string;
@@ -272,6 +279,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
         </>
       )}
          <InfoBlock title="Нужен звонок" value={order.callRequired ? "✅ Да" : "❌ Нет"} />
+                  <InfoBlock title="Тип оплаты" value={payLabels[order.paymentType]} />
            <InfoBlock title="Описание проблемы" value={order.problem} />
 
  

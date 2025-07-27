@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ca } from "zod/v4/locales";
 
 type Step =
   | "fullName"
@@ -14,6 +15,7 @@ type Step =
   | "callRequired"
   | "isProfessional"
   | "equipmentType"
+  | "paymentType"
   | "review";
 
 const steps: Step[] = [
@@ -27,8 +29,14 @@ const steps: Step[] = [
   "callRequired",
   "isProfessional",
   "equipmentType",
+  "paymentType",
   "review",
 ];
+const payLabels: Record<string, string> = {
+ "HIGH": "Высокая",
+ "MEDIUM": "Средняя" ,
+ "LOW": "Низкая" ,
+};
 
 const stepLabels: Record<Step, string> = {
   fullName: "ФИО",
@@ -36,11 +44,12 @@ const stepLabels: Record<Step, string> = {
   address: "Адрес",
   city: "Город",
   problem: "Проблема",
-  arriveDate: "Дата",
+  arriveDate: "Дата и время",
   visitType: "Тип визита",
-  callRequired: "Звонок",
-  isProfessional: "Проф.",
+  callRequired: "Нужен звонок?",
+  isProfessional: "Профессионал?",
   equipmentType: "Оборудование",
+  paymentType: "Степень оплаты",
   review: "Обзор",
 };
 
@@ -66,6 +75,7 @@ export default function AddNewOrderPage({
     callRequired: false,
     isProfessional: false,
     equipmentType: "",
+    paymentType: "",
   });
 
   const step = steps[stepIndex];
@@ -114,73 +124,73 @@ export default function AddNewOrderPage({
         return !form.arriveDate
           ? "Выберите дату"
           : new Date(form.arriveDate) < new Date()
-          ? "Дата должна быть в будущем"
-          : null;
+            ? "Дата должна быть в будущем"
+            : null;
       case "visitType":
         return required(form.visitType);
+
       case "equipmentType":
         return required(form.equipmentType);
+         case "paymentType":
+        return required(form.paymentType);
       default:
         return null;
     }
   };
 
- const handleSubmit = async () => {
-  setIsSubmitting(true);
-  try {
-  function preserveUserInputAsUTC(datetimeStr: string): Date {
-  const [datePart, timePart] = datetimeStr.split("T");
-  const [year, month, day] = datePart.split("-").map(Number);
-  const [hour, minute] = timePart.split(":").map(Number);
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      function preserveUserInputAsUTC(datetimeStr: string): Date {
+        const [datePart, timePart] = datetimeStr.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, minute] = timePart.split(":").map(Number);
 
-  // Считаем, что пользователь имел в виду это время в своей форме
-  // и сохраняем как UTC напрямую, без локального смещения
-  return new Date(Date.UTC(year, month - 1, day, hour, minute));
-}
+        // Считаем, что пользователь имел в виду это время в своей форме
+        // и сохраняем как UTC напрямую, без локального смещения
+        return new Date(Date.UTC(year, month - 1, day, hour, minute));
+      }
 
+      const body = {
+        ...form,
+        arriveDate: preserveUserInputAsUTC(form.arriveDate),
+      };
 
-   
+      const response = await fetch("/api/orders/new", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    const body = {
-      ...form,
-      arriveDate: preserveUserInputAsUTC(form.arriveDate),
-    };
+      if (!response.ok) throw new Error("Ошибка при создании");
 
-    const response = await fetch("/api/orders/new", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+      const created = await response.json();
 
-    if (!response.ok) throw new Error("Ошибка при создании");
+      setSubmitSuccess(true);
+      setForm({
+        fullName: "",
+        phone: "",
+        address: "",
+        city: "",
+        problem: "",
+        arriveDate: "",
+        visitType: "",
+        callRequired: false,
+        isProfessional: false,
+        equipmentType: "",
+        paymentType: "",
+      });
+      setStepIndex(0);
 
-    const created = await response.json();
-
-    setSubmitSuccess(true);
-    setForm({
-      fullName: "",
-      phone: "",
-      address: "",
-      city: "",
-      problem: "",
-      arriveDate: "",
-      visitType: "",
-      callRequired: false,
-      isProfessional: false,
-      equipmentType: "",
-    });
-    setStepIndex(0);
-
-    setTimeout(() => {
-      router.push(`/admin/orders/${created.id}`);
-    }, 1000);
-  } catch (e) {
-    alert("Произошла ошибка");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+      setTimeout(() => {
+        router.push(`/admin/orders/${created.id}`);
+      }, 1000);
+    } catch (e) {
+      alert("Произошла ошибка");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const renderStep = () => {
     switch (step) {
@@ -271,11 +281,24 @@ export default function AddNewOrderPage({
             onChange={(val) => handleChange("equipmentType", val)}
           />
         );
+      case "paymentType":
+        return (
+          <SelectStep
+            label="Тип оплаты"
+            options={[
+              { value: "HIGH", label: "Высокая" },
+              { value: "MEDIUM", label: "Средняя" },
+              { value: "LOW", label: "Низкая" },
+            ]}
+            value={form.paymentType}
+            onChange={(val) => handleChange("paymentType", val)}
+          />
+        );
       case "review":
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold mb-2">Проверьте данные</h2>
-            <div className="bg-white border rounded shadow-sm p-4 space-y-2 text-sm">
+            <h2 className="mb-2 text-xl font-bold">Проверьте данные</h2>
+            <div className="space-y-2 rounded border bg-white p-4 text-sm shadow-sm">
               <ReviewItem label="ФИО">{form.fullName}</ReviewItem>
               <ReviewItem label="Телефон">{form.phone}</ReviewItem>
               <ReviewItem label="Адрес">{form.address}</ReviewItem>
@@ -293,9 +316,8 @@ export default function AddNewOrderPage({
               <ReviewItem label="Профессиональный заказ">
                 {form.isProfessional ? "Да" : "Нет"}
               </ReviewItem>
-              <ReviewItem label="Прибор">
-                {form.equipmentType}
-              </ReviewItem>
+              <ReviewItem label="Прибор">{form.equipmentType}</ReviewItem>
+              <ReviewItem label="Тип оплаты">{payLabels[form.paymentType]}</ReviewItem>
             </div>
           </div>
         );
@@ -305,38 +327,38 @@ export default function AddNewOrderPage({
   const progressPercent = Math.round((stepIndex / (steps.length - 1)) * 100);
 
   return (
-    <div className="max-w-md mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">➕ Новый заказ</h1>
+    <div className="mx-auto max-w-md space-y-6 p-6">
+      <h1 className="text-center text-2xl font-bold">➕ Новый заказ</h1>
 
-      <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
         <div
-          className="bg-blue-500 h-full transition-all duration-300"
+          className="h-full bg-blue-500 transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
         ></div>
       </div>
 
-      <div className="text-center text-sm text-gray-500 mb-2">
+      <div className="mb-2 text-center text-sm text-gray-500">
         Шаг {stepIndex + 1} из {steps.length}: {stepLabels[step]}
       </div>
 
       {submitSuccess && (
-        <div className="bg-green-100 text-green-800 p-4 rounded text-center">
+        <div className="rounded bg-green-100 p-4 text-center text-green-800">
           Заказ успешно создан! Перенаправление...
         </div>
       )}
 
       {error && (
-        <div className="bg-red-100 text-red-800 p-3 rounded text-sm">
+        <div className="rounded bg-red-100 p-3 text-sm text-red-800">
           {error}
         </div>
       )}
 
       {renderStep()}
 
-      <div className="flex justify-between mt-4">
+      <div className="mt-4 flex justify-between">
         <button
           type="button"
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded disabled:opacity-50"
+          className="rounded bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400 disabled:opacity-50"
           onClick={handleBack}
           disabled={stepIndex === 0}
         >
@@ -347,7 +369,7 @@ export default function AddNewOrderPage({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
           >
             {isSubmitting ? "Создание..." : "Создать"}
           </button>
@@ -355,7 +377,7 @@ export default function AddNewOrderPage({
           <button
             type="button"
             onClick={handleNext}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Далее
           </button>
@@ -380,11 +402,11 @@ function InputStep({
 }) {
   return (
     <div>
-      <label className="block font-medium mb-1">{label}</label>
+      <label className="mb-1 block font-medium">{label}</label>
       <input
         type={type}
         placeholder={placeholder}
-        className="w-full border rounded px-3 py-2"
+        className="w-full rounded border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -405,9 +427,9 @@ function SelectStep({
 }) {
   return (
     <div>
-      <label className="block font-medium mb-1">{label}</label>
+      <label className="mb-1 block font-medium">{label}</label>
       <select
-        className="w-full border rounded px-3 py-2"
+        className="w-full rounded border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -437,7 +459,7 @@ function CheckboxStep({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-5 h-5"
+        className="h-5 w-5"
       />
       <label className="text-sm">{label}</label>
     </div>
@@ -454,7 +476,7 @@ function ReviewItem({
   return (
     <div className="flex justify-between border-b py-1">
       <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-right max-w-[60%]">{children}</span>
+      <span className="max-w-[60%] text-right font-medium">{children}</span>
     </div>
   );
 }

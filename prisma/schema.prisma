@@ -48,31 +48,36 @@ model Order {
 
   equipmentType       String
 
-  // Комментарии
+
   branchComment       String?
   callCenterNote      String?
 
-  // Статус и мастер
+
   status              OrderStatus   @default(PENDING)
   masterId            Int?
 
 
 
   checkType           CheckType?
+  paymentType         PaymentType?   @default(MEDIUM) 
 
-  //money
   received            Int?
   outlay              Int?
   receivedworker      Int?
  
 
-//
+
   documents           OrderDocument[]
 
-  // Временные поля
+
   dateCreated         DateTime      @default(now())
   dateStarted         DateTime?
   dateDone            DateTime?
+}
+enum PaymentType {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 model OrderDocument {

@@ -105,9 +105,6 @@ export default function OrderPage({ params }: Props) {
 Город: ${order.city}
 Компания: ${order.campaign}
 Оборудование: ${equipmentTypeMap[order.equipmentType] || order.equipmentType}
-Клиент заплатил: ${order.received?.toLocaleString() ?? "-"} ₽
-Выплата: ${order.outlay !== null ? order.outlay.toLocaleString() + " ₽" : "-"}
-Прибыль: ${order.receivedworker !== null ? order.receivedworker.toLocaleString() + " ₽" : "-"}
 Нужен звонок: ${order.callRequired ? "Да" : "Нет"}
 `
     : "";
@@ -247,7 +244,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
       <InfoBlock title="Телефон" value={order.phone} />
       <InfoBlock title="Адрес" value={order.address} />
       <InfoBlock title="Статус" value={statusMap[order.status] || order.status} />
-      <InfoBlock title="Дата визита" value={new Date(order.arriveDate).toLocaleString()} />
+      <InfoBlock title="Дата визита" value={new Date(order.arriveDate, ).toLocaleString()} />
       <InfoBlock title="Тип визита" value={visitTypeMap[order.visitType] || order.visitType} />
       <InfoBlock title="Город" value={order.city} />
       <InfoBlock title="Прибор" value={equipmentTypeMap[order.equipmentType] || order.equipmentType} />

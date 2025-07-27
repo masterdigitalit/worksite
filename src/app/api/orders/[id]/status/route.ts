@@ -38,13 +38,13 @@ export async function PATCH(
         return NextResponse.json(updated);
       }
       case "DONE": {
-        const { received, outlay, masterId } = body;
-        if (received === undefined || outlay === undefined || !masterId) {
+        const { received, outlay, masterId, receivedworker } = body;
+        if (received === undefined || outlay === undefined || !masterId || !receivedworker) {
           return new Response("received, outlay и masterId обязательны", {
             status: 400,
           });
         }
-        const updatedOrder = await completeOrder(orderId, received, outlay, masterId);
+        const updatedOrder = await completeOrder(orderId, received, outlay, masterId, receivedworker);
         return NextResponse.json(updatedOrder);
       }
       case "DECLINED": {

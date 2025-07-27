@@ -23,9 +23,10 @@ export async function completeOrder(
   orderId: number,
   received: number,
   outlay: number,
-  masterId: number
+  masterId: number,
+  receivedworker: number
 ) {
-    const receivedworker = Math.floor((received - outlay) / 2);
+    
   // Обновляем заказ: ставим статус, даты и финансовые поля
   const updatedOrder = await prisma.order.update({
     where: { id: orderId },

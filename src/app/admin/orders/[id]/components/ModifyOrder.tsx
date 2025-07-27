@@ -7,6 +7,7 @@ interface Props {
     id: number;
     status: string;
     masterId?: number;
+    paymentType?: "LOW" | "MEDIUM" | "HIGH";
   };
   setTab: (tab: string) => void;
   refetch: () => void;
@@ -39,11 +40,21 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
   useEffect(() => {
     const r = parseInt(received);
     const o = parseInt(outlay);
+
     if (!isNaN(r) && !isNaN(o)) {
-      const calculated = Math.floor((r - o) / 2);
+      const profit = r - o;
+      let percent = 0.5;
+
+
+      if (order.paymentType === "LOW") percent = 0.3;
+      else if (order.paymentType === "MEDIUM") percent = 0.4;
+      else if (order.paymentType === "HIGH") percent = 0.5;
+
+      const calculated = Math.floor(profit * percent);
+            console.log(r, o, percent, calculated)
       setReceivedWorker(calculated.toString());
     }
-  }, [received, outlay]);
+  }, [received, outlay, order.paymentType]);
 
   const handleAction = async () => {
     setLoading(true);
@@ -115,6 +126,7 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
           setLoading(false);
           return;
       }
+      console.log(payload)
 
       await fetch(`/api/orders/${order.id}/status`, {
         method: "PATCH",

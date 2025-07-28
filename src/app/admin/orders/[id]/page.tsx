@@ -3,7 +3,7 @@ import MasterTabContent from "./components/MasterTab";
 import { useState, useEffect } from "react";
 import DocumentsTabContent from "./components/DocumentsTab";
 import ModifyTabContent from "./components/ModifyOrder";
-
+import Link from "next/link";
 const statusMap: Record<string, string> = {
   PENDING: "Ожидает",
   IN_PROGRESS: "В работе",
@@ -107,7 +107,7 @@ ${order.city}
 ${order.address}
 ${order.problem}
 ${order.phone} ${order.fullName}
-${order.timeRange || ""}
+
 `.trim()
   : "";
 // ${order.campaign ? `Листовка ${order.campaign}` : ""}
@@ -281,21 +281,33 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
  
   
 
-      {["PENDING", "ON_THE_WAY", "IN_PROGRESS", "IN_PROGRESS_SD"].includes(order.status) && (
-        <div className="mt-6 justify-start">
-          <button
-            className="rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 transition"
-            onClick={() => setActiveTab("modify")}
-          >
-            {{
-              PENDING: "Назначить работника",
-              ON_THE_WAY: "Работник на месте",
-              IN_PROGRESS: "Закрыть заказ",
-              IN_PROGRESS_SD: "Закрыть заказ",
-            }[order.status]}
-          </button>
-        </div>
-      )}
+{["PENDING", "ON_THE_WAY", "IN_PROGRESS", "IN_PROGRESS_SD"].includes(order.status) && (
+  <div className="mt-6">
+    <button
+      className="w-full rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 transition mb-3"
+      onClick={() => setActiveTab("modify")}
+    >
+      {{
+        PENDING: "Назначить работника",
+        ON_THE_WAY: "Работник на месте",
+        IN_PROGRESS: "Закрыть заказ",
+        IN_PROGRESS_SD: "Закрыть заказ",
+      }[order.status]}
+    </button>
+  </div>
+)}
+
+{/* Кнопка редактирования — вне зависимости от статуса */}
+<div className="mt-0">
+  <Link
+    href={`/admin/orders/${order.id}/edit`}
+    className="block w-full text-center rounded bg-yellow-500 px-5 py-2 text-white hover:bg-yellow-600 transition"
+  >
+    ✏️ Редактировать заказ
+  </Link>
+</div>
+
+
     </div>
   );
 }

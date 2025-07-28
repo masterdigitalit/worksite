@@ -1,14 +1,14 @@
 # Запуск приложения (замени app.js на свой entrypoint, например: npm run start)
-pm2 start npm --name "my-app" -- run dev
+pm2 start npm --name "my-next-app" -- run dev
 
 # Просмотр списка запущенных процессов
 pm2 list
 
 # Перезапуск приложения по имени
-pm2 restart my-app
+pm2 restart my-next-app
 
 # Остановка приложения
-pm2 stop my-app
+pm2 stop my-next-app
 
 # Удаление приложения из pm2
 pm2 delete my-app
@@ -17,7 +17,7 @@ pm2 delete my-app
 pm2 monit
 
 # Просмотр логов приложения
-pm2 logs my-app
+pm2 logs my-next-app
 
 # Сохранение текущей конфигурации процессов
 pm2 save
@@ -29,7 +29,7 @@ pm2 startup
 
 # Примеры логов
 pm2 logs          # Все логи
-pm2 logs my-app   # Логи конкретного приложения
+pm2 logs my-next-app   # Логи конкретного приложения
 
 # Очистка логов
 pm2 flush

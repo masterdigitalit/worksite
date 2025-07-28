@@ -153,8 +153,7 @@ export default function AddNewOrderPage({
         const [year, month, day] = datePart.split("-").map(Number);
         const [hour, minute] = timePart.split(":").map(Number);
 
-        // Считаем, что пользователь имел в виду это время в своей форме
-        // и сохраняем как UTC напрямую, без локального смещения
+
         return new Date(Date.UTC(year, month - 1, day, hour, minute));
       }
 

@@ -57,7 +57,7 @@ const fullName =
 
           <div className="text-sm text-gray-600 space-y-1 mt-2">
             <p>💸 Зарплата сотрудников: <span className="font-semibold">{profitStats.receivedworker} ₽</span></p>
-            <p>🧾 Расходы на закуп: <span className="font-semibold">{profitStats.outlay} ₽</span></p>
+            <p>🧾 Расходы: <span className="font-semibold">{profitStats.outlay} ₽</span></p>
           </div>
         </div>
       </div>

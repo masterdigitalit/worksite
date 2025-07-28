@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import clsx from "clsx";
 const visitTypeLabels = {
   FIRST: "Первичный",
   GARAGE: "Гарантийный",
@@ -17,8 +17,8 @@ const visitTypeRowColors = {
 const statusLabels = {
   PENDING: "Ожидает",
   ON_THE_WAY: "В пути",
-  IN_PROGRESS: "В процессе",
-  IN_PROGRESS_SD: "В процессе (СД)",
+  IN_PROGRESS: "В работе",
+  IN_PROGRESS_SD: "В работе (СД)",
   DECLINED: "Отклонён",
   CANCEL_CC: "Отмена (Колл-центр)",
   CANCEL_BRANCH: "Отмена (Филиал)",
@@ -264,8 +264,13 @@ export default function OrdersPage() {
                     {statusLabels[order.status] || order.status}
                   </td>
                   <td className="border p-2 text-center">
+                    {order.wastimechanged !== 0 && (
+                      <div className="mb-1 font-semibold text-red-600">
+                        перенос
+                      </div>
+                    )}
                     {overdue && <div className="overdue-label">Просрочено</div>}
-                    <div className={overdue ? "blinking-red" : ""}>
+                  <div className={overdue  ? "blinking-red":  order.wastimechanged !== 0 ? 'text-red-500' : ""}>
                       {new Date(order.arriveDate)
                         .toISOString()
                         .replace("T", " ")

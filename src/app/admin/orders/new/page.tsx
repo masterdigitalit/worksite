@@ -290,7 +290,7 @@ export default function AddNewOrderPage({
       case "paymentType":
         return (
           <SelectStep
-            label="Тип оплаты"
+            label="Тип прибыли"
             options={[
               { value: "HIGH", label: "Высокая" },
               { value: "MEDIUM", label: "Средняя" },

@@ -3,32 +3,32 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-interface Document {
-  id: number;
-  url: string;
-  type: string;
-}
-
 interface Order {
   id: number;
   fullName: string;
   phone: string;
   address: string;
-  status: string;
-  problem?: string;
   arriveDate: string;
-  visitType: string;
   city: string;
-  campaign: string;
+  status: string;
+  visitType: string;
   equipmentType: string;
-  pureCheck: number | null;
   callRequired: boolean;
+  problem?: string;
   paymentType: string;
-  documents?: Array<Document>;
   masterId?: number | null;
   received?: number | null;
   outlay?: number | null;
   receivedworker?: number | null;
+}
+
+interface Worker {
+  id: number;
+  fullName: string;
+  telegramUsername?: string | null;
+  phone: string;
+  ordersCompleted: number;
+  totalEarned: number;
 }
 
 const STATUS_OPTIONS = [
@@ -44,7 +44,7 @@ const STATUS_OPTIONS = [
 
 const VISIT_TYPE_OPTIONS = [
   { value: 'FIRST', label: 'Первичный' },
-  { value: 'GARAGE', label: 'Гараж' },
+  { value: 'GARAGE', label: 'Гарантия' },
   { value: 'REPEAT', label: 'Повторный' },
 ];
 
@@ -53,74 +53,38 @@ const PAYMENT_TYPE_OPTIONS = [
   { value: 'MEDIUM', label: 'Средняя' },
   { value: 'LOW', label: 'Низкая' },
 ];
-function formatDateToLocalDatetimeInput(dateStr: string | Date): string {
-  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
 
-  const pad = (n: number) => n.toString().padStart(2, '0');
-
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours() -3);
-  const minutes = pad(date.getMinutes());
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+function preserveUserInputAsUTC(datetimeStr: string): Date {
+  const [datePart, timePart] = datetimeStr.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hour, minute));
 }
 
+function formatDateToLocalDatetimeInput(dateStr: string | Date): string {
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
- function preserveUserInputAsUTC(datetimeStr: string): Date {
-        const [datePart, timePart] = datetimeStr.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute] = timePart.split(":").map(Number);
-
-
-        return new Date(Date.UTC(year, month - 1, day, hour, minute));
-      }
-
-
-function EditableInfoBlock({
-  title,
-  name,
-  value,
-  type = 'text',
-  options,
-  onChange,
-}: {
-  title: string;
-  name: keyof Order;
-  value: any;
-  type?: 'text' | 'number' | 'date' | 'datetime-local' | 'select' | 'checkbox' | 'textarea';
-  options?: { value: string; label: string }[];
-  onChange: (name: keyof Order, value: any) => void;
-}) {
-  const isFinance = [
-    'Клиент заплатил',
-    'Затраты',
-    'Чистая прибыль',
-    'Зп работника',
-    'Выплата',
-    'Прибыль',
-  ].includes(title);
-
+function EditableInfoBlock({ title, name, value, onChange, type = 'text', options, disabled = false }: any) {
   const baseInputClasses =
-    "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 transition-shadow duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-blue-400 focus:border-blue-500 shadow-sm";
-
-  const selectClasses = baseInputClasses + " pr-10 cursor-pointer";
+    "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 transition-shadow duration-300 focus:outline-none focus:ring-4 focus:ring-blue-400 focus:border-blue-500 shadow-sm";
 
   return (
-    <div className={`mb-6 rounded-xl border border-gray-300 bg-white p-5 shadow-sm text-sm ${isFinance ? 'bg-gray-50' : ''}`}>
+    <div className="mb-6 border bg-white rounded-xl p-5 shadow-sm text-sm">
       <label className="block mb-2 font-semibold text-gray-700">{title}</label>
 
       {type === 'select' && options ? (
         <select
-          className={selectClasses}
-          value={value}
+          disabled={disabled}
+          className={baseInputClasses + " pr-10"}
+          value={value ?? ''}
           onChange={(e) => onChange(name, e.target.value)}
         >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+          <option value="">Не выбрано</option>
+          {options.map((opt: any) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       ) : type === 'checkbox' ? (
@@ -128,25 +92,26 @@ function EditableInfoBlock({
           <input
             id={name}
             type="checkbox"
-            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-400"
+            disabled={disabled}
+            className="h-5 w-5"
             checked={value}
             onChange={(e) => onChange(name, e.target.checked)}
           />
-          <label htmlFor={name} className="text-gray-700 select-none">
-            {value ? 'Да' : 'Нет'}
-          </label>
+          <label htmlFor={name}>{value ? 'Да' : 'Нет'}</label>
         </div>
       ) : type === 'textarea' ? (
         <textarea
+          disabled={disabled}
           className={baseInputClasses + " resize-y min-h-[100px]"}
           value={value ?? ''}
           onChange={(e) => onChange(name, e.target.value)}
         />
       ) : (
         <input
+          disabled={disabled}
           type={type}
           className={baseInputClasses}
-          value={value ?? ''}
+        
           onChange={(e) => onChange(name, e.target.value)}
         />
       )}
@@ -154,100 +119,200 @@ function EditableInfoBlock({
   );
 }
 
+function MasterInfo({ masterId }: { masterId?: number | null }) {
+  const [worker, setWorker] = useState<Worker | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!masterId) return;
+    setLoading(true);
+    fetch(`/api/workers/${masterId}`)
+      .then(res => res.json())
+      .then(data => setWorker(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [masterId]);
+
+  if (!masterId) return <p className="text-center text-gray-600">Мастер не назначен</p>;
+  if (loading) return <p className="text-gray-500">Загрузка информации...</p>;
+  if (!worker) return <p className="text-red-500">Мастер не найден</p>;
+
+  return (
+    <div className="mb-6 border bg-white rounded-xl p-5 shadow-sm text-sm">
+      <h2 className="text-xl font-semibold mb-3">Информация о мастере</h2>
+      <p><strong>ФИО:</strong> {worker.fullName}</p>
+      <p><strong>Телефон:</strong> {worker.phone}</p>
+      {worker.telegramUsername && <p><strong>Telegram:</strong> {worker.telegramUsername}</p>}
+      <p><strong>Завершено заказов:</strong> {worker.ordersCompleted}</p>
+      <p><strong>Всего заработано:</strong> {worker.totalEarned} ₽</p>
+    </div>
+  );
+}
+
 export default function EditOrderPage() {
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
+  const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
   const [updatedFields, setUpdatedFields] = useState<Partial<Order>>({});
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  async function fetchOrder() {
-    try {
-      const res = await fetch(`/api/orders/${params.id}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Ошибка загрузки');
-      }
-      const data = await res.json();
-      setOrder(data);
-      setUpdatedFields({});
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-      setOrder(null);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // В локальном состоянии для receivedworker храним строку для контроля ввода
+  const [receivedWorkerStr, setReceivedWorkerStr] = useState<string>('');
 
   useEffect(() => {
-    fetchOrder();
+    fetch(`/api/orders/${params.id}`)
+      .then(res => res.json())
+      .then(data => {
+        setOrder(data);
+        setOriginalOrder(data);
+        setReceivedWorkerStr(data.receivedworker?.toString() ?? '');
+      })
+      .finally(() => setLoading(false));
+
+    fetch('/api/workers')
+      .then(res => res.json())
+      .then(setWorkers);
   }, [params.id]);
 
-  function handleFieldChange(name: keyof Order, value: any) {
-    setOrder((prev) => (prev ? { ...prev, [name]: value } : prev));
-    setUpdatedFields((prev) => ({ ...prev, [name]: value }));
+  // Обновляем order при вводе в форму
+function handleFieldChange(name: keyof Order, value: any) {
+  // Для полей financial приводим к числу (если пустая строка — null)
+  if (['received', 'outlay', 'receivedworker'].includes(name)) {
+    const num = value === '' ? null : Number(value);
+    value = isNaN(num) ? null : num;
   }
 
-  async function handleSave() {
+  setOrder(prev => prev ? { ...prev, [name]: value } : prev);
+  setUpdatedFields(prev => ({ ...prev, [name]: value }));
+}
+
+
+  // Автоматический расчет receivedworker при изменении received, outlay, paymentType
+  useEffect(() => {
     if (!order) return;
 
-    try {
-      const res = await fetch(`/api/orders/${order.id}/update`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedFields),
-      });
+    // Берём числа (если null или undefined, считаем 0)
+    const r = Number(order.received ?? 0);
+    const o = Number(order.outlay ?? 0);
+    let percent = 0.5;
 
-      if (!res.ok) {
-        const err = await res.json();
-        alert("Ошибка при сохранении: " + err.error || res.statusText);
-        return;
-      }
+    if (order.paymentType === 'LOW') percent = 0.7;
+    else if (order.paymentType === 'MEDIUM') percent = 0.6;
+    else if (order.paymentType === 'HIGH') percent = 0.5;
 
-      const updated = await res.json();
-      console.log("Успешно обновлено:", updated);
-      setUpdatedFields({});
-    } catch (err) {
-      console.error("Ошибка отправки:", err);
-      alert("Не удалось сохранить изменения");
+    const profit = r - o;
+    const calculated = Math.floor(profit * percent);
+
+    // Если profit отрицательный, не даём отрицательный receivedworker
+    const finalValue = calculated > 0 ? calculated : 0;
+
+    // Обновляем в локальном состоянии и в order
+    setReceivedWorkerStr(finalValue.toString());
+    setOrder(prev => prev ? { ...prev, receivedworker: finalValue } : prev);
+    setUpdatedFields(prev => ({ ...prev, receivedworker: finalValue }));
+  }, [order?.received, order?.outlay, order?.paymentType]);
+
+  async function handleSave() {
+    if (!order || !originalOrder) return;
+
+    const originalStatus = originalOrder.status;
+    const newStatus = updatedFields.status;
+    const isStatusChangedFromDone = originalStatus === 'DONE' && newStatus && newStatus !== 'DONE';
+
+    const payload = {
+      ...updatedFields,
+      ...(isStatusChangedFromDone && {
+        received: 0,
+        outlay: 0,
+        receivedworker: 0,
+      }),
+    };
+
+    const res = await fetch(`/api/orders/${order.id}/update`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      return alert('Ошибка при сохранении изменений');
     }
+
+    const updatedOrder = await res.json();
+    setOrder(updatedOrder);
+    setOriginalOrder(updatedOrder);
+    setUpdatedFields({});
+    setReceivedWorkerStr(updatedOrder.receivedworker?.toString() ?? '');
   }
 
-  if (loading) return <div className="p-6">Загрузка...</div>;
-  if (error) return <div className="p-6 text-red-500">Ошибка: {error}</div>;
-  if (!order) return null;
-  console.log(order.arriveDate)
+  if (loading || !order) return <p className="p-6">Загрузка...</p>;
+
+  const isDoneOriginally = originalOrder?.status === 'DONE';
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Редактирование заказа #{order.id}</h1>
+      <h1 className="text-2xl font-bold mb-6">Редактирование заказа #{order.id}</h1>
 
       <EditableInfoBlock title="ФИО клиента" name="fullName" value={order.fullName} onChange={handleFieldChange} />
       <EditableInfoBlock title="Телефон" name="phone" value={order.phone} onChange={handleFieldChange} />
       <EditableInfoBlock title="Адрес" name="address" value={order.address} onChange={handleFieldChange} />
-<EditableInfoBlock
-  title="Дата визита"
-  name="arriveDate"
-  value={formatDateToLocalDatetimeInput(order.arriveDate)}
+      <EditableInfoBlock
+        title="Дата визита"
+        name="arriveDate"
+        type="datetime-local"
 
-            type="datetime-local"
-
-  onChange={(name, value) =>
-    handleFieldChange(name,  preserveUserInputAsUTC(value))
-  }
-/>
-
-
+        onChange={(name, value) => handleFieldChange(name, preserveUserInputAsUTC(value))}
+      />
       <EditableInfoBlock title="Тип визита" name="visitType" type="select" options={VISIT_TYPE_OPTIONS} value={order.visitType} onChange={handleFieldChange} />
       <EditableInfoBlock title="Статус заказа" name="status" type="select" options={STATUS_OPTIONS} value={order.status} onChange={handleFieldChange} />
       <EditableInfoBlock title="Описание проблемы" name="problem" type="textarea" value={order.problem || ''} onChange={handleFieldChange} />
       <EditableInfoBlock title="Город" name="city" value={order.city} onChange={handleFieldChange} />
       <EditableInfoBlock title="Прибор" name="equipmentType" value={order.equipmentType} onChange={handleFieldChange} />
       <EditableInfoBlock title="Нужен звонок" name="callRequired" type="checkbox" value={order.callRequired} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Тип прибыли" name="paymentType" type="select" options={PAYMENT_TYPE_OPTIONS} value={order.paymentType} onChange={handleFieldChange} />
+      <EditableInfoBlock title="Тип оплаты" name="paymentType" type="select" options={PAYMENT_TYPE_OPTIONS} value={order.paymentType} onChange={handleFieldChange} />
+
+      <EditableInfoBlock
+        title="Получено от клиента (₽)"
+        name="received"
+        type="number"
+        value={order.received ?? ''}
+        onChange={handleFieldChange}
+        disabled={!isDoneOriginally}
+      />
+      <EditableInfoBlock
+        title="Расходы (₽)"
+        name="outlay"
+        type="number"
+        value={order.outlay ?? ''}
+        onChange={handleFieldChange}
+        disabled={!isDoneOriginally}
+      />
+      <EditableInfoBlock
+        title="Выплата мастеру (₽)"
+        name="receivedworker"
+        type="number"
+        value={receivedWorkerStr}
+        onChange={(name, value) => {
+          // Чтобы вручную менять receivedworker (если нужно)
+          setReceivedWorkerStr(value);
+          const numValue = Number(value);
+          setOrder(prev => prev ? { ...prev, receivedworker: isNaN(numValue) ? 0 : numValue } : prev);
+          setUpdatedFields(prev => ({ ...prev, receivedworker: isNaN(numValue) ? 0 : numValue }));
+        }}
+        disabled={!isDoneOriginally}
+      />
+
+      <EditableInfoBlock
+        title="ID мастера"
+        name="masterId"
+        type="select"
+        options={workers.map(w => ({ value: w.id.toString(), label: w.fullName }))}
+        value={order.masterId?.toString() ?? ''}
+        onChange={(name, value) => handleFieldChange(name, value ? Number(value) : null)}
+      />
+
+      <MasterInfo masterId={order.masterId} />
 
       <button
         onClick={handleSave}

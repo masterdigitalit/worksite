@@ -73,6 +73,7 @@ model Order {
   dateCreated         DateTime      @default(now())
   dateStarted         DateTime?
   dateDone            DateTime?
+  wastimechanged      Int?  @default(0)
 }
 enum PaymentType {
   HIGH

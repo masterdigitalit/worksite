@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 interface Order {
   id: number;
@@ -32,26 +32,26 @@ interface Worker {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Ожидает' },
-  { value: 'ON_THE_WAY', label: 'В пути' },
-  { value: 'IN_PROGRESS', label: 'В работе' },
-  { value: 'IN_PROGRESS_SD', label: 'В работе (СД)' },
-  { value: 'DECLINED', label: 'Отклонён' },
-  { value: 'CANCEL_CC', label: 'Отмена (Колл-центр)' },
-  { value: 'CANCEL_BRANCH', label: 'Отмена (Филиал)' },
-  { value: 'DONE', label: 'Завершён' },
+  { value: "PENDING", label: "Ожидает" },
+  { value: "ON_THE_WAY", label: "В пути" },
+  { value: "IN_PROGRESS", label: "В работе" },
+  { value: "IN_PROGRESS_SD", label: "В работе (СД)" },
+  { value: "DECLINED", label: "Отклонён" },
+  { value: "CANCEL_CC", label: "Отмена (Колл-центр)" },
+  { value: "CANCEL_BRANCH", label: "Отмена (Филиал)" },
+  { value: "DONE", label: "Завершён" },
 ];
 
 const VISIT_TYPE_OPTIONS = [
-  { value: 'FIRST', label: 'Первичный' },
-  { value: 'GARAGE', label: 'Гарантия' },
-  { value: 'REPEAT', label: 'Повторный' },
+  { value: "FIRST", label: "Первичный" },
+  { value: "GARAGE", label: "Гарантия" },
+  { value: "REPEAT", label: "Повторный" },
 ];
 
 const PAYMENT_TYPE_OPTIONS = [
-  { value: 'HIGH', label: 'Высокая' },
-  { value: 'MEDIUM', label: 'Средняя' },
-  { value: 'LOW', label: 'Низкая' },
+  { value: "HIGH", label: "Высокая" },
+  { value: "MEDIUM", label: "Средняя" },
+  { value: "LOW", label: "Низкая" },
 ];
 
 function preserveUserInputAsUTC(datetimeStr: string): Date {
@@ -62,32 +62,42 @@ function preserveUserInputAsUTC(datetimeStr: string): Date {
 }
 
 function formatDateToLocalDatetimeInput(dateStr: string | Date): string {
-  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  const pad = (n: number) => n.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function EditableInfoBlock({ title, name, value, onChange, type = 'text', options, disabled = false }: any) {
+function EditableInfoBlock({
+  title,
+  name,
+  value,
+  onChange,
+  type = "text",
+  options,
+  disabled = false,
+}: any) {
   const baseInputClasses =
     "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 transition-shadow duration-300 focus:outline-none focus:ring-4 focus:ring-blue-400 focus:border-blue-500 shadow-sm";
 
   return (
-    <div className="mb-6 border bg-white rounded-xl p-5 shadow-sm text-sm">
-      <label className="block mb-2 font-semibold text-gray-700">{title}</label>
+    <div className="mb-6 rounded-xl border bg-white p-5 text-sm shadow-sm">
+      <label className="mb-2 block font-semibold text-gray-700">{title}</label>
 
-      {type === 'select' && options ? (
+      {type === "select" && options ? (
         <select
           disabled={disabled}
           className={baseInputClasses + " pr-10"}
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(name, e.target.value)}
         >
           <option value="">Не выбрано</option>
           {options.map((opt: any) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
-      ) : type === 'checkbox' ? (
+      ) : type === "checkbox" ? (
         <div className="flex items-center space-x-3">
           <input
             id={name}
@@ -97,13 +107,13 @@ function EditableInfoBlock({ title, name, value, onChange, type = 'text', option
             checked={value}
             onChange={(e) => onChange(name, e.target.checked)}
           />
-          <label htmlFor={name}>{value ? 'Да' : 'Нет'}</label>
+          <label htmlFor={name}>{value ? "Да" : "Нет"}</label>
         </div>
-      ) : type === 'textarea' ? (
+      ) : type === "textarea" ? (
         <textarea
           disabled={disabled}
-          className={baseInputClasses + " resize-y min-h-[100px]"}
-          value={value ?? ''}
+          className={baseInputClasses + " min-h-[100px] resize-y"}
+          value={value ?? ""}
           onChange={(e) => onChange(name, e.target.value)}
         />
       ) : (
@@ -111,7 +121,7 @@ function EditableInfoBlock({ title, name, value, onChange, type = 'text', option
           disabled={disabled}
           type={type}
           className={baseInputClasses}
-        
+          value={type !== "datetime-local" ? (value ?? "") : undefined}
           onChange={(e) => onChange(name, e.target.value)}
         />
       )}
@@ -127,24 +137,37 @@ function MasterInfo({ masterId }: { masterId?: number | null }) {
     if (!masterId) return;
     setLoading(true);
     fetch(`/api/workers/${masterId}`)
-      .then(res => res.json())
-      .then(data => setWorker(data))
+      .then((res) => res.json())
+      .then((data) => setWorker(data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [masterId]);
 
-  if (!masterId) return <p className="text-center text-gray-600">Мастер не назначен</p>;
+  if (!masterId)
+    return <p className="text-center text-gray-600">Мастер не назначен</p>;
   if (loading) return <p className="text-gray-500">Загрузка информации...</p>;
   if (!worker) return <p className="text-red-500">Мастер не найден</p>;
 
   return (
-    <div className="mb-6 border bg-white rounded-xl p-5 shadow-sm text-sm">
-      <h2 className="text-xl font-semibold mb-3">Информация о мастере</h2>
-      <p><strong>ФИО:</strong> {worker.fullName}</p>
-      <p><strong>Телефон:</strong> {worker.phone}</p>
-      {worker.telegramUsername && <p><strong>Telegram:</strong> {worker.telegramUsername}</p>}
-      <p><strong>Завершено заказов:</strong> {worker.ordersCompleted}</p>
-      <p><strong>Всего заработано:</strong> {worker.totalEarned} ₽</p>
+    <div className="mb-6 rounded-xl border bg-white p-5 text-sm shadow-sm">
+      <h2 className="mb-3 text-xl font-semibold">Информация о мастере</h2>
+      <p>
+        <strong>ФИО:</strong> {worker.fullName}
+      </p>
+      <p>
+        <strong>Телефон:</strong> {worker.phone}
+      </p>
+      {worker.telegramUsername && (
+        <p>
+          <strong>Telegram:</strong> {worker.telegramUsername}
+        </p>
+      )}
+      <p>
+        <strong>Завершено заказов:</strong> {worker.ordersCompleted}
+      </p>
+      <p>
+        <strong>Всего заработано:</strong> {worker.totalEarned} ₽
+      </p>
     </div>
   );
 }
@@ -158,35 +181,34 @@ export default function EditOrderPage() {
   const [loading, setLoading] = useState(true);
 
   // В локальном состоянии для receivedworker храним строку для контроля ввода
-  const [receivedWorkerStr, setReceivedWorkerStr] = useState<string>('');
+  const [receivedWorkerStr, setReceivedWorkerStr] = useState<string>("");
 
   useEffect(() => {
     fetch(`/api/orders/${params.id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setOrder(data);
         setOriginalOrder(data);
-        setReceivedWorkerStr(data.receivedworker?.toString() ?? '');
+        setReceivedWorkerStr(data.receivedworker?.toString() ?? "");
       })
       .finally(() => setLoading(false));
 
-    fetch('/api/workers')
-      .then(res => res.json())
+    fetch("/api/workers")
+      .then((res) => res.json())
       .then(setWorkers);
   }, [params.id]);
 
   // Обновляем order при вводе в форму
-function handleFieldChange(name: keyof Order, value: any) {
-  // Для полей financial приводим к числу (если пустая строка — null)
-  if (['received', 'outlay', 'receivedworker'].includes(name)) {
-    const num = value === '' ? null : Number(value);
-    value = isNaN(num) ? null : num;
+  function handleFieldChange(name: keyof Order, value: any) {
+    // Для полей financial приводим к числу (если пустая строка — null)
+    if (["received", "outlay", "receivedworker"].includes(name)) {
+      const num = value === "" ? null : Number(value);
+      value = isNaN(num) ? null : num;
+    }
+
+    setOrder((prev) => (prev ? { ...prev, [name]: value } : prev));
+    setUpdatedFields((prev) => ({ ...prev, [name]: value }));
   }
-
-  setOrder(prev => prev ? { ...prev, [name]: value } : prev);
-  setUpdatedFields(prev => ({ ...prev, [name]: value }));
-}
-
 
   // Автоматический расчет receivedworker при изменении received, outlay, paymentType
   useEffect(() => {
@@ -197,9 +219,9 @@ function handleFieldChange(name: keyof Order, value: any) {
     const o = Number(order.outlay ?? 0);
     let percent = 0.5;
 
-    if (order.paymentType === 'LOW') percent = 0.7;
-    else if (order.paymentType === 'MEDIUM') percent = 0.6;
-    else if (order.paymentType === 'HIGH') percent = 0.5;
+    if (order.paymentType === "LOW") percent = 0.7;
+    else if (order.paymentType === "MEDIUM") percent = 0.6;
+    else if (order.paymentType === "HIGH") percent = 0.5;
 
     const profit = r - o;
     const calculated = Math.floor(profit * percent);
@@ -209,8 +231,8 @@ function handleFieldChange(name: keyof Order, value: any) {
 
     // Обновляем в локальном состоянии и в order
     setReceivedWorkerStr(finalValue.toString());
-    setOrder(prev => prev ? { ...prev, receivedworker: finalValue } : prev);
-    setUpdatedFields(prev => ({ ...prev, receivedworker: finalValue }));
+    setOrder((prev) => (prev ? { ...prev, receivedworker: finalValue } : prev));
+    setUpdatedFields((prev) => ({ ...prev, receivedworker: finalValue }));
   }, [order?.received, order?.outlay, order?.paymentType]);
 
   async function handleSave() {
@@ -218,7 +240,8 @@ function handleFieldChange(name: keyof Order, value: any) {
 
     const originalStatus = originalOrder.status;
     const newStatus = updatedFields.status;
-    const isStatusChangedFromDone = originalStatus === 'DONE' && newStatus && newStatus !== 'DONE';
+    const isStatusChangedFromDone =
+      originalStatus === "DONE" && newStatus && newStatus !== "DONE";
 
     const payload = {
       ...updatedFields,
@@ -230,53 +253,114 @@ function handleFieldChange(name: keyof Order, value: any) {
     };
 
     const res = await fetch(`/api/orders/${order.id}/update`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      return alert('Ошибка при сохранении изменений');
+      return alert("Ошибка при сохранении изменений");
     }
 
     const updatedOrder = await res.json();
     setOrder(updatedOrder);
     setOriginalOrder(updatedOrder);
     setUpdatedFields({});
-    setReceivedWorkerStr(updatedOrder.receivedworker?.toString() ?? '');
+    setReceivedWorkerStr(updatedOrder.receivedworker?.toString() ?? "");
   }
 
   if (loading || !order) return <p className="p-6">Загрузка...</p>;
 
-  const isDoneOriginally = originalOrder?.status === 'DONE';
+  const isDoneOriginally = originalOrder?.status === "DONE";
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Редактирование заказа #{order.id}</h1>
+    <div className="mx-auto max-w-3xl p-6">
+      <h1 className="mb-6 text-2xl font-bold">
+        Редактирование заказа #{order.id}
+      </h1>
 
-      <EditableInfoBlock title="ФИО клиента" name="fullName" value={order.fullName} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Телефон" name="phone" value={order.phone} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Адрес" name="address" value={order.address} onChange={handleFieldChange} />
+      <EditableInfoBlock
+        title="ФИО клиента"
+        name="fullName"
+        value={order.fullName}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Телефон"
+        name="phone"
+        value={order.phone}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Адрес"
+        name="address"
+        value={order.address}
+        onChange={handleFieldChange}
+      />
       <EditableInfoBlock
         title="Дата визита"
         name="arriveDate"
         type="datetime-local"
-
-        onChange={(name, value) => handleFieldChange(name, preserveUserInputAsUTC(value))}
+        onChange={(name, value) =>
+          handleFieldChange(name, preserveUserInputAsUTC(value))
+        }
       />
-      <EditableInfoBlock title="Тип визита" name="visitType" type="select" options={VISIT_TYPE_OPTIONS} value={order.visitType} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Статус заказа" name="status" type="select" options={STATUS_OPTIONS} value={order.status} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Описание проблемы" name="problem" type="textarea" value={order.problem || ''} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Город" name="city" value={order.city} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Прибор" name="equipmentType" value={order.equipmentType} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Нужен звонок" name="callRequired" type="checkbox" value={order.callRequired} onChange={handleFieldChange} />
-      <EditableInfoBlock title="Тип оплаты" name="paymentType" type="select" options={PAYMENT_TYPE_OPTIONS} value={order.paymentType} onChange={handleFieldChange} />
+      <EditableInfoBlock
+        title="Тип визита"
+        name="visitType"
+        type="select"
+        options={VISIT_TYPE_OPTIONS}
+        value={order.visitType}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Статус заказа"
+        name="status"
+        type="select"
+        options={STATUS_OPTIONS}
+        value={order.status}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Описание проблемы"
+        name="problem"
+        type="textarea"
+        value={order.problem || ""}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Город"
+        name="city"
+        value={order.city}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Прибор"
+        name="equipmentType"
+        value={order.equipmentType}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Нужен звонок"
+        name="callRequired"
+        type="checkbox"
+        value={order.callRequired}
+        onChange={handleFieldChange}
+      />
+      <EditableInfoBlock
+        title="Тип оплаты"
+        name="paymentType"
+        type="select"
+        options={PAYMENT_TYPE_OPTIONS}
+        value={order.paymentType}
+        onChange={handleFieldChange}
+      />
 
       <EditableInfoBlock
         title="Получено от клиента (₽)"
         name="received"
         type="number"
-        value={order.received ?? ''}
+        value={order.received ?? ""}
         onChange={handleFieldChange}
         disabled={!isDoneOriginally}
       />
@@ -284,7 +368,7 @@ function handleFieldChange(name: keyof Order, value: any) {
         title="Расходы (₽)"
         name="outlay"
         type="number"
-        value={order.outlay ?? ''}
+        value={order.outlay ?? ""}
         onChange={handleFieldChange}
         disabled={!isDoneOriginally}
       />
@@ -297,8 +381,15 @@ function handleFieldChange(name: keyof Order, value: any) {
           // Чтобы вручную менять receivedworker (если нужно)
           setReceivedWorkerStr(value);
           const numValue = Number(value);
-          setOrder(prev => prev ? { ...prev, receivedworker: isNaN(numValue) ? 0 : numValue } : prev);
-          setUpdatedFields(prev => ({ ...prev, receivedworker: isNaN(numValue) ? 0 : numValue }));
+          setOrder((prev) =>
+            prev
+              ? { ...prev, receivedworker: isNaN(numValue) ? 0 : numValue }
+              : prev,
+          );
+          setUpdatedFields((prev) => ({
+            ...prev,
+            receivedworker: isNaN(numValue) ? 0 : numValue,
+          }));
         }}
         disabled={!isDoneOriginally}
       />
@@ -307,9 +398,14 @@ function handleFieldChange(name: keyof Order, value: any) {
         title="ID мастера"
         name="masterId"
         type="select"
-        options={workers.map(w => ({ value: w.id.toString(), label: w.fullName }))}
-        value={order.masterId?.toString() ?? ''}
-        onChange={(name, value) => handleFieldChange(name, value ? Number(value) : null)}
+        options={workers.map((w) => ({
+          value: w.id.toString(),
+          label: w.fullName,
+        }))}
+        value={order.masterId?.toString() ?? ""}
+        onChange={(name, value) =>
+          handleFieldChange(name, value ? Number(value) : null)
+        }
       />
 
       <MasterInfo masterId={order.masterId} />
@@ -319,8 +415,8 @@ function handleFieldChange(name: keyof Order, value: any) {
         disabled={Object.keys(updatedFields).length === 0}
         className={`mt-8 w-full rounded-xl px-6 py-3 font-semibold transition-colors duration-300 ${
           Object.keys(updatedFields).length === 0
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
+            ? "cursor-not-allowed bg-gray-400"
+            : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
       >
         Сохранить

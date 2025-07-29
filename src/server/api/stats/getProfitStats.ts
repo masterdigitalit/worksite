@@ -7,6 +7,9 @@ export async function getProfitStats() {
       outlay: true,
       receivedworker: true,
     },
+      _count: {
+      id: true,
+    },
     where: {
       status: "DONE",
     },
@@ -17,6 +20,7 @@ export async function getProfitStats() {
   const receivedworker = data._sum.receivedworker || 0;
 
   return {
+    count: data._count.id,
     received,
     outlay,
     receivedworker,

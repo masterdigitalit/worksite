@@ -24,6 +24,8 @@ const fullName =
     getProfitStats(),
     getStatusCounts(),
   ]);
+    const avgCheckall = profitStats.count ? Math.round(profitStats.received / profitStats.count) : 0;
+  const avgProfitall = profitStats.count ? Math.round((profitStats.received - profitStats.outlay) / profitStats.count) : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -58,6 +60,8 @@ const fullName =
           <div className="text-sm text-gray-600 space-y-1 mt-2">
             <p>💸 Зарплата сотрудников: <span className="font-semibold">{profitStats.receivedworker} ₽</span></p>
             <p>🧾 Расходы: <span className="font-semibold">{profitStats.outlay} ₽</span></p>
+             <p>📊 Средний чек: <span className="text-blue-700 font-semibold">{avgCheckall} ₽</span></p>
+            <p>💰 Чистый средний чек: <span className="text-green-600 font-semibold">{avgProfitall} ₽</span></p>
           </div>
         </div>
       </div>
@@ -121,36 +125,28 @@ function StatCard({
   let base = 0;
 
   switch (type) {
-    case "day": {
+    case "day":
       base = 30000;
-      profitPercent = Math.round((total / base) * 100);
-      costPercent = Math.min(100 - profitPercent, 100);
       break;
-    }
-
-    case "month": {
+    case "month":
       base = 1000000;
-      profitPercent = Math.round((total / base) * 100);
-      costPercent = Math.min(100 - profitPercent, 100);
       break;
-    }
-
-    default: {
-      console.warn("Неизвестный тип:", type);
-      profitPercent = 0;
-      costPercent = 0;
-      break;
-    }
+    default:
+      base = 1; // fallback to avoid division by zero
   }
+
+  profitPercent = Math.round((total / base) * 100);
+  costPercent = Math.min(100 - profitPercent, 100);
+
+  const avgCheck = count ? Math.round(received / count) : 0;
+  const avgProfit = count ? Math.round((received - outlay) / count) : 0;
 
   return (
     <div className="p-4 border rounded-lg shadow">
       <h2 className="text-xl font-bold mb-2">{title}</h2>
 
       {/* Сумма закрытия */}
-      <p className="text-xl text-black-500 mb-2">
-        Cумма закрытия - {received} ₽
-      </p>
+      <p className="text-xl text-black-500 mb-2">Сумма закрытия - {received} ₽</p>
 
       {/* Прогресс-бар: прибыль vs затраты */}
       <div className="w-full bg-gray-200 rounded-full h-4 mb-4 flex overflow-hidden relative group">
@@ -158,7 +154,6 @@ function StatCard({
           className="bg-green-500 h-4 transition-all duration-300"
           style={{ width: `${profitPercent}%` }}
         >
-          {/* Tooltip */}
           <div className="absolute left-0 -top-8 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
             Прибыль: {profitPercent}% от цели ({base.toLocaleString("ru-RU")} ₽)
           </div>
@@ -171,23 +166,17 @@ function StatCard({
 
       {/* Детализация */}
       <div className="text-sm text-gray-700 space-y-1">
-        <p>
-          📈 Прибыль: <span className="text-green-600 font-semibold">{total} ₽</span>
-        </p>
-        <p>
-          📦 Заказов: <span className="font-semibold">{count}</span>
-        </p>
-        <p>
-          🏢 Расходы офис/закуп: <span className="text-red-600 font-semibold">{outlay} ₽</span>
-        </p>
-        <p>
-          👷 Зарплата сотрудников:{" "}
-          <span className="text-orange-600 font-semibold">{receivedworker} ₽</span>
-        </p>
+        <p>📈 Прибыль: <span className="text-green-600 font-semibold">{total} ₽</span></p>
+        <p>📦 Заказов: <span className="font-semibold">{count}</span></p>
+        <p>📊 Средний чек: <span className="text-blue-700 font-semibold">{avgCheck} ₽</span></p>
+        <p>💰 Чистый средний чек: <span className="text-green-600 font-semibold">{avgProfit} ₽</span></p>
+        <p>🏢 Расходы офис/закуп: <span className="text-red-600 font-semibold">{outlay} ₽</span></p>
+        <p>👷 Зарплата сотрудников: <span className="text-orange-600 font-semibold">{receivedworker} ₽</span></p>
       </div>
     </div>
   );
 }
+
 
 
 

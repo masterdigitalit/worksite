@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ca } from "zod/v4/locales";
 
 type Step =
   | "fullName"
@@ -32,10 +31,11 @@ const steps: Step[] = [
   "paymentType",
   "review",
 ];
+
 const payLabels: Record<string, string> = {
- "HIGH": "Высокая",
- "MEDIUM": "Средняя" ,
- "LOW": "Низкая" ,
+  HIGH: "Высокая",
+  MEDIUM: "Средняя",
+  LOW: "Низкая",
 };
 
 const stepLabels: Record<Step, string> = {
@@ -53,11 +53,14 @@ const stepLabels: Record<Step, string> = {
   review: "Обзор",
 };
 
-export default function AddNewOrderPage({
-  shouldValidate = true,
-}: {
-  shouldValidate?: boolean;
-}) {
+function formatPhone(input: string): string {
+  const digits = input.replace(/\D/g, "").replace(/^8/, "7");
+  if (digits.length !== 11 || !digits.startsWith("7")) return input;
+  const match = digits.match(/^(\d)(\d{3})(\d{3})(\d{2})(\d{2})$/);
+  return match ? `+${match[1]}(${match[2]})${match[3]}-${match[4]}-${match[5]}` : input;
+}
+
+export default function AddNewOrderPage({ shouldValidate = true }: { shouldValidate?: boolean }) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,13 +91,13 @@ export default function AddNewOrderPage({
     }
     setError(null);
     if (stepIndex < steps.length - 1) {
-      setStepIndex(stepIndex + 1);
+      setStepIndex((i) => i + 1);
     }
   };
 
   const handleBack = () => {
     if (stepIndex > 0) {
-      setStepIndex(stepIndex - 1);
+      setStepIndex((i) => i - 1);
       setError(null);
     }
   };
@@ -104,23 +107,16 @@ export default function AddNewOrderPage({
   };
 
   const validateStep = (step: Step): string | null => {
-    const required = (val: string) =>
-      !val.trim() ? "Поле не может быть пустым" : null;
+    const required = (val: string) => (!val.trim() ? "Поле не может быть пустым" : null);
 
     switch (step) {
       case "fullName":
         return required(form.fullName);
       case "phone": {
-  const cleanedPhone = form.phone.replace(/\D/g, ""); // Удаляет все нецифровые символы
-
-  // Приводим к общему виду: +7 и 10 цифр
-  const isValid =
-    (cleanedPhone.length === 11 && cleanedPhone.startsWith("7")) || // +7XXXXXXXXXX
-    (cleanedPhone.length === 11 && cleanedPhone.startsWith("8"));   // 8XXXXXXXXXX
-
-  return !isValid ? "Введите корректный номер (например, +7 (999) 123-45-67)" : null;
-}
-
+        const cleaned = form.phone.replace(/\D/g, "");
+        const valid = cleaned.length === 11 && cleaned.startsWith("7");
+        return !valid ? "Введите корректный номер" : null;
+      }
       case "address":
         return required(form.address);
       case "city":
@@ -131,14 +127,13 @@ export default function AddNewOrderPage({
         return !form.arriveDate
           ? "Выберите дату"
           : new Date(form.arriveDate) < new Date()
-            ? "Дата должна быть в будущем"
-            : null;
+          ? "Дата должна быть в будущем"
+          : null;
       case "visitType":
         return required(form.visitType);
-
       case "equipmentType":
         return required(form.equipmentType);
-         case "paymentType":
+      case "paymentType":
         return required(form.paymentType);
       default:
         return null;
@@ -152,8 +147,6 @@ export default function AddNewOrderPage({
         const [datePart, timePart] = datetimeStr.split("T");
         const [year, month, day] = datePart.split("-").map(Number);
         const [hour, minute] = timePart.split(":").map(Number);
-
-
         return new Date(Date.UTC(year, month - 1, day, hour, minute));
       }
 
@@ -171,7 +164,6 @@ export default function AddNewOrderPage({
       if (!response.ok) throw new Error("Ошибка при создании");
 
       const created = await response.json();
-
       setSubmitSuccess(true);
       setForm({
         fullName: "",
@@ -199,57 +191,35 @@ export default function AddNewOrderPage({
   };
 
   const renderStep = () => {
+    const textInput = (field: keyof typeof form, label: string, type = "text", placeholder?: string) => (
+      <InputStep
+        label={label}
+        value={form[field]}
+        type={type}
+        placeholder={placeholder}
+        onChange={(val) =>
+          handleChange(
+            field,
+            field === "phone" ? formatPhone(val) : val
+          )
+        }
+        onEnter={handleNext}
+      />
+    );
+
     switch (step) {
       case "fullName":
-        return (
-          <InputStep
-            label="ФИО клиента"
-            value={form.fullName}
-            onChange={(val) => handleChange("fullName", val)}
-          />
-        );
+        return textInput("fullName", "ФИО клиента");
       case "phone":
-        return (
-          <InputStep
-            label="Телефон"
-            value={form.phone}
-            onChange={(val) => handleChange("phone", val)}
-            placeholder="+79991234567"
-          />
-        );
+        return textInput("phone", "Телефон", "tel", "+7(999)123-45-67");
       case "address":
-        return (
-          <InputStep
-            label="Адрес"
-            value={form.address}
-            onChange={(val) => handleChange("address", val)}
-          />
-        );
+        return textInput("address", "Адрес");
       case "city":
-        return (
-          <InputStep
-            label="Город"
-            value={form.city}
-            onChange={(val) => handleChange("city", val)}
-          />
-        );
+        return textInput("city", "Город");
       case "problem":
-        return (
-          <InputStep
-            label="Описание проблемы"
-            value={form.problem}
-            onChange={(val) => handleChange("problem", val)}
-          />
-        );
+        return textInput("problem", "Описание проблемы");
       case "arriveDate":
-        return (
-          <InputStep
-            label="Дата и время прибытия"
-            type="datetime-local"
-            value={form.arriveDate}
-            onChange={(val) => handleChange("arriveDate", val)}
-          />
-        );
+        return textInput("arriveDate", "Дата и время прибытия", "datetime-local");
       case "visitType":
         return (
           <SelectStep
@@ -280,13 +250,7 @@ export default function AddNewOrderPage({
           />
         );
       case "equipmentType":
-        return (
-          <InputStep
-            label="Прибор"
-            value={form.equipmentType}
-            onChange={(val) => handleChange("equipmentType", val)}
-          />
-        );
+        return textInput("equipmentType", "Прибор");
       case "paymentType":
         return (
           <SelectStep
@@ -311,17 +275,11 @@ export default function AddNewOrderPage({
               <ReviewItem label="Город">{form.city}</ReviewItem>
               <ReviewItem label="Описание проблемы">{form.problem}</ReviewItem>
               <ReviewItem label="Дата визита">
-                {form.arriveDate
-                  ? new Date(form.arriveDate).toLocaleString()
-                  : ""}
+                {form.arriveDate ? new Date(form.arriveDate).toLocaleString() : ""}
               </ReviewItem>
               <ReviewItem label="Тип визита">{form.visitType}</ReviewItem>
-              <ReviewItem label="Требуется звонок">
-                {form.callRequired ? "Да" : "Нет"}
-              </ReviewItem>
-              <ReviewItem label="Профессиональный заказ">
-                {form.isProfessional ? "Да" : "Нет"}
-              </ReviewItem>
+              <ReviewItem label="Требуется звонок">{form.callRequired ? "Да" : "Нет"}</ReviewItem>
+              <ReviewItem label="Профессиональный заказ">{form.isProfessional ? "Да" : "Нет"}</ReviewItem>
               <ReviewItem label="Прибор">{form.equipmentType}</ReviewItem>
               <ReviewItem label="Тип прибыли">{payLabels[form.paymentType]}</ReviewItem>
             </div>
@@ -354,9 +312,7 @@ export default function AddNewOrderPage({
       )}
 
       {error && (
-        <div className="rounded bg-red-100 p-3 text-sm text-red-800">
-          {error}
-        </div>
+        <div className="rounded bg-red-100 p-3 text-sm text-red-800">{error}</div>
       )}
 
       {renderStep()}
@@ -397,24 +353,36 @@ function InputStep({
   label,
   value,
   onChange,
+  onEnter,
   type = "text",
   placeholder,
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
+  onEnter?: () => void;
   type?: string;
   placeholder?: string;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div>
       <label className="mb-1 block font-medium">{label}</label>
       <input
+        ref={inputRef}
         type={type}
         placeholder={placeholder}
         className="w-full rounded border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && onEnter) onEnter();
+        }}
       />
     </div>
   );

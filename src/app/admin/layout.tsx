@@ -1,10 +1,12 @@
-// src/app/admin/layout.tsx
-
 import Link from "next/link";
 import { requireRole } from "../../../lib/auth/requireRole";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/api/auth/auth";
 import { redirect } from "next/navigation";
+
+// ✅ Импортируем ToastContainer и CSS
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default async function AdminLayout({
   children,
@@ -20,7 +22,6 @@ export default async function AdminLayout({
     <div className="min-h-screen flex flex-col">
       {/* Top Bar */}
       <header className="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow">
-        {/* Left side: nav links */}
         <div className="flex gap-6 items-center text-sm">
           <Link href="/admin" className="hover:text-blue-300 transition">
             🏠 Главная
@@ -39,7 +40,6 @@ export default async function AdminLayout({
           </Link>
         </div>
 
-        {/* Right side: profile */}
         <form action="/api/auth/signout" method="POST" className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs uppercase">
@@ -57,7 +57,20 @@ export default async function AdminLayout({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      <main className="flex-1 p-6 bg-gray-50">
+        {children}
+        {/* ✅ Toast контейнер */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+      </main>
     </div>
   );
 }

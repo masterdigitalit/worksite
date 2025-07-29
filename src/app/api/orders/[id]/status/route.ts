@@ -3,16 +3,17 @@ import {
   setPendingToOnTheWay,
   setOnTheWayToInProgress,
   completeOrder,
-  declineOrder, 
-  // Добавим функцию для отмены
+  declineOrder,
+  setProgressSD,
 } from "@/server/api/orders/UpdateOrderStatus";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const orderId = parseInt(params.id);
+    const orderId = parseInt(context.params.id); // тут контекст уже готов, не надо await
+
     if (!orderId) {
       return new Response("orderId обязателен", { status: 400 });
     }
@@ -37,18 +38,32 @@ export async function PATCH(
         const updated = await setOnTheWayToInProgress(orderId);
         return NextResponse.json(updated);
       }
+      case "IN_PROGRESS_SD": {
+        const updated = await setProgressSD(orderId);
+        return NextResponse.json(updated);
+      }
       case "DONE": {
         const { received, outlay, masterId, receivedworker } = body;
-        if (received === undefined || outlay === undefined || !masterId || !receivedworker) {
+        if (
+          received === undefined ||
+          outlay === undefined ||
+          !masterId ||
+          !receivedworker
+        ) {
           return new Response("received, outlay и masterId обязательны", {
             status: 400,
           });
         }
-        const updatedOrder = await completeOrder(orderId, received, outlay, masterId, receivedworker);
+        const updatedOrder = await completeOrder(
+          orderId,
+          received,
+          outlay,
+          masterId,
+          receivedworker
+        );
         return NextResponse.json(updatedOrder);
       }
       case "DECLINED": {
-        // Вызов функции для отмены заказа
         const updatedOrder = await declineOrder(orderId);
         return NextResponse.json(updatedOrder);
       }

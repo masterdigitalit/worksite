@@ -19,6 +19,15 @@ export async function setOnTheWayToInProgress(orderId: number) {
     },
   });
 }
+export async function setProgressSD(orderId: number) {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: "IN_PROGRESS_SD",
+      dateStarted: new Date(),
+    },
+  });
+}
 export async function completeOrder(
   orderId: number,
   received: number,

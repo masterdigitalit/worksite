@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 interface Props {
   order: {
@@ -24,237 +25,218 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
   const [received, setReceived] = useState("");
   const [outlay, setOutlay] = useState("");
   const [receivedWorker, setReceivedWorker] = useState("");
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [inProgressNextStep, setInProgressNextStep] = useState<"IN_PROGRESS_SD" | "DONE" | null>(null);
+  const [nextStatus, setNextStatus] = useState<string | null>(null);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (order.status === "PENDING") {
       fetch("/api/workers/getworkers")
         .then((res) => res.json())
-        .then((data) => setWorkers(data))
-        .catch((err) => console.error("Ошибка загрузки работников:", err));
+        .then(setWorkers)
+        .catch(() => toast.error("Ошибка загрузки работников"));
     }
   }, [order.status]);
 
   useEffect(() => {
     const r = parseInt(received);
     const o = parseInt(outlay);
-
     if (!isNaN(r) && !isNaN(o)) {
       const profit = r - o;
       let percent = 0.5;
-
-
       if (order.paymentType === "LOW") percent = 0.7;
       else if (order.paymentType === "MEDIUM") percent = 0.6;
-      else if (order.paymentType === "HIGH") percent = 0.5;
-
       const calculated = Math.floor(profit * percent);
-            console.log(r, o, percent, calculated)
       setReceivedWorker(calculated.toString());
     }
   }, [received, outlay, order.paymentType]);
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [step]);
+
   const handleAction = async () => {
+    if (!nextStatus) return;
     setLoading(true);
     try {
-      let payload: Record<string, any> = {};
+      const payload: Record<string, any> = { status: nextStatus };
 
-      switch (order.status) {
-        case "PENDING": {
-          const worker = workers.find(
-            (w) => w.fullName.toLowerCase() === inputValue.toLowerCase()
-          );
-          if (!worker) {
-            setLoading(false);
-            return;
-          }
-
-          payload = {
-            masterId: worker.id,
-            status: "ON_THE_WAY",
-          };
-          break;
-        }
-
-        case "ON_THE_WAY":
-          payload = { status: "IN_PROGRESS", dateStarted: new Date().toISOString() };
-          break;
-
-        case "IN_PROGRESS": {
-          if (!inProgressNextStep) {
-            setLoading(false);
-            return;
-          }
-          if (inProgressNextStep === "IN_PROGRESS_SD") {
-            payload = { status: "IN_PROGRESS_SD" };
-          } else if (inProgressNextStep === "DONE") {
-            if (!received || !outlay || !receivedWorker || !order.masterId) {
-              setLoading(false);
-              return;
-            }
-            payload = {
-              status: "DONE",
-              received: parseInt(received),
-              outlay: parseInt(outlay),
-              receivedworker: parseInt(receivedWorker),
-              dateDone: new Date().toISOString(),
-              masterId: order.masterId,
-            };
-          }
-          break;
-        }
-
-        case "IN_PROGRESS_SD": {
-          if (!received || !outlay || !receivedWorker || !order.masterId) {
-            setLoading(false);
-            return;
-          }
-          payload = {
-            status: "DONE",
-            received: parseInt(received),
-            outlay: parseInt(outlay),
-            receivedworker: parseInt(receivedWorker),
-            dateDone: new Date().toISOString(),
-            masterId: order.masterId,
-          };
-          break;
-        }
-
-        default:
+      if (nextStatus === "ON_THE_WAY") {
+        const worker = workers.find(
+          (w) => w.fullName.toLowerCase() === inputValue.toLowerCase()
+        );
+        if (!worker) {
+          toast.error("Работник не найден");
           setLoading(false);
           return;
+        }
+        payload.masterId = worker.id;
       }
-      console.log(payload)
 
-      await fetch(`/api/orders/${order.id}/status`, {
+      if (nextStatus === "IN_PROGRESS") {
+        payload.dateStarted = new Date().toISOString();
+      }
+
+      if (nextStatus === "DONE") {
+        const r = parseInt(received);
+        const o = parseInt(outlay);
+        const rw = parseInt(receivedWorker);
+
+        if (isNaN(r)) return toastError("Введите корректную сумму получена");
+        if (isNaN(o)) return toastError("Введите корректные расходы");
+        if (isNaN(rw)) return toastError("Введите корректную сумму выплаты мастеру");
+        if (!order.masterId) return toastError("Не назначен мастер");
+        if (r < o) return toastError("Прибыль должна быть положительной");
+        if (rw > r - o) return toastError("Выплата мастеру не может превышать прибыль");
+
+        Object.assign(payload, {
+          received: r,
+          outlay: o,
+          receivedworker: rw,
+          dateDone: new Date().toISOString(),
+          masterId: order.masterId,
+        });
+      }
+
+      const res = await fetch(`/api/orders/${order.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      refetch();
-      setTab("info");
+      if (!res.ok) {
+        toast.error("Ошибка обновления статуса");
+      } else {
+        toast.success("Статус успешно обновлен");
+        refetch();
+        setTab("info");
+      }
     } catch (err) {
-      console.error("Ошибка обновления статуса:", err);
+      toast.error("Ошибка обновления статуса");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderSteps = () => {
-    switch (step) {
-      case 1:
-        return (
-          <>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Сумма получена
-            </label>
+  const toastError = (msg: string) => {
+    toast.error(msg);
+    setLoading(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key !== "Enter") return;
+
+    if (step === 1 && received) setStep(2);
+    else if (step === 2 && outlay) setStep(3);
+    else if (step === 3 && receivedWorker) handleAction();
+  };
+
+  const renderForm = () => {
+    if (nextStatus !== "DONE") return null;
+
+    const baseBtn = "px-4 py-2 rounded font-medium transition";
+    const blueBtn = `${baseBtn} bg-blue-600 text-white hover:bg-blue-700`;
+    const greenBtn = `${baseBtn} bg-green-600 text-white hover:bg-green-700`;
+    const grayBtn = `${baseBtn} bg-gray-200 hover:bg-gray-300`;
+
+    return (
+      <>
+        {step === 1 && (
+          <div className="space-y-2">
+            <label className="block font-medium">Сумма получена</label>
             <input
               type="number"
-              className="w-full rounded border px-4 py-2"
+              ref={inputRef}
               value={received}
               onChange={(e) => setReceived(e.target.value)}
-              placeholder="Введите сумму"
+              onKeyDown={handleKeyPress}
+              className="w-full border px-4 py-2 rounded"
             />
             <button
-              onClick={() => setStep(2)}
               disabled={!received}
-              className="mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition disabled:opacity-50"
+              onClick={() => setStep(2)}
+              className={`${blueBtn} mt-2 disabled:opacity-50`}
             >
               Далее
             </button>
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Расходы
-            </label>
+          </div>
+        )}
+        {step === 2 && (
+          <div className="space-y-2">
+            <label className="block font-medium">Расходы</label>
             <input
               type="number"
-              className="w-full rounded border px-4 py-2"
+              ref={inputRef}
               value={outlay}
               onChange={(e) => setOutlay(e.target.value)}
-              placeholder="Введите расходы"
+              onKeyDown={handleKeyPress}
+              className="w-full border px-4 py-2 rounded"
             />
             <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => setStep(1)}
-                className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 transition"
-              >
+              <button onClick={() => setStep(1)} className={grayBtn}>
                 Назад
               </button>
               <button
-                onClick={() => setStep(3)}
                 disabled={!outlay}
-                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition disabled:opacity-50"
+                onClick={() => setStep(3)}
+                className={`${blueBtn} disabled:opacity-50`}
               >
                 Далее
               </button>
             </div>
-          </>
-        );
-      case 3:
-        return (
-          <>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Мастеру выплачено
-            </label>
+          </div>
+        )}
+        {step === 3 && (
+          <div className="space-y-2">
+            <label className="block font-medium">Выплачено мастеру</label>
             <input
               type="number"
-              className="w-full rounded border px-4 py-2"
+              ref={inputRef}
               value={receivedWorker}
               onChange={(e) => setReceivedWorker(e.target.value)}
-              placeholder="Авторасчёт на основе прибыли"
+              onKeyDown={handleKeyPress}
+              className="w-full border px-4 py-2 rounded"
             />
             <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => setStep(2)}
-                className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 transition"
-              >
+              <button onClick={() => setStep(2)} className={grayBtn}>
                 Назад
               </button>
-              <button
-                onClick={handleAction}
-                disabled={loading || !receivedWorker}
-                className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 transition disabled:opacity-50"
-              >
-                {loading ? "Закрытие..." : "Закрыть заказ"}
+              <button onClick={handleAction} className={greenBtn}>
+                Закрыть заказ
               </button>
             </div>
-          </>
-        );
-      default:
-        return null;
-    }
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
     <div className="space-y-4 mt-6">
       {order.status === "PENDING" && (
         <>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            Назначить работника
-          </label>
+          <label className="block font-medium">Назначить работника</label>
           <input
             list="workers"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Введите или выберите работника"
-            className="w-full rounded border px-4 py-2"
+            className="w-full border px-4 py-2 rounded"
           />
           <datalist id="workers">
-            {workers.map((worker) => (
-              <option key={worker.id} value={worker.fullName} />
+            {workers.map((w) => (
+              <option key={w.id} value={w.fullName} />
             ))}
           </datalist>
           <button
-            onClick={handleAction}
             disabled={!inputValue || loading}
-            className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition disabled:opacity-50"
+            onClick={() => {
+              setNextStatus("ON_THE_WAY");
+              handleAction();
+            }}
+            className="px-4 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Назначение..." : "Назначить"}
           </button>
@@ -263,11 +245,13 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
 
       {order.status === "ON_THE_WAY" && (
         <>
-          <p className="text-sm text-gray-700">Подтвердите прибытие мастера:</p>
+          <p>Подтвердите прибытие мастера</p>
           <button
-            onClick={handleAction}
-            disabled={loading}
-            className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition disabled:opacity-50"
+            onClick={() => {
+              setNextStatus("IN_PROGRESS");
+              handleAction();
+            }}
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
           >
             {loading ? "Обновление..." : "Мастер на месте"}
           </button>
@@ -276,39 +260,37 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
 
       {order.status === "IN_PROGRESS" && (
         <>
-          <p className="text-sm text-gray-700 font-medium mb-2">Выберите действие:</p>
+          <p>Выберите действие:</p>
           <div className="flex gap-4">
             <button
               onClick={() => {
-                setInProgressNextStep("IN_PROGRESS_SD");
-                setStep(0);
+                setNextStatus("IN_PROGRESS_SD");
                 handleAction();
               }}
-              disabled={loading}
-              className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 transition"
+              className="px-4 py-2 rounded bg-yellow-500 text-white hover:bg-yellow-600 transition"
             >
               Мастер забрал с собой
             </button>
             <button
               onClick={() => {
-                setInProgressNextStep("DONE");
+                setNextStatus("DONE");
                 setStep(1);
               }}
-              disabled={loading}
-              className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 transition"
+              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition"
             >
               Закрыть заказ
             </button>
           </div>
-
-          {step > 0 && renderSteps()}
+          {renderForm()}
         </>
       )}
 
       {order.status === "IN_PROGRESS_SD" && (
         <>
-          <p className="text-sm text-gray-700 font-medium mb-2">Завершение заказа</p>
-          {renderSteps()}
+          <p>Завершение заказа</p>
+          {!nextStatus && setNextStatus("DONE")}
+          {!step && setStep(1)}
+          {renderForm()}
         </>
       )}
     </div>

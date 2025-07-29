@@ -61,11 +61,7 @@ function preserveUserInputAsUTC(datetimeStr: string): Date {
   return new Date(Date.UTC(year, month - 1, day, hour, minute));
 }
 
-function formatDateToLocalDatetimeInput(dateStr: string | Date): string {
-  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
+
 
 function EditableInfoBlock({
   title,

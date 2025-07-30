@@ -229,37 +229,157 @@
 
 
 
-import bcrypt from "bcrypt";
+// import bcrypt from "bcrypt";
+// import { PrismaClient } from "@prisma/client";
+// import { v4 as uuidv4 } from "uuid";
+
+// const prisma = new PrismaClient();
+
+// async function hashAllPasswords() {
+//   const users = await prisma.user.findMany();
+
+//   for (const user of users) {
+//     const plainPassword = user.password;
+
+//     // Проверим, вдруг пароль уже захеширован (например, если там 60 символов и начинается с $2)
+//     if (plainPassword.startsWith("$2") && plainPassword.length === 60) {
+//       console.log(`Пропускаем пользователя ${user.id} — пароль уже хеширован.`);
+//       continue;
+//     }
+
+//     const hashed = await bcrypt.hash(plainPassword, 10);
+
+//     await prisma.user.update({
+//       where: { id: user.id },
+//       data: { password: hashed },
+//     });
+
+//     console.log(`Пароль пользователя ${user.id} захеширован.`);
+//   }
+
+//   console.log("Обновление паролей завершено.");
+// }
+
+// hashAllPasswords()
+//   .catch(console.error)
+//   .finally(() => process.exit());
+
+
+
+
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
-async function hashAllPasswords() {
-  const users = await prisma.user.findMany();
+async function deleteNegativeProfitOrders() {
+  // Получаем нужные поля всех заказов
+  const orders = await prisma.order.findMany({
+    select: {
+      id: true,
+      received: true,
+      outlay: true,
+      receivedworker: true,
+    },
+  });
 
-  for (const user of users) {
-    const plainPassword = user.password;
+  // Фильтруем убыточные
+  const negativeProfitOrders = orders.filter(
+    (order) => order.received - order.outlay - order.receivedworker < 0
+  );
 
-    // Проверим, вдруг пароль уже захеширован (например, если там 60 символов и начинается с $2)
-    if (plainPassword.startsWith("$2") && plainPassword.length === 60) {
-      console.log(`Пропускаем пользователя ${user.id} — пароль уже хеширован.`);
-      continue;
-    }
+  console.log(`🔍 Найдено заказов с убытком: ${negativeProfitOrders.length}`);
 
-    const hashed = await bcrypt.hash(plainPassword, 10);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashed },
+  for (const order of negativeProfitOrders) {
+    await prisma.order.delete({
+      where: { id: order.id },
     });
-
-    console.log(`Пароль пользователя ${user.id} захеширован.`);
   }
 
-  console.log("Обновление паролей завершено.");
+  console.log("✅ Убыточные заказы удалены");
+  process.exit();
 }
 
-hashAllPasswords()
-  .catch(console.error)
-  .finally(() => process.exit());
+deleteNegativeProfitOrders().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+
+// import { faker } from "@faker-js/faker";
+
+// async function seed() {
+//   const monthsBack = 12;
+//   const now = new Date();
+
+//   // Проверим, есть ли хотя бы 5 работников, иначе создадим
+//   const existingWorkers = await prisma.worker.findMany();
+//   let workers = existingWorkers;
+
+//   if (workers.length < 5) {
+//     const created = await Promise.all(
+//       Array.from({ length: 5 }).map(() =>
+//         prisma.worker.create({
+//           data: {
+//             fullName: faker.person.fullName(),
+//             telegramUsername: faker.internet.userName(),
+//             phone: faker.phone.number(),
+//           },
+//         })
+//       )
+//     );
+//     workers = created;
+//   }
+
+//   for (let i = 0; i < 1000; i++) {
+//     const monthOffset = Math.floor(Math.random() * monthsBack);
+//     const dayOffset = Math.floor(Math.random() * 28);
+//     const createdAt = new Date(
+//       now.getFullYear(),
+//       now.getMonth() - monthOffset,
+//       dayOffset + 1
+//     );
+
+//     const worker = faker.helpers.arrayElement(workers);
+
+//     const received = faker.number.int({ min: 1000, max: 10000 });
+//     const outlay = faker.number.int({ min: 500, max: 5000 });
+//     const receivedWorker = faker.number.int({ min: 500, max: 5000 });
+
+//     await prisma.order.create({
+//       data: {
+//         fullName: faker.person.fullName(),
+//         phone: faker.phone.number(),
+//         address: faker.location.streetAddress(),
+//         city: faker.location.city(),
+//         problem: faker.lorem.sentence(),
+//         status: "DONE",
+//         received,
+//         outlay,
+//         receivedworker: receivedWorker,
+//         dateDone: createdAt,
+//         arriveDate: createdAt,
+//         visitType: "FIRST",
+//         isProfessional: false,
+//         callRequired: false,
+//         equipmentType: "general",
+//         masterId: worker.id,
+//       },
+//     });
+
+//     await prisma.worker.update({
+//       where: { id: worker.id },
+//       data: {
+//         ordersCompleted: { increment: 1 },
+//         totalEarned: { increment: receivedWorker },
+//       },
+//     });
+//   }
+
+//   console.log("✅ 1000 заказов создано, работники обновлены");
+//   process.exit();
+// }
+
+// seed().catch((e) => {
+//   console.error(e);
+//   process.exit(1);
+// });

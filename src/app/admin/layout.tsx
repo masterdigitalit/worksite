@@ -32,7 +32,7 @@ export default async function AdminLayout({
           <Link href="/admin/workers" className="hover:text-blue-300 transition">
             👥 Работники
           </Link>
-          <Link href="/admin/stats" className="hover:text-blue-300 transition">
+          <Link href="/admin/statistics" className="hover:text-blue-300 transition">
             📊 Статистика
           </Link>
           <Link href="/admin/finance" className="hover:text-blue-300 transition">
@@ -57,7 +57,7 @@ export default async function AdminLayout({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 p-6 bg-gray-50">
+      <main className="flex-1 p-6 bg-gray-50 justify-center">
         {children}
         {/* ✅ Toast контейнер */}
         <ToastContainer

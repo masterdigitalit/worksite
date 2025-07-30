@@ -17,6 +17,7 @@ const statusMap: Record<string, string> = {
 
 const visitTypeMap: Record<string, string> = {
   FIRST: "Первичный",
+  GARAGE: 'Гарантийный',
   FOLLOW_UP: "Повторный",
 };
 

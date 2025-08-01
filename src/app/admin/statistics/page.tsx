@@ -196,7 +196,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const avgCheck = data.count ? Math.round(data.received / data.count) : 0;
-    const avgProfit = data.count ? Math.round(data.profit / data.count) : 0;
+    const avgProfit = data.count ? Math.round((data.received - data.outlay) / data.count) : 0;
 
     return (
       <div className="space-y-1 rounded bg-white p-4 text-sm shadow">

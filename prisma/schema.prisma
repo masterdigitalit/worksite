@@ -7,15 +7,24 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+
+
 model User {
-  id       String @id @default(cuid())
-  username String @unique
-  password String
-  role     String
-  fullName String?
-  createdAt        DateTime? @default(now())
+  id         String         @id @default(cuid())
+  username   String         @unique
+  password   String
+  role       String
+  fullName   String?
+  createdAt  DateTime?      @default(now())
   telegramUsername String?
-  phone            String?
+  phone      String?
+
+  visibility VisibilityType @default(FULL)  // Добавленное поле видимости
+}
+
+enum VisibilityType {
+  FULL      // полная видимость
+  PARTIAL   // частичная видимость
 }
 
 model Worker {

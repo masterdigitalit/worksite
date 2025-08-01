@@ -15,6 +15,8 @@ import {
   Legend,
 } from "recharts";
 
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+
 type StatsItem = {
   month: string;
   profit: number;
@@ -35,9 +37,11 @@ type VisitTypeItem = {
   count: number;
 };
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+type AvailableYearMonth = {
+  year: number;
+  months: number[];
+};
 
-// Переводим ключи на русский
 const paymentTypeMap: Record<string, string> = {
   HIGH: "Низкая",
   MEDIUM: "Средняя",
@@ -54,9 +58,31 @@ export default function StatisticsPage() {
   const [data, setData] = useState<StatsItem[]>([]);
   const [paymentTypes, setPaymentTypes] = useState<PaymentTypeItem[]>([]);
   const [visitType, setVisitType] = useState<VisitTypeItem[]>([]);
+  const [availableDates, setAvailableDates] = useState<AvailableYearMonth[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
 
   useEffect(() => {
-    fetch("/api/statistics/monthly")
+    fetch("/api/statistics/periods")
+      .then((res) => res.json())
+      .then((data: AvailableYearMonth[]) => {
+        setAvailableDates(data.sort((a, b) => b.year - a.year));
+        if (data.length > 0) {
+          setSelectedYear(data[0].year.toString());
+        }
+      })
+      .catch(() => alert("Ошибка загрузки доступных дат"));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedYear) return;
+
+    let url = `/api/statistics/monthly?year=${selectedYear}`;
+    if (selectedMonth !== "") {
+      url += `&month=${selectedMonth}`;
+    }
+
+    fetch(url)
       .then((res) => res.json())
       .then(({ monthlyStats, paymentTypesSummary, visitTypeSummary }) => {
         setData(monthlyStats);
@@ -64,9 +90,8 @@ export default function StatisticsPage() {
         setVisitType(visitTypeSummary);
       })
       .catch(() => alert("Ошибка загрузки статистики"));
-  }, []);
+  }, [selectedYear, selectedMonth]);
 
-  // Добавляем переведённые типы
   const translatedPayments = paymentTypes.map((item) => ({
     ...item,
     type: paymentTypeMap[item.type] || item.type,
@@ -76,6 +101,13 @@ export default function StatisticsPage() {
     ...item,
     type: visitTypeMap[item.type] || item.type,
   }));
+
+  const monthsMap = [
+    "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
+  ];
+
+  const selectedYearMonths = availableDates.find((d) => d.year.toString() === selectedYear)?.months ?? [];
 
   return (
     <div
@@ -87,9 +119,38 @@ export default function StatisticsPage() {
         boxSizing: "border-box",
       }}
     >
-      <h1 className="mb-6 text-center text-2xl font-bold">
-        📊 Статистика заказов по месяцам
-      </h1>
+      <h1 className="mb-4 text-center text-2xl font-bold">📊 Статистика заказов</h1>
+
+      {/* Выбор периода */}
+      <div className="mb-6 flex flex-wrap justify-center gap-4">
+        <select
+          className="rounded border border-gray-300 px-4 py-2 text-sm shadow focus:border-indigo-500 focus:outline-none"
+          value={selectedYear}
+          onChange={(e) => {
+            setSelectedYear(e.target.value);
+            setSelectedMonth("");
+          }}
+        >
+          {availableDates.map((item) => (
+            <option key={item.year} value={item.year.toString()}>
+              {item.year}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="rounded border border-gray-300 px-4 py-2 text-sm shadow focus:border-indigo-500 focus:outline-none"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+        >
+          <option value="">Все месяцы</option>
+          {selectedYearMonths.map((m) => (
+            <option key={m} value={m.toString()}>
+              {monthsMap[m]}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Верхний линейный график */}
       <div className="rounded bg-white p-6 shadow mb-8" style={{ width: "100%", height: 400 }}>
@@ -104,63 +165,32 @@ export default function StatisticsPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* Нижний блок с двумя круговыми диаграммами */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "2rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <div className="rounded bg-white p-6 shadow" style={{ flex: "1 1 300px", height: 300 }}>
-          <h2 className="text-center mb-4 font-semibold">Тип оплаты</h2>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={translatedPayments}
-                dataKey="count"
-                nameKey="type"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {translatedPayments.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="rounded bg-white p-6 shadow" style={{ flex: "1 1 300px", height: 300 }}>
-          <h2 className="text-center mb-4 font-semibold">Тип выезда</h2>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={translatedVisits}
-                dataKey="count"
-                nameKey="type"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {translatedVisits.map((entry, index) => (
-                  <Cell key={`cell-visit-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Нижние круговые диаграммы */}
+      <div className="flex flex-wrap justify-between gap-8">
+        <PieBlock title="Тип оплаты" data={translatedPayments} />
+        <PieBlock title="Тип выезда" data={translatedVisits} />
       </div>
     </div>
   );
 }
 
+function PieBlock({ title, data }: { title: string; data: { type: string; count: number }[] }) {
+  return (
+    <div className="rounded bg-white p-6 shadow" style={{ flex: "1 1 300px", height: 300 }}>
+      <h2 className="text-center mb-4 font-semibold">{title}</h2>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie data={data} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={80} label>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Legend verticalAlign="bottom" height={36} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -171,48 +201,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="space-y-1 rounded bg-white p-4 text-sm shadow">
         <p className="font-bold">{label}</p>
-        <p>
-          📈 Сумма закрытия:{" "}
-          <span className="font-semibold text-green-600">
-            {data.received} ₽
-          </span>
-        </p>
-        <p>
-          📈 Прибыль:{" "}
-          <span className="font-semibold text-green-600">
-            {data.profit} ₽
-          </span>
-        </p>
-        <p>
-          📦 Заказов: <span className="font-semibold">{data.count}</span>
-        </p>
-        <p>
-          📊 Средний чек:{" "}
-          <span className="font-semibold text-blue-700">{avgCheck} ₽</span>
-        </p>
-        <p>
-          💰 Чистый средний чек:{" "}
-          <span className="font-semibold text-green-600">{avgProfit} ₽</span>
-        </p>
-        <p>
-          🏢 Расходы:{" "}
-          <span className="font-semibold text-red-600">{data.outlay} ₽</span>
-        </p>
-        <p>
-          🕛 Заказов перенесено:{" "}
-          <span className="font-semibold text-red-600">
-            {data.wastimechanged}
-          </span>
-        </p>
-        <p>
-          👷 Зарплата:{" "}
-          <span className="font-semibold text-orange-600">
-            {data.receivedworker} ₽
-          </span>
-        </p>
+        <p>📈 Сумма закрытия: <span className="font-semibold text-green-600">{data.received} ₽</span></p>
+        <p>📈 Прибыль: <span className="font-semibold text-green-600">{data.profit} ₽</span></p>
+        <p>📦 Заказов: <span className="font-semibold">{data.count}</span></p>
+        <p>📊 Средний чек: <span className="font-semibold text-blue-700">{avgCheck} ₽</span></p>
+        <p>💰 Чистый средний чек: <span className="font-semibold text-green-600">{avgProfit} ₽</span></p>
+        <p>🏢 Расходы: <span className="font-semibold text-red-600">{data.outlay} ₽</span></p>
+        <p>🕛 Заказов перенесено: <span className="font-semibold text-red-600">{data.wastimechanged}</span></p>
+        <p>👷 Зарплата: <span className="font-semibold text-orange-600">{data.receivedworker} ₽</span></p>
       </div>
     );
   }
-
   return null;
 };

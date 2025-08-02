@@ -15,6 +15,7 @@ export default async function AdminLayout({
 }) {
   const session = await getServerSession(authOptions);
   await requireRole("admin");
+  const  visibility =   session?.user?.visibility
 
   if (!session) redirect("/login");
 
@@ -38,6 +39,12 @@ export default async function AdminLayout({
           <Link href="/admin/finance" className="hover:text-blue-300 transition">
             💰 Финансы
           </Link>
+          {visibility === 'FULL' &&  <><Link href="/admin/logs" className="hover:text-blue-300 transition">
+            🖥️ Логи
+          </Link>
+          <Link href="/admin/target" className="hover:text-blue-300 transition">
+            📈 Цель
+          </Link></>}
         </div>
 
         <form action="/api/auth/signout" method="POST" className="flex items-center gap-3">

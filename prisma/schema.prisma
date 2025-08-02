@@ -145,3 +145,20 @@ enum CheckType {
   FULL
   NONE
 }
+
+
+
+
+model Goal {
+  id        Int      @id @default(autoincrement())  
+  all       Int?
+  month     Int?     
+  day       Int?     
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+
+

@@ -2,20 +2,23 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/api/auth/auth";
 
 import Link from "next/link";
-import clsx from "clsx";
-
+import  getTarget  from "@/server/api/target/getTarget";
 import { getTodayStats } from "@/server/api/stats/getDailyStats";
 import { getMonthStats } from "@/server/api/stats/getMonthStats";
 import { getProfitStats } from "@/server/api/stats/getProfitStats";
 import { getStatusCounts } from "@/server/api/stats/countByStatus";
-
+  let target = await getTarget()
+  target = target?.[0] || null;
 export default async function AdminPage() {
+
+
   const session = await getServerSession(authOptions);
+  console.log(session?.user?.visibility)
 const fullName =
   session?.user?.fullName === "Апти"
     ? "Салам Алейкум Апти"
     : 'Привет, '+session?.user?.fullName || 'Привет, '+"Админ";
-    console.log(session?.user?.fullName)
+
 
 
   const [todayStats, monthStats, profitStats, statusCounts] = await Promise.all([
@@ -126,10 +129,10 @@ function StatCard({
 
   switch (type) {
     case "day":
-      base = 30000;
+      base = target.day;
       break;
     case "month":
-      base = 1000000;
+      base = target.month;
       break;
     default:
       base = 1; // fallback to avoid division by zero

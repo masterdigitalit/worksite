@@ -29,6 +29,7 @@ async authorize(credentials) {
     name: user.username,
     role: user.role,
     fullName: user.fullName, // 👈 добавлено!
+    visibility: user.visibility
   };
 }
 ,
@@ -38,12 +39,14 @@ async authorize(credentials) {
   async jwt({ token, user }) {
     if (user) {
       token.role = (user as any).role;
+      token.visibility = (user as any).visibility;
       token.fullName = (user as any).fullName; // 👈
     }
     return token;
   },
   async session({ session, token }) {
     session.user.role = token.role as string;
+    session.user.visibility =  token.visibility as string;
     session.user.fullName = token.fullName as string; // 👈
     return session;
   },

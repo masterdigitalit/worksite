@@ -14,7 +14,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-
+import { PieBlock } from "./components/PieBlockStat";
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
 type StatsItem = {
@@ -61,6 +61,7 @@ export default function StatisticsPage() {
   const [availableDates, setAvailableDates] = useState<AvailableYearMonth[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [showReceived, setShowReceived] = useState<boolean>(true);
 
   useEffect(() => {
     fetch("/api/statistics/periods")
@@ -121,8 +122,8 @@ export default function StatisticsPage() {
     >
       <h1 className="mb-4 text-center text-2xl font-bold">📊 Статистика заказов</h1>
 
-      {/* Выбор периода */}
-      <div className="mb-6 flex flex-wrap justify-center gap-4">
+      {/* Выбор периода и переключатель */}
+      <div className="mb-6 flex flex-wrap justify-center gap-4 items-center">
         <select
           className="rounded border border-gray-300 px-4 py-2 text-sm shadow focus:border-indigo-500 focus:outline-none"
           value={selectedYear}
@@ -150,9 +151,19 @@ export default function StatisticsPage() {
             </option>
           ))}
         </select>
+<label className="inline-flex items-center space-x-3 cursor-pointer text-sm text-gray-700">
+  <input
+    type="checkbox"
+    checked={showReceived}
+    onChange={(e) => setShowReceived(e.target.checked)}
+    className="form-checkbox h-5 w-5 text-indigo-600 transition duration-150 ease-in-out"
+  />
+  <span className="select-none font-medium">Показывать <span className="text-indigo-600">«сумму закрытия»</span></span>
+</label>
+
       </div>
 
-      {/* Верхний линейный график */}
+      {/* Линейная диаграмма */}
       <div className="rounded bg-white p-6 shadow mb-8" style={{ width: "100%", height: 400 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 20, right: 30, left: 50, bottom: 10 }}>
@@ -160,12 +171,28 @@ export default function StatisticsPage() {
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip content={<CustomTooltip />} />
-            <Line type="monotone" dataKey="profit" stroke="#4f46e5" strokeWidth={3} />
+            <Line
+              type="monotone"
+              dataKey="profit"
+              stroke="#4f46e5"
+              strokeWidth={3}
+              dot={<CustomDot />}
+              name="Прибыль"
+            />
+            {showReceived && (
+              <Line
+                type="monotone"
+                dataKey="received"
+                stroke="#10b981"
+                strokeWidth={2}
+                name="Получено"
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Нижние круговые диаграммы */}
+      {/* Круговые диаграммы */}
       <div className="flex flex-wrap justify-between gap-8">
         <PieBlock title="Тип оплаты" data={translatedPayments} />
         <PieBlock title="Тип выезда" data={translatedVisits} />
@@ -174,23 +201,23 @@ export default function StatisticsPage() {
   );
 }
 
-function PieBlock({ title, data }: { title: string; data: { type: string; count: number }[] }) {
-  return (
-    <div className="rounded bg-white p-6 shadow" style={{ flex: "1 1 300px", height: 300 }}>
-      <h2 className="text-center mb-4 font-semibold">{title}</h2>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie data={data} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={80} label>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend verticalAlign="bottom" height={36} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
+// function PieBlock({ title, data }: { title: string; data: { type: string; count: number }[] }) {
+//   return (
+//     <div className="rounded bg-white p-6 shadow" style={{ flex: "1 1 300px", height: 300 }}>
+//       <h2 className="text-center mb-4 font-semibold">{title}</h2>
+//       <ResponsiveContainer width="100%" height="100%">
+//         <PieChart>
+//           <Pie data={data} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={80} label>
+//             {data.map((entry, index) => (
+//               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+//             ))}
+//           </Pie>
+//           <Legend verticalAlign="bottom" height={36} />
+//         </PieChart>
+//       </ResponsiveContainer>
+//     </div>
+//   );
+// }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -213,4 +240,37 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
+};
+
+const CustomDot = (props: any) => {
+  const { cx, cy, payload } = props;
+  const transfers = payload.wastimechanged || 0;
+
+  if (transfers === 0) {
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={6}
+        fill="#4f46e5"
+        stroke="#fff"
+        strokeWidth={2}
+      />
+    );
+  }
+
+  const maxTransfers = 10;
+  const clamped = Math.min(transfers, maxTransfers);
+  const alpha = 0.3 + (clamped / maxTransfers) * 0.7;
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={6}
+      fill={`rgba(255, 0, 0, ${alpha.toFixed(2)})`}
+      stroke="#fff"
+      strokeWidth={2}
+    />
+  );
 };

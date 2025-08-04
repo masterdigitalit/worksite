@@ -55,13 +55,12 @@ const statuses = [
   { label: "Завершён", value: "DONE" },
 ];
 
-function isOverdue(date) {
-  const now = new Date();
-  const d = new Date(date);
-  now.setHours(0, 0, 0, 0);
-  d.setHours(0, 0, 0, 0);
-  return d < now;
+function isOverdue(dateStr: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const dateOnly = new Date(dateStr).toISOString().slice(0, 10);
+  return dateOnly < today;
 }
+
 
 function canHighlight(status) {
   return ["PENDING", "ON_THE_WAY"].includes(status);

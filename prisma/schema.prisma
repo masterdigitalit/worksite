@@ -73,6 +73,7 @@ model Order {
   received            Int?
   outlay              Int?
   receivedworker      Int?
+  isNotificated       Boolean       @default(false)
  
 
 

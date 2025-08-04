@@ -13,6 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 const ADMIN_CHAT_ID = process.env.CHAT_ID;
 const API_BASE_URL = process.env.API_BASE_URL;
+const SITE_URL = process.env.SITE_URL;
 
 const visitTypeMap = {
   FIRST: "Первичный",
@@ -49,7 +50,7 @@ async function notifyUpcomingOrders() {
         `🛠️ Проблема: ${order.problem}\n` +
         `📞 Телефон: ${order.phone}\n` +
         `👤 Клиент: ${order.fullName}\n\n` +
-        `${API_BASE_URL}/admin/orders/${order.id}"\n\n` +
+        `${SITE_URL}/admin/orders/${order.id}"\n\n` +
         `@OxyMilles  @Broke_Name`;
 
       await bot.telegram.sendMessage(ADMIN_CHAT_ID, msg, {

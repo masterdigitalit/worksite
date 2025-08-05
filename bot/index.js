@@ -50,8 +50,8 @@ async function notifyUpcomingOrders() {
         `🛠️ Проблема: ${order.problem}\n` +
         `📞 Телефон: ${order.phone}\n` +
         `👤 Клиент: ${order.fullName}\n\n` +
-        `${SITE_URL}/admin/orders/${order.id}"\n\n` +
-        `@OxyMilles  @Broke_Name`;
+        `${SITE_URL}/admin/orders/${order.id}\n\n` +
+        `@Shulna`;
 
       await bot.telegram.sendMessage(ADMIN_CHAT_ID, msg, {
         parse_mode: "HTML",

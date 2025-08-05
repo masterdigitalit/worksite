@@ -43,9 +43,9 @@ type AvailableYearMonth = {
 };
 
 const paymentTypeMap: Record<string, string> = {
-  HIGH: "Низкая",
+  HIGH: "Высокая",
   MEDIUM: "Средняя",
-  LOW: "Высокая",
+  LOW: "Низкая",
 };
 
 const visitTypeMap: Record<string, string> = {
@@ -194,7 +194,7 @@ export default function StatisticsPage() {
 
       {/* Круговые диаграммы */}
       <div className="flex flex-wrap justify-between gap-8">
-        <PieBlock title="Тип оплаты" data={translatedPayments} />
+        <PieBlock title="Тип прибыли" data={translatedPayments} />
         <PieBlock title="Тип выезда" data={translatedVisits} />
       </div>
     </div>

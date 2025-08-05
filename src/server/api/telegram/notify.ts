@@ -7,7 +7,7 @@ dayjs.extend(utc);
 
 export async function getUpcomingOrders() {
   const now = dayjs().utc(); // текущее UTC-время
-  const fourHoursLater = now.add(7, "hour");
+  const fourHoursLater = now.add(5, "hour");
 
   const orders = await prisma.order.findMany({
     where: {

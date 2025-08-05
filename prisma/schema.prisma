@@ -25,6 +25,7 @@ model User {
 enum VisibilityType {
   FULL      // полная видимость
   PARTIAL   // частичная видимость
+  MINIMAL    // МИНИМАЛЬНАЯ ПО ПРОСЬБЕ
 }
 
 model Worker {

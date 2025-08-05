@@ -74,45 +74,42 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
       });
   }, []);
 
-useEffect(() => {
-  const filtered = orders.filter((o) => {
-    const orderStatus = o.status?.trim(); // Защита от undefined и лишних пробелов
-		console.log(orderStatus, visibility)
+  useEffect(() => {
+    const filtered = orders.filter((o) => {
+      const orderStatus = o.status?.trim();
 
-    // Скрыть определённые статусы при MINIMAL
-    if (visibility === "MINIMAL" && hiddenStatuses.includes(orderStatus)) {
-      return false;
-    }
+      if (visibility === "MINIMAL" && hiddenStatuses.includes(orderStatus)) {
+        return false;
+      }
 
-    if (search.startsWith("#")) {
-      const idSearch = search.slice(1);
-      return o.id.toString().includes(idSearch);
-    }
+      if (search.startsWith("#")) {
+        const idSearch = search.slice(1);
+        return o.id.toString().includes(idSearch);
+      }
 
-    const matchesSearch =
-      o.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      o.phone.includes(search) ||
-      o.address.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch =
+        o.fullName.toLowerCase().includes(search.toLowerCase()) ||
+        o.phone.includes(search) ||
+        o.address.toLowerCase().includes(search.toLowerCase());
 
-    const matchesStatus = !status || orderStatus === status;
-    const matchesVisitType = !visitType || o.visitType === visitType;
+      const matchesStatus = !status || orderStatus === status;
+      const matchesVisitType = !visitType || o.visitType === visitType;
 
-    const orderDate = new Date(o.arriveDate).toISOString().slice(0, 10);
-    const matchesFrom = !arriveDateFrom || orderDate >= arriveDateFrom;
-    const matchesTo = !arriveDateTo || orderDate <= arriveDateTo;
+      const orderDate = new Date(o.arriveDate).toISOString().slice(0, 10);
+      const matchesFrom = !arriveDateFrom || orderDate >= arriveDateFrom;
+      const matchesTo = !arriveDateTo || orderDate <= arriveDateTo;
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesVisitType &&
-      matchesFrom &&
-      matchesTo
-    );
-  });
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesVisitType &&
+        matchesFrom &&
+        matchesTo
+      );
+    });
 
-  setFiltered(filtered);
-}, [search, status, visitType, arriveDateFrom, arriveDateTo, orders, visibility]);
-
+    setFiltered(filtered);
+  }, [search, status, visitType, arriveDateFrom, arriveDateTo, orders, visibility]);
 
   return (
     <div className="space-y-4 p-4">
@@ -123,6 +120,7 @@ useEffect(() => {
         Добавить заказ
       </button>
 
+      {/* Фильтры */}
       <div className="flex flex-col flex-wrap gap-2 md:flex-row">
         <input
           placeholder="Поиск (ФИО, адрес, телефон, #ID)"
@@ -171,23 +169,24 @@ useEffect(() => {
         />
       </div>
 
+      {/* Таблица */}
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead className="bg-gray-200 text-left">
             <tr>
               <th className="w-12 border p-2 text-center">ID</th>
-              <th className="w-max border p-2 whitespace-nowrap">ФИО</th>
-              <th className="border p-2">Телефон</th>
+              <th className="border p-2">ФИО</th>
+              <th className="border p-2 hidden sm:table-cell">Телефон</th>
               <th className="border p-2">Адрес</th>
               <th className="border p-2">Тип</th>
               <th className="border p-2">Статус</th>
               <th className="border p-2">Дата визита</th>
-              <th className="border p-2">Город</th>
-              <th className="border p-2">Прибор</th>
-              <th className="border p-2">Прибыль</th>
-              <th className="border p-2">Затраты</th>
-              <th className="border p-2">Оплата</th>
-              <th className="border p-2">📞</th>
+              <th className="border p-2 hidden lg:table-cell">Город</th>
+              <th className="border p-2 hidden lg:table-cell">Прибор</th>
+              <th className="border p-2 hidden md:table-cell">Прибыль</th>
+              <th className="border p-2 hidden md:table-cell">Затраты</th>
+              <th className="border p-2 hidden md:table-cell">Оплата</th>
+              <th className="border p-2 hidden md:table-cell">📞</th>
             </tr>
           </thead>
           <tbody>
@@ -205,8 +204,8 @@ useEffect(() => {
                   <td className="truncate overflow-hidden border p-2 whitespace-nowrap">
                     {order.fullName}
                   </td>
-                  <td className="border p-2">{order.phone}</td>
-                  <td className="max-w-[12rem] truncate overflow-hidden border p-2 whitespace-nowrap">
+                  <td className="border p-2 hidden sm:table-cell">{order.phone}</td>
+                  <td className="max-w-[10rem] truncate overflow-hidden border p-2 whitespace-nowrap">
                     {order.address}
                   </td>
                   <td className={clsx("border p-2 text-center", visitTypeRowColors[order.visitType])}>
@@ -219,16 +218,16 @@ useEffect(() => {
                     {overdue && <div className="text-red-600 font-bold text-xs">Просрочено</div>}
                     {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
                   </td>
-                  <td className="border p-2">{order.city}</td>
-                  <td className="border p-2">{order.equipmentType}</td>
-                  <td className="border p-2 text-center">
+                  <td className="border p-2 hidden lg:table-cell">{order.city}</td>
+                  <td className="border p-2 hidden lg:table-cell">{order.equipmentType}</td>
+                  <td className="border p-2 text-center hidden md:table-cell">
                     {order.received && order.outlay != null && order.receivedworker != null
                       ? order.received - order.outlay - order.receivedworker
                       : "-"}
                   </td>
-                  <td className="border p-2 text-center">{order.outlay ?? "-"}</td>
-                  <td className="border p-2 text-center">{order.received ?? "-"}</td>
-                  <td className="border p-2 text-center">
+                  <td className="border p-2 text-center hidden md:table-cell">{order.outlay ?? "-"}</td>
+                  <td className="border p-2 text-center hidden md:table-cell">{order.received ?? "-"}</td>
+                  <td className="border p-2 text-center hidden md:table-cell">
                     {order.callRequired ? "✅" : "❌"}
                   </td>
                 </tr>

@@ -30,7 +30,6 @@ export default function TargetForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // проверяем, есть ли изменения
     if (all === initial.all && month === initial.month && day === initial.day) {
       toast.info("Нет изменений для сохранения");
       return;
@@ -58,29 +57,42 @@ export default function TargetForm() {
   if (loading) return <p className="text-center py-10">Загрузка...</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-10 space-y-4">
+    <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-10 space-y-5">
       <h2 className="text-xl font-semibold text-center">Установить цель</h2>
-      <input
-        type="number"
-        placeholder="Глобальная цель (all)"
-        value={all}
-        onChange={(e) => setAll(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="number"
-        placeholder="Цель на месяц (month)"
-        value={month}
-        onChange={(e) => setMonth(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
-      <input
-        type="number"
-        placeholder="Цель на день (day)"
-        value={day}
-        onChange={(e) => setDay(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Всего</label>
+        <input
+          type="number"
+          placeholder="Глобальная цель"
+          value={all}
+          onChange={(e) => setAll(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Месяц</label>
+        <input
+          type="number"
+          placeholder="Цель на месяц"
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">День</label>
+        <input
+          type="number"
+          placeholder="Цель на день"
+          value={day}
+          onChange={(e) => setDay(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
       <button
         type="submit"
         className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"

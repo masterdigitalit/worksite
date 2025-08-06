@@ -14,6 +14,7 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 const ADMIN_CHAT_ID = process.env.CHAT_ID;
 const API_BASE_URL = process.env.API_BASE_URL;
 const SITE_URL = process.env.SITE_URL;
+const OWNER_ID = 5273914742 // твой Telegram ID
 
 const visitTypeMap = {
   FIRST: "Первичный",
@@ -45,7 +46,7 @@ async function notifyUpcomingOrders() {
         `🔔 <b>Приближается заявка #${order.id}</b>\n\n` +
         `📅 Дата и время: <i>${new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}</i>\n` +
         `🚗 Тип визита: <b>${visitTypeMap[order.visitType] || order.visitType}</b>\n` +
-        `🏙️ Город: ${order.city}\n` +
+        `🏙️ Город: ${order.city?.name || order.city}\n` +
         `📍 Адрес: ${order.address}\n` +
         `🛠️ Проблема: ${order.problem}\n` +
         `📞 Телефон: ${order.phone}\n` +
@@ -80,6 +81,36 @@ async function notifyUpcomingOrders() {
   }
 }
 
+// Команда /notify — предупреждение об отключении
+bot.command("notify", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
+
+  await ctx.telegram.sendMessage(
+    ADMIN_CHAT_ID,
+    "⚠️ Внимание! Плановое отключение через 10 минут.",
+    { parse_mode: "HTML" }
+  );
+  await ctx.reply("✅ Уведомление отправлено в чат.");
+});
+
+// Команда /work — сообщение, что сайт снова работает
+bot.command("work", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
+
+  await ctx.telegram.sendMessage(
+    ADMIN_CHAT_ID,
+    "✅ Сайт снова работает!",
+    { parse_mode: "HTML" }
+  );
+  await ctx.reply("✅ Сообщение о восстановлении отправлено.");
+});
+
+// Запускаем проверку заказов каждую минуту
 cron.schedule("*/1 * * * *", () => {
   notifyUpcomingOrders();
+});
+
+// Запуск бота
+bot.launch().then(() => {
+  logWithTime("🤖", "Бот запущен и готов к работе.");
 });

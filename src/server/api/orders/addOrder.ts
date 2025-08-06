@@ -19,7 +19,12 @@ export async function createNewOrder(data: {
       fullName: data.fullName,
       phone: data.phone,
       address: data.address,
-      city: data.city,
+      city: {
+        connect: {
+          id: parseInt( data.city),
+        },
+      },
+
       problem: data.problem,
       arriveDate: new Date(data.arriveDate),
       visitType: data.visitType,

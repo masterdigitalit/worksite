@@ -63,6 +63,8 @@ function preserveUserInputAsUTC(datetimeStr: string): Date {
 
 
 
+
+
 function EditableInfoBlock({
   title,
   name,
@@ -126,6 +128,7 @@ function EditableInfoBlock({
 }
 
 function MasterInfo({ masterId }: { masterId?: number | null }) {
+  
   const [worker, setWorker] = useState<Worker | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -169,6 +172,14 @@ function MasterInfo({ masterId }: { masterId?: number | null }) {
 }
 
 export default function EditOrderPage() {
+  const [cities, setCities] = useState([]);
+
+useEffect(() => {
+  fetch("/api/city/all")
+    .then((res) => res.json())
+    .then(setCities)
+    .catch(console.error);
+}, []);
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
@@ -247,6 +258,7 @@ export default function EditOrderPage() {
         receivedworker: 0,
       }),
     };
+    console.log(payload)
 
     const res = await fetch(`/api/orders/${order.id}/update`, {
       method: "PATCH",
@@ -268,7 +280,7 @@ export default function EditOrderPage() {
   if (loading || !order) return <p className="p-6">Загрузка...</p>;
 
   const isDoneOriginally = originalOrder?.status === "DONE";
-
+    console.log(order)
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-2xl font-bold">
@@ -324,12 +336,19 @@ export default function EditOrderPage() {
         value={order.problem || ""}
         onChange={handleFieldChange}
       />
+  
       <EditableInfoBlock
-        title="Город"
-        name="city"
-        value={order.city}
-        onChange={handleFieldChange}
-      />
+  title="Город"
+  name="city"
+  type="select"
+  options={cities.map((el) => ({
+    value: String(el.id), // обязательно строка
+    label: el.name,
+  }))}
+  value={String(order.city?.id ?? order.city)} // тут должен быть ID города
+  onChange={(name, val) => handleFieldChange(name, Number(val))} // преобразуем обратно в число
+/>
+
       <EditableInfoBlock
         title="Прибор"
         name="equipmentType"

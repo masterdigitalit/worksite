@@ -272,38 +272,49 @@ import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
-async function deleteNegativeProfitOrders() {
-  // Получаем нужные поля всех заказов
-  const orders = await prisma.order.findMany({
-    select: {
-      id: true,
-      received: true,
-      outlay: true,
-      receivedworker: true,
-    },
-  });
 
-  // Фильтруем убыточные
-  const negativeProfitOrders = orders.filter(
-    (order) => order.received - order.outlay - order.receivedworker < 0
-  );
-
-  console.log(`🔍 Найдено заказов с убытком: ${negativeProfitOrders.length}`);
-
-  for (const order of negativeProfitOrders) {
-    await prisma.order.delete({
-      where: { id: order.id },
-    });
-  }
-
-  console.log("✅ Убыточные заказы удалены");
-  process.exit();
-}
-
-deleteNegativeProfitOrders().catch((e) => {
-  console.error(e);
-  process.exit(1);
+await prisma.order.updateMany({
+  where: {
+    cityId: null,
+  },
+  data: {
+    cityId: 1,
+  },
 });
+
+
+// async function deleteNegativeProfitOrders() {
+//   // Получаем нужные поля всех заказов
+//   const orders = await prisma.order.findMany({
+//     select: {
+//       id: true,
+//       received: true,
+//       outlay: true,
+//       receivedworker: true,
+//     },
+//   });
+
+//   // Фильтруем убыточные
+//   const negativeProfitOrders = orders.filter(
+//     (order) => order.received - order.outlay - order.receivedworker < 0
+//   );
+
+//   console.log(`🔍 Найдено заказов с убытком: ${negativeProfitOrders.length}`);
+
+//   for (const order of negativeProfitOrders) {
+//     await prisma.order.delete({
+//       where: { id: order.id },
+//     });
+//   }
+
+//   console.log("✅ Убыточные заказы удалены");
+//   process.exit();
+// }
+
+// deleteNegativeProfitOrders().catch((e) => {
+//   console.error(e);
+//   process.exit(1);
+// });
 
 // import { faker } from "@faker-js/faker";
 

@@ -7,25 +7,16 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-
-
 model User {
-  id         String         @id @default(cuid())
-  username   String         @unique
-  password   String
-  role       String
-  fullName   String?
-  createdAt  DateTime?      @default(now())
+  id               String    @id @default(cuid())
+  username         String    @unique
+  password         String
+  role             String
+  fullName         String?
+  createdAt        DateTime? @default(now())
   telegramUsername String?
-  phone      String?
-
-  visibility VisibilityType @default(FULL)  // Добавленное поле видимости
-}
-
-enum VisibilityType {
-  FULL      // полная видимость
-  PARTIAL   // частичная видимость
-  MINIMAL    // МИНИМАЛЬНАЯ ПО ПРОСЬБЕ
+  phone            String?
+  visibility       String    @default("FULL")
 }
 
 model Worker {
@@ -37,130 +28,57 @@ model Worker {
   totalEarned      Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
 
- 
+model City {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  orders Order[]
 }
 
 model Order {
-  id                  Int           @id @default(autoincrement())
-
-  // Основные данные
-  address             String
-  fullName            String
-  phone               String
-  problem             String
-  arriveDate          DateTime
-  visitType           VisitType
-  callRequired        Boolean       @default(false)
-  isProfessional      Boolean       @default(false)
-  city                String
-  
-
-  equipmentType       String
-
-
-  branchComment       String?
-  callCenterNote      String?
-
-
-  status              OrderStatus   @default(PENDING)
-  masterId            Int?
-
-
-
-  checkType           CheckType?
-  paymentType         PaymentType?   @default(MEDIUM) 
-
-  received            Int?
-  outlay              Int?
-  receivedworker      Int?
-  isNotificated       Boolean       @default(false)
- 
-
-
-  documents           OrderDocument[]
-
-
-  dateCreated         DateTime      @default(now())
-  dateStarted         DateTime?
-  dateDone            DateTime?
-  wastimechanged      Int?  @default(0)
-}
-enum PaymentType {
-  HIGH
-  MEDIUM
-  LOW
+  id             Int             @id @default(autoincrement())
+  address        String
+  fullName       String
+  phone          String
+  problem        String
+  arriveDate     DateTime
+  visitType      String
+  callRequired   Boolean         @default(false)
+  isProfessional Boolean         @default(false)
+  cityId         Int?            @default(1)
+  equipmentType  String
+  branchComment  String?
+  callCenterNote String?
+  status         String          @default("PENDING")
+  masterId       Int?
+  checkType      String?
+  paymentType    String?         @default("MEDIUM")
+  received       Int?
+  outlay         Int?
+  receivedworker Int?
+  isNotificated  Boolean         @default(false)
+  dateCreated    DateTime        @default(now())
+  dateStarted    DateTime?
+  dateDone       DateTime?
+  wastimechanged Int?            @default(0)
+  city           City?           @relation(fields: [cityId], references: [id])
+  documents      OrderDocument[]
 }
 
 model OrderDocument {
-  id        Int           @id @default(autoincrement())
-  order     Order         @relation(fields: [orderId], references: [id])
-  orderId   Int
-  type      DocumentType
-  url       String
+  id      Int    @id @default(autoincrement())
+  orderId Int
+  type    String
+  url     String
+  order   Order  @relation(fields: [orderId], references: [id])
 }
-
- enum DocumentType {
-  PNG
-  JPG 
-  JPEG
-  WEBP
-  GIF
-  BMP
-  PDF
-  DOC
-  DOCX
-  XLS 
-  XLSX
-  TXT 
-  MP4
-  MOV
-  AVI
-  MP3
-  WAV
-  OTHER
-}
-
-
-
-
-
-enum OrderStatus {
-  PENDING
-  ON_THE_WAY
-  IN_PROGRESS
-  IN_PROGRESS_SD
-  DECLINED
-  CANCEL_CC
-  CANCEL_BRANCH
-  DONE
-}
-
-enum VisitType {
-  FIRST
-  GARAGE
-  REPEAT
-}
-
-enum CheckType {
-  PURE
-  FULL
-  NONE
-}
-
-
-
 
 model Goal {
-  id        Int      @id @default(autoincrement())  
+  id        Int      @id @default(autoincrement())
   all       Int?
-  month     Int?     
-  day       Int?     
+  month     Int?
+  day       Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
-
-
-
-

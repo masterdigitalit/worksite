@@ -34,6 +34,7 @@ export default function AdminHeader({
           <Link href="/admin/finance" className="hover:text-blue-300 transition">💰 Финансы</Link>
           {visibility === "FULL" && (
             <>
+             <Link href="/admin/city" className="hover:text-blue-300 transition">🏙️ Города</Link>
               <Link href="/admin/logs" className="hover:text-blue-300 transition">🖥️ Логи</Link>
               <Link href="/admin/target" className="hover:text-blue-300 transition">📈 Цель</Link>
             </>
@@ -77,6 +78,7 @@ export default function AdminHeader({
         <Link href="/admin/finance" onClick={closeMenu} className="hover:text-blue-300 transition">💰 Финансы</Link>
         {visibility === "FULL" && (
           <>
+            <Link href="/admin/city" className="hover:text-blue-300 transition">🏙️ Города</Link>
             <Link href="/admin/logs" onClick={closeMenu} className="hover:text-blue-300 transition">🖥️ Логи</Link>
             <Link href="/admin/target" onClick={closeMenu} className="hover:text-blue-300 transition">📈 Цель</Link>
           </>

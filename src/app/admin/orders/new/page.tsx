@@ -61,6 +61,17 @@ function formatPhone(input: string): string {
 }
 
 export default function AddNewOrderPage({ shouldValidate = true }: { shouldValidate?: boolean }) {
+  const [cities, setCities] = useState([]);
+  console.log(cities)
+
+
+  useEffect(() => {
+    fetch('/api/city/all')
+      .then((res) => res.json())
+      .then(setCities)
+      
+   
+  }, []);
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +91,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
     equipmentType: "",
     paymentType: "",
   });
+  console.log(form)
 
   const step = steps[stepIndex];
 
@@ -120,6 +132,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       case "address":
         return required(form.address);
       case "city":
+        
         return required(form.city);
       case "problem":
         return required(form.problem);
@@ -153,6 +166,8 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       const body = {
         ...form,
         arriveDate: preserveUserInputAsUTC(form.arriveDate),
+        cityId: form.city, 
+        city:form.city
       };
 
       const response = await fetch("/api/orders/new", {
@@ -215,7 +230,15 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       case "address":
         return textInput("address", "Адрес");
       case "city":
-        return textInput("city", "Город");
+        return  (<SelectStep
+  label="Город"
+  options={cities.map((el) => ({
+    value: String(el.id), // <-- обязательно строкой
+    label: el.name,
+  }))}
+  value={form.city}
+  onChange={(val) => handleChange("city", val)} // val = ID города
+/>)
       case "problem":
         return textInput("problem", "Описание проблемы");
       case "arriveDate":
@@ -264,6 +287,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
             onChange={(val) => handleChange("paymentType", val)}
           />
         );
+      
       case "review":
         return (
           <div className="space-y-4">
@@ -272,7 +296,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
               <ReviewItem label="ФИО">{form.fullName}</ReviewItem>
               <ReviewItem label="Телефон">{form.phone}</ReviewItem>
               <ReviewItem label="Адрес">{form.address}</ReviewItem>
-              <ReviewItem label="Город">{form.city}</ReviewItem>
+              <ReviewItem label="Город">{cities.find(city => city.id === parseInt( form.city))?.name || "Не найдено"}</ReviewItem>
               <ReviewItem label="Описание проблемы">{form.problem}</ReviewItem>
               <ReviewItem label="Дата визита">
                 {form.arriveDate ? new Date(form.arriveDate).toLocaleString() : ""}

@@ -64,6 +64,7 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
   const [arriveDateTo, setArriveDateTo] = useState("");
 
   const router = useRouter();
+  console.log(orders)
 
   useEffect(() => {
     fetch("/api/orders")
@@ -218,7 +219,7 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
                     {overdue && <div className="text-red-600 font-bold text-xs">Просрочено</div>}
                     {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
                   </td>
-                  <td className="border p-2 hidden lg:table-cell">{order.city}</td>
+                  <td className="border p-2 hidden lg:table-cell">{order.city.name}</td>
                   <td className="border p-2 hidden lg:table-cell">{order.equipmentType}</td>
                   <td className="border p-2 text-center hidden md:table-cell">
                     {order.received && order.outlay != null && order.receivedworker != null

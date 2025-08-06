@@ -104,7 +104,7 @@ export default function OrderPage({ params }: Props) {
 const copyText = order
   ? `Заявка #${order.id} ${visitTypeMap[order.visitType] || order.visitType}
 ${new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)} 
-${order.city}
+${order.city.name}
 ${order.address}
 ${order.problem}
 ${order.phone} ${order.fullName}
@@ -257,7 +257,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
 />
 
       <InfoBlock title="Тип визита" value={visitTypeMap[order.visitType] || order.visitType} />
-      <InfoBlock title="Город" value={order.city} />
+      <InfoBlock title="Город" value={order.city.name} />
       <InfoBlock title="Прибор" value={equipmentTypeMap[order.equipmentType] || order.equipmentType} />
 
       {!isPending && isDone && (

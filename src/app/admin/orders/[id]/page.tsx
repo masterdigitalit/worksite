@@ -108,6 +108,7 @@ ${order.city.name}
 ${order.address}
 ${order.problem}
 ${order.phone} ${order.fullName}
+Листовка - ${order.leaflet?.name || 'Не указана'}
 
 `.trim()
   : "";
@@ -120,6 +121,7 @@ ${order.phone} ${order.fullName}
       setTimeout(() => setCopied(false), 2000);
     });
   };
+  console.log(order)
 
   async function handleCancelOrder() {
     if (!order) return;
@@ -278,6 +280,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
          <InfoBlock title="Нужен звонок" value={order.callRequired ? "✅ Да" : "❌ Нет"} />
                   <InfoBlock title="Тип прибыли" value={payLabels[order.paymentType]} />
            <InfoBlock title="Описание проблемы" value={order.problem} />
+             <InfoBlock title="Листовка" value={order.leaflet?.name || 'Не указана'} />
 
  
   

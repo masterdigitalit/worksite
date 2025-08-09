@@ -10,9 +10,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "orderId обязателен" }, { status: 400 });
   }
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Файл не найден" }, { status: 400 });
-  }
+if (!file || typeof (file as Blob).arrayBuffer !== "function") {
+  return NextResponse.json({ error: "Файл не найден" }, { status: 400 });
+}
+
 
   try {
     const document = await uploadDocumentToOrder(Number(orderId), file);

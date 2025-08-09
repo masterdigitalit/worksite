@@ -8,6 +8,7 @@ type Step =
   | "phone"
   | "address"
   | "city"
+  | "leaflet"
   | "problem"
   | "arriveDate"
   | "visitType"
@@ -22,6 +23,7 @@ const steps: Step[] = [
   "phone",
   "address",
   "city",
+  "leaflet",
   "problem",
   "arriveDate",
   "visitType",
@@ -43,6 +45,7 @@ const stepLabels: Record<Step, string> = {
   phone: "Телефон",
   address: "Адрес",
   city: "Город",
+  leaflet: "Тип визитки",
   problem: "Проблема",
   arriveDate: "Дата и время",
   visitType: "Тип визита",
@@ -57,20 +60,29 @@ function formatPhone(input: string): string {
   const digits = input.replace(/\D/g, "").replace(/^8/, "7");
   if (digits.length !== 11 || !digits.startsWith("7")) return input;
   const match = digits.match(/^(\d)(\d{3})(\d{3})(\d{2})(\d{2})$/);
-  return match ? `+${match[1]}(${match[2]})${match[3]}-${match[4]}-${match[5]}` : input;
+  return match
+    ? `+${match[1]}(${match[2]})${match[3]}-${match[4]}-${match[5]}`
+    : input;
 }
 
-export default function AddNewOrderPage({ shouldValidate = true }: { shouldValidate?: boolean }) {
+export default function AddNewOrderPage({
+  shouldValidate = true,
+}: {
+  shouldValidate?: boolean;
+}) {
   const [cities, setCities] = useState([]);
-  console.log(cities)
-
+  const [leaflet, setLeaflet] = useState([]);
+  console.log(cities);
 
   useEffect(() => {
-    fetch('/api/city/all')
+    fetch("/api/city/all")
       .then((res) => res.json())
-      .then(setCities)
-      
-   
+      .then(setCities);
+  }, []);
+  useEffect(() => {
+    fetch("/api/leaflet/all")
+      .then((res) => res.json())
+      .then(setLeaflet);
   }, []);
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -83,6 +95,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
     phone: "",
     address: "",
     city: "",
+    leaflet: "",
     problem: "",
     arriveDate: "",
     visitType: "",
@@ -91,7 +104,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
     equipmentType: "",
     paymentType: "",
   });
-  console.log(form)
+  console.log(form);
 
   const step = steps[stepIndex];
 
@@ -119,7 +132,8 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
   };
 
   const validateStep = (step: Step): string | null => {
-    const required = (val: string) => (!val.trim() ? "Поле не может быть пустым" : null);
+    const required = (val: string) =>
+      !val.trim() ? "Поле не может быть пустым" : null;
 
     switch (step) {
       case "fullName":
@@ -132,16 +146,17 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       case "address":
         return required(form.address);
       case "city":
-        
         return required(form.city);
+      case "leaflet":
+        return required(form.leaflet);
       case "problem":
         return required(form.problem);
       case "arriveDate":
         return !form.arriveDate
           ? "Выберите дату"
           : new Date(form.arriveDate) < new Date()
-          ? "Дата должна быть в будущем"
-          : null;
+            ? "Дата должна быть в будущем"
+            : null;
       case "visitType":
         return required(form.visitType);
       case "equipmentType":
@@ -166,8 +181,8 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       const body = {
         ...form,
         arriveDate: preserveUserInputAsUTC(form.arriveDate),
-        cityId: form.city, 
-        city:form.city
+        cityId: form.city,
+        city: form.city,
       };
 
       const response = await fetch("/api/orders/new", {
@@ -185,6 +200,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
         phone: "",
         address: "",
         city: "",
+        leaflet: "",
         problem: "",
         arriveDate: "",
         visitType: "",
@@ -206,17 +222,19 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
   };
 
   const renderStep = () => {
-    const textInput = (field: keyof typeof form, label: string, type = "text", placeholder?: string) => (
+    const textInput = (
+      field: keyof typeof form,
+      label: string,
+      type = "text",
+      placeholder?: string,
+    ) => (
       <InputStep
         label={label}
         value={form[field]}
         type={type}
         placeholder={placeholder}
         onChange={(val) =>
-          handleChange(
-            field,
-            field === "phone" ? formatPhone(val) : val
-          )
+          handleChange(field, field === "phone" ? formatPhone(val) : val)
         }
         onEnter={handleNext}
       />
@@ -230,19 +248,37 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       case "address":
         return textInput("address", "Адрес");
       case "city":
-        return  (<SelectStep
-  label="Город"
-  options={cities.map((el) => ({
-    value: String(el.id), // <-- обязательно строкой
-    label: el.name,
-  }))}
-  value={form.city}
-  onChange={(val) => handleChange("city", val)} // val = ID города
-/>)
+        return (
+          <SelectStep
+            label="Город"
+            options={cities.map((el) => ({
+              value: String(el.id), // <-- обязательно строкой
+              label: el.name,
+            }))}
+            value={form.city}
+            onChange={(val) => handleChange("city", val)} // val = ID города
+          />
+        );
+      case "leaflet":
+        return (
+          <SelectStep
+            label="Листовка"
+            options={leaflet.map((el) => ({
+              value: String(el.id), // <-- обязательно строкой
+              label: el.name,
+            }))}
+            value={form.leaflet}
+            onChange={(val) => handleChange("leaflet", val)} // val = ID города
+          />
+        );
       case "problem":
         return textInput("problem", "Описание проблемы");
       case "arriveDate":
-        return textInput("arriveDate", "Дата и время прибытия", "datetime-local");
+        return textInput(
+          "arriveDate",
+          "Дата и время прибытия",
+          "datetime-local",
+        );
       case "visitType":
         return (
           <SelectStep
@@ -287,7 +323,7 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
             onChange={(val) => handleChange("paymentType", val)}
           />
         );
-      
+
       case "review":
         return (
           <div className="space-y-4">
@@ -296,16 +332,31 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
               <ReviewItem label="ФИО">{form.fullName}</ReviewItem>
               <ReviewItem label="Телефон">{form.phone}</ReviewItem>
               <ReviewItem label="Адрес">{form.address}</ReviewItem>
-              <ReviewItem label="Город">{cities.find(city => city.id === parseInt( form.city))?.name || "Не найдено"}</ReviewItem>
+              <ReviewItem label="Город">
+                {cities.find((city) => city.id === parseInt(form.city))?.name ||
+                  "Не найдено"}
+              </ReviewItem>
+               <ReviewItem label="Листовка">
+                {leaflet.find((leaflet_) => leaflet_.id === parseInt(form.city))?.name ||
+                  "Не найдено"}
+              </ReviewItem>
               <ReviewItem label="Описание проблемы">{form.problem}</ReviewItem>
               <ReviewItem label="Дата визита">
-                {form.arriveDate ? new Date(form.arriveDate).toLocaleString() : ""}
+                {form.arriveDate
+                  ? new Date(form.arriveDate).toLocaleString()
+                  : ""}
               </ReviewItem>
               <ReviewItem label="Тип визита">{form.visitType}</ReviewItem>
-              <ReviewItem label="Требуется звонок">{form.callRequired ? "Да" : "Нет"}</ReviewItem>
-              <ReviewItem label="Профессиональный заказ">{form.isProfessional ? "Да" : "Нет"}</ReviewItem>
+              <ReviewItem label="Требуется звонок">
+                {form.callRequired ? "Да" : "Нет"}
+              </ReviewItem>
+              <ReviewItem label="Профессиональный заказ">
+                {form.isProfessional ? "Да" : "Нет"}
+              </ReviewItem>
               <ReviewItem label="Прибор">{form.equipmentType}</ReviewItem>
-              <ReviewItem label="Тип прибыли">{payLabels[form.paymentType]}</ReviewItem>
+              <ReviewItem label="Тип прибыли">
+                {payLabels[form.paymentType]}
+              </ReviewItem>
             </div>
           </div>
         );
@@ -336,7 +387,9 @@ export default function AddNewOrderPage({ shouldValidate = true }: { shouldValid
       )}
 
       {error && (
-        <div className="rounded bg-red-100 p-3 text-sm text-red-800">{error}</div>
+        <div className="rounded bg-red-100 p-3 text-sm text-red-800">
+          {error}
+        </div>
       )}
 
       {renderStep()}

@@ -50,7 +50,8 @@ async function notifyUpcomingOrders() {
         `📍 Адрес: ${order.address}\n` +
         `🛠️ Проблема: ${order.problem}\n` +
         `📞 Телефон: ${order.phone}\n` +
-        `👤 Клиент: ${order.fullName}\n\n` +
+        `👤 Клиент: ${order.fullName}\n` +
+        `Листовка - ${order.leaflet?.name || 'Не указана'}\n\n`+
         `${SITE_URL}/admin/orders/${order.id}\n\n` +
         `@Shulna`;
 

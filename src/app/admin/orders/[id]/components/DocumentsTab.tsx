@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
+import { toast } from "react-toastify";
 
 interface Document {
   id: number;
@@ -18,7 +19,7 @@ export default function DocumentsTabContent({
 }: {
   documentsPhoto?: Document[];
   orderId: number;
-  onUpload?: () => void; // Чтобы обновить список после загрузки
+  onUpload?: () => void;
 }) {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function DocumentsTabContent({
 
   const handleUploadClick = async () => {
     if (!selectedFiles || selectedFiles.length === 0) {
-      alert("Выберите файл(ы)");
+      toast.warn("Выберите файл(ы) для загрузки");
       return;
     }
 
@@ -54,11 +55,11 @@ export default function DocumentsTabContent({
         }
       }
 
-      alert("Файлы успешно загружены");
+      toast.success("Файлы успешно загружены");
       onUpload?.();
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Ошибка при загрузке файлов");
+      toast.error("Ошибка при загрузке файлов");
     } finally {
       setIsUploading(false);
       setSelectedFiles(null);
@@ -92,21 +93,33 @@ export default function DocumentsTabContent({
         })}
       </div>
 
-      {/* Кнопка загрузки */}
-      <div className="flex flex-col items-start gap-2">
+      {/* Кастомный файл-инпут и кнопка */}
+      <div className="flex flex-col items-start gap-3">
+        <label
+          htmlFor="file-upload"
+          className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-fit"
+        >
+          📁 Выбрать файлы
+        </label>
         <input
+          id="file-upload"
           type="file"
           accept="image/*"
           multiple
           onChange={handleFileChange}
-          className="block"
+          className="hidden"
         />
+        {selectedFiles && selectedFiles.length > 0 && (
+          <p className="text-sm text-gray-600">
+            Выбрано файлов: {selectedFiles.length}
+          </p>
+        )}
         <button
           onClick={handleUploadClick}
           disabled={isUploading}
           className={clsx(
             "px-4 py-2 rounded text-white transition",
-            isUploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            isUploading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
           )}
         >
           {isUploading ? "Загрузка..." : "Загрузить"}

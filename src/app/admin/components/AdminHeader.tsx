@@ -32,6 +32,7 @@ export default function AdminHeader({
           <Link href="/admin/workers" className="hover:text-blue-300 transition">👥 Работники</Link>
           <Link href="/admin/statistics" className="hover:text-blue-300 transition">📊 Статистика</Link>
           <Link href="/admin/finance" className="hover:text-blue-300 transition">💰 Финансы</Link>
+                   <Link href="/admin/leaflet"  className="hover:text-blue-300 transition">📰 Листовки</Link>
           {visibility === "FULL" && (
             <>
              <Link href="/admin/city" className="hover:text-blue-300 transition">🏙️ Города</Link>
@@ -76,9 +77,10 @@ export default function AdminHeader({
         <Link href="/admin/workers" onClick={closeMenu} className="hover:text-blue-300 transition">👥 Работники</Link>
         <Link href="/admin/statistics" onClick={closeMenu} className="hover:text-blue-300 transition">📊 Статистика</Link>
         <Link href="/admin/finance" onClick={closeMenu} className="hover:text-blue-300 transition">💰 Финансы</Link>
+         <Link href="/admin/leaflet" onClick={closeMenu} className="hover:text-blue-300 transition">📰 Листовки</Link>
         {visibility === "FULL" && (
           <>
-            <Link href="/admin/city" className="hover:text-blue-300 transition">🏙️ Города</Link>
+            <Link href="/admin/city"  onClick={closeMenu}className="hover:text-blue-300 transition">🏙️ Города</Link>
             <Link href="/admin/logs" onClick={closeMenu} className="hover:text-blue-300 transition">🖥️ Логи</Link>
             <Link href="/admin/target" onClick={closeMenu} className="hover:text-blue-300 transition">📈 Цель</Link>
           </>

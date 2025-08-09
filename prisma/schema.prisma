@@ -35,6 +35,12 @@ model City {
   name   String  @unique
   orders Order[]
 }
+model Leaflet {
+  id    Int     @id @default(autoincrement())
+  name  String
+  orders Order[]
+  value Int?
+}
 
 model Order {
   id             Int             @id @default(autoincrement())
@@ -64,6 +70,8 @@ model Order {
   wastimechanged Int?            @default(0)
   city           City?           @relation(fields: [cityId], references: [id])
   documents      OrderDocument[]
+  leafletId  Int?
+  leaflet    Leaflet? @relation(fields: [leafletId], references: [id])
 }
 
 model OrderDocument {

@@ -64,7 +64,7 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
   const [arriveDateTo, setArriveDateTo] = useState("");
 
   const router = useRouter();
-  console.log(orders)
+  console.log(orders);
 
   useEffect(() => {
     fetch("/api/orders")
@@ -110,7 +110,15 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
     });
 
     setFiltered(filtered);
-  }, [search, status, visitType, arriveDateFrom, arriveDateTo, orders, visibility]);
+  }, [
+    search,
+    status,
+    visitType,
+    arriveDateFrom,
+    arriveDateTo,
+    orders,
+    visibility,
+  ]);
 
   return (
     <div className="space-y-4 p-4">
@@ -177,17 +185,17 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
             <tr>
               <th className="w-12 border p-2 text-center">ID</th>
               <th className="border p-2">ФИО</th>
-              <th className="border p-2 hidden sm:table-cell">Телефон</th>
+              <th className="hidden border p-2 sm:table-cell">Телефон</th>
               <th className="border p-2">Адрес</th>
               <th className="border p-2">Тип</th>
               <th className="border p-2">Статус</th>
               <th className="border p-2">Дата визита</th>
-              <th className="border p-2 hidden lg:table-cell">Город</th>
-              <th className="border p-2 hidden lg:table-cell">Прибор</th>
-              <th className="border p-2 hidden md:table-cell">Прибыль</th>
-              <th className="border p-2 hidden md:table-cell">Затраты</th>
-              <th className="border p-2 hidden md:table-cell">Оплата</th>
-              <th className="border p-2 hidden md:table-cell">📞</th>
+              <th className="hidden border p-2 lg:table-cell">Город</th>
+              <th className="hidden border p-2 lg:table-cell">Прибор</th>
+              <th className="hidden border p-2 md:table-cell">Прибыль</th>
+              <th className="hidden border p-2 md:table-cell">Затраты</th>
+              <th className="hidden border p-2 md:table-cell">Оплата</th>
+              <th className="hidden border p-2 md:table-cell">📞</th>
             </tr>
           </thead>
           <tbody>
@@ -205,30 +213,57 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
                   <td className="truncate overflow-hidden border p-2 whitespace-nowrap">
                     {order.fullName}
                   </td>
-                  <td className="border p-2 hidden sm:table-cell">{order.phone}</td>
+                  <td className="hidden border p-2 sm:table-cell">
+                    {order.phone}
+                  </td>
                   <td className="max-w-[10rem] truncate overflow-hidden border p-2 whitespace-nowrap">
                     {order.address}
                   </td>
-                  <td className={clsx("border p-2 text-center", visitTypeRowColors[order.visitType])}>
-                    {visitTypeLabels[order.visitType] || order.visitType}
-                  </td>
-                  <td className={clsx("border p-2 font-medium", statusColors[order.status] || "")}>
+                 <td
+  className={clsx(
+    "border p-2 text-center",
+    order.wastimechanged !== 0 && "text-red-600 font-bold",
+    overdue && "overdue-blink"
+  )}
+>
+  {overdue && <div className="text-xs">Просрочено</div>}
+  {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
+</td>
+                  <td
+                    className={clsx(
+                      "border p-2 font-medium",
+                      statusColors[order.status] || "",
+                    )}
+                  >
                     {statusLabels[order.status] || order.status}
                   </td>
                   <td className="border p-2 text-center">
-                    {overdue && <div className="text-red-600 font-bold text-xs">Просрочено</div>}
-                    {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
+                    {overdue && <div className="overdue-blink">Просрочено</div>}
+                    {new Date(order.arriveDate)
+                      .toISOString()
+                      .replace("T", " ")
+                      .slice(0, 16)}
                   </td>
-                  <td className="border p-2 hidden lg:table-cell">{order.city.name}</td>
-                  <td className="border p-2 hidden lg:table-cell">{order.equipmentType}</td>
-                  <td className="border p-2 text-center hidden md:table-cell">
-                    {order.received && order.outlay != null && order.receivedworker != null
+                  <td className="hidden border p-2 lg:table-cell">
+                    {order.city.name}
+                  </td>
+                  <td className="hidden border p-2 lg:table-cell">
+                    {order.equipmentType}
+                  </td>
+                  <td className="hidden border p-2 text-center md:table-cell">
+                    {order.received &&
+                    order.outlay != null &&
+                    order.receivedworker != null
                       ? order.received - order.outlay - order.receivedworker
                       : "-"}
                   </td>
-                  <td className="border p-2 text-center hidden md:table-cell">{order.outlay ?? "-"}</td>
-                  <td className="border p-2 text-center hidden md:table-cell">{order.received ?? "-"}</td>
-                  <td className="border p-2 text-center hidden md:table-cell">
+                  <td className="hidden border p-2 text-center md:table-cell">
+                    {order.outlay ?? "-"}
+                  </td>
+                  <td className="hidden border p-2 text-center md:table-cell">
+                    {order.received ?? "-"}
+                  </td>
+                  <td className="hidden border p-2 text-center md:table-cell">
                     {order.callRequired ? "✅" : "❌"}
                   </td>
                 </tr>

@@ -8,18 +8,21 @@ import {
 } from "@/server/api/orders/UpdateOrderStatus";
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const orderId = parseInt(context.params.id); // тут контекст уже готов, не надо await
-
+  try{
+  const { id } = await context.params;
+  const orderId = parseInt(id);
+  
+  console.log(orderId);
     if (!orderId) {
       return new Response("orderId обязателен", { status: 400 });
     }
 
     const body = await request.json();
     const { status } = body;
+    
 
     if (!status) {
       return new Response("status обязателен", { status: 400 });
@@ -44,16 +47,17 @@ export async function PATCH(
       }
       case "DONE": {
         const { received, outlay, masterId, receivedworker } = body;
-        if (
-          received === undefined ||
-          outlay === undefined ||
-          !masterId ||
-          !receivedworker
-        ) {
-          return new Response("received, outlay и masterId обязательны", {
-            status: 400,
-          });
-        }
+       if (
+  received === undefined ||
+  outlay === undefined ||
+  masterId === undefined ||
+  receivedworker === undefined
+) {
+  return new Response("received, outlay, masterId и receivedworker обязательны", {
+    status: 400,
+  });
+}
+
         const updatedOrder = await completeOrder(
           orderId,
           received,

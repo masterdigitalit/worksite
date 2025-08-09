@@ -126,16 +126,10 @@
 
 
 @keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
 }
 
-.blinking-red {
-  color: red;
+.overdue-blink {
   animation: blink 1s infinite;
-  font-weight: bold;
 }

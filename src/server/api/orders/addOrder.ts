@@ -12,7 +12,8 @@ export async function createNewOrder(data: {
   callRequired: boolean;
   isProfessional: boolean;
   equipmentType: string;
-  paymentType:string;
+  paymentType: string;
+  leaflet: string;
 }) {
   return prisma.order.create({
     data: {
@@ -21,7 +22,12 @@ export async function createNewOrder(data: {
       address: data.address,
       city: {
         connect: {
-          id: parseInt( data.city),
+          id: parseInt(data.city),
+        },
+      },
+      leaflet: {
+        connect: {
+          id: parseInt(data.leaflet),
         },
       },
 
@@ -32,7 +38,7 @@ export async function createNewOrder(data: {
       isProfessional: data.isProfessional,
       equipmentType: data.equipmentType,
       status: "PENDING",
-      paymentType:data.paymentType,
+      paymentType: data.paymentType,
     },
   });
 }

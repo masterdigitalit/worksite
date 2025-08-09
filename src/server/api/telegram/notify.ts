@@ -19,7 +19,9 @@ export async function getUpcomingOrders() {
       status: {
         notIn: ["DONE", "DECLINED"],
       },
+      
     },
+     include: { city: true },
   });
 
   return orders;

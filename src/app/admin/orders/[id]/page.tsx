@@ -104,7 +104,7 @@ export default function OrderPage({ params }: Props) {
 const copyText = order
   ? `Заявка #${order.id} ${visitTypeMap[order.visitType] || order.visitType}
 ${new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)} 
-${order.city.name}
+${order.city?.name}
 ${order.address}
 ${order.problem}
 ${order.phone} ${order.fullName}
@@ -187,7 +187,7 @@ ${order.phone} ${order.fullName}
           disabled={order.status === "DECLINED" || canceling}
           title={order.status === "DECLINED" ? "Заказ уже отменён" : ""}
         >
-          Отменить заказ
+          {order.status === "DECLINED" ? "Заказ уже отменён" : "Отменить заказ"}
         </button>
       </div>
 

@@ -30,17 +30,7 @@ model Worker {
   updatedAt        DateTime @updatedAt
 }
 
-model City {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique
-  orders Order[]
-}
-model Leaflet {
-  id    Int     @id @default(autoincrement())
-  name  String
-  orders Order[]
-  value Int?
-}
+
 
 model Order {
   id             Int             @id @default(autoincrement())
@@ -89,4 +79,67 @@ model Goal {
   day       Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model distributor {
+  id             Int                    @id @default(autoincrement())
+  fullName       String
+  phone          String
+  telegram       String
+  leafletOrders  LeafletOrder[]         // связь с заказами листовок
+  documents      DistributorDocument[]  // связь с документами
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+}
+
+model DistributorDocument {
+  id             Int          @id @default(autoincrement())
+  
+  distributorId  Int
+  type           String
+  url            String
+
+ 
+  distributor    distributor  @relation(fields: [distributorId], references: [id])
+}
+
+
+enum LeafletOrderState {
+  IN_PROCESS
+  DONE
+  DECLINED
+}
+
+model LeafletOrder {
+  id            Int                @id @default(autoincrement())
+  profitType    ProfitType
+  quantity      Int
+  leafletId     Int
+  leaflet       Leaflet            @relation("LeafletToLeafletOrders", fields: [leafletId], references: [id])
+  cityId        Int
+  city          City               @relation("CityToLeafletOrders", fields: [cityId], references: [id])
+  distributorId Int
+  distributor   distributor        @relation(fields: [distributorId], references: [id])
+  state         LeafletOrderState  @default(IN_PROCESS)
+  createdAt     DateTime           @default(now())
+}
+
+model Leaflet {
+  id             Int             @id @default(autoincrement())
+  name           String
+  value          Int?
+  orders         Order[]         // твои существующие заказы
+  leafletOrders  LeafletOrder[]  @relation("LeafletToLeafletOrders")
+}
+
+model City {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  orders         Order[]         // твои существующие заказы
+  leafletOrders  LeafletOrder[]  @relation("CityToLeafletOrders")
+}
+
+enum ProfitType {
+  MKD
+  CHS
 }

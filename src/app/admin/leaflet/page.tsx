@@ -65,7 +65,7 @@ export default function LeafletPage() {
       )}
       {activeTab === "distributors" && (
         <button
-          onClick={() => router.push("/admin/distributor/new")}
+          onClick={() => router.push("/admin/distributors")}
           className="mb-4 rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
         >
           Добавить разносчика

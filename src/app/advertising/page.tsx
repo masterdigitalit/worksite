@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
 
 interface Leaflet {
@@ -17,13 +17,14 @@ interface Distributor {
   fullName: string;
 }
 
-type ProfitType = "MKD" | "CHS"; // Исправил типы, в селекте ты используешь "MKD" и "CHS"
+type ProfitType = "МКД" | "ЧС"; // МКД - много квартирный дом, ЧС - частный сектор
 type LeafletOrderState = "IN_PROCESS" | "DONE";
 
 export default function LeafletOrdersPage() {
   const [leafletOrders, setLeafletOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Данные для селектов
   const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [distributors, setDistributors] = useState<Distributor[]>([]);
@@ -37,10 +38,6 @@ export default function LeafletOrdersPage() {
   const [leafletId, setLeafletId] = useState<number | null>(null);
   const [cityId, setCityId] = useState<number | null>(null);
   const [distributorId, setDistributorId] = useState<number | null>(null);
-
-  // Для поиска по разносчикам
-  const [distributorSearch, setDistributorSearch] = useState("");
-
   const router = useRouter();
 
   useEffect(() => {
@@ -65,11 +62,6 @@ export default function LeafletOrdersPage() {
     fetchData();
   }, []);
 
-  // Фильтрация разносчиков по поиску
-  const filteredDistributors = distributors.filter((d) =>
-    d.fullName.toLowerCase().includes(distributorSearch.toLowerCase())
-  );
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -78,7 +70,8 @@ export default function LeafletOrdersPage() {
       !quantity ||
       !leafletId ||
       !cityId ||
-      !distributorId
+      !distributorId 
+    
     ) {
       alert("Заполните все поля");
       return;
@@ -94,6 +87,7 @@ export default function LeafletOrdersPage() {
           leafletId,
           cityId,
           distributorId,
+        
         }),
       });
 
@@ -109,7 +103,7 @@ export default function LeafletOrdersPage() {
       setLeafletId(null);
       setCityId(null);
       setDistributorId(null);
-      setDistributorSearch("");
+  
     } catch {
       alert("Ошибка при добавлении заказа");
     }
@@ -212,42 +206,28 @@ export default function LeafletOrdersPage() {
                 </select>
               </div>
 
-              {/* Distributor с поиском */}
+              {/* Distributor */}
               <div>
                 <label className="block mb-1 font-semibold">Разносчик*</label>
-                <input
-                  type="text"
-                  value={distributorSearch}
-                  onChange={(e) => {
-                    setDistributorSearch(e.target.value);
-                    setDistributorId(null); // сбрасываем выбранного при новом поиске
-                  }}
-                  placeholder="Поиск разносчика..."
-                  className="w-full border rounded px-3 py-2 mb-1"
-                  autoComplete="off"
-                />
-                <div className="max-h-40 overflow-y-auto border rounded">
-                  {filteredDistributors.length > 0 ? (
-                    filteredDistributors.map((d) => (
-                      <div
-                        key={d.id}
-                        onClick={() => {
-                          setDistributorId(d.id);
-                          setDistributorSearch(d.fullName);
-                        }}
-                        className={`cursor-pointer px-3 py-1 hover:bg-gray-200 ${
-                          distributorId === d.id ? "bg-blue-200" : ""
-                        }`}
-                      >
-                        {d.fullName}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-3 py-1 text-gray-500">Нет результатов</div>
-                  )}
-                </div>
+                <select
+                  className="w-full border rounded px-3 py-2"
+                  value={distributorId ?? ""}
+                  onChange={(e) => setDistributorId(Number(e.target.value))}
+                  required
+                >
+                  <option value="" disabled>
+                    Выберите разносчика
+                  </option>
+                  {distributors.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.fullName}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+          
+            
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
@@ -280,15 +260,14 @@ export default function LeafletOrdersPage() {
             <th className="p-2 border">Разносчик</th>
             <th className="p-2 border">Статус</th>
             <th className="p-2 border">Создан</th>
+             <th className="p-2 border">Заработал</th>
           </tr>
         </thead>
         <tbody>
           {leafletOrders.map((order) => (
-            <tr
-              key={order.id}
-              className="cursor-pointer hover:bg-gray-200 transition"
-              onClick={() => router.push(`/admin/distribution/${order.id}`)}
-            >
+            <tr key={order.id}
+						  className="cursor-pointer hover:bg-gray-200 transition"
+  onClick={() => router.push(`/advertising/${order.id}`)}>
               <td className="p-2 border">{order.id}</td>
               <td className="p-2 border">{order.profitType}</td>
               <td className="p-2 border">{order.quantity}</td>
@@ -297,12 +276,22 @@ export default function LeafletOrdersPage() {
               <td className="p-2 border">{order.distributor?.fullName || "-"}</td>
               <td
                 className={`p-2 border font-semibold ${
-                  order.state === "IN_PROCESS" ? "text-orange-500" : "text-green-600"
+                  order.state === "IN_PROCESS" && "text-orange-500" 
+                } ${
+                  order.state === "DONE" && "text-green-600" 
+                } ${
+                  order.state === "DECLINED" && "text-red-500" 
                 }`}
+                
               >
-                {order.state === "IN_PROCESS" ? "В процессе" : "Выполнено"}
+                {order.state === "IN_PROCESS" && "В процессе" }
+                     {order.state === "DONE" && "Успешно" }
+                       {order.state === "DECLINED" && "Провалено" }
               </td>
-              <td className="p-2 border">{new Date(order.createdAt).toLocaleString()}</td>
+              <td className="p-2 border">
+                {new Date(order.createdAt).toLocaleString()}
+              </td>
+               <td className="p-2 border">{order.distributorProfit || "-"}</td>
             </tr>
           ))}
         </tbody>

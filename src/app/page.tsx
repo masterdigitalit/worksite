@@ -9,6 +9,7 @@ export default async function Home() {
 
   if (session?.user.role === "admin") redirect("/admin");
   if (session?.user.role === "manager") redirect("/manager");
+    if (session?.user.role === "advertising") redirect("/advertising");
 
   return (
     <LayoutShell>

@@ -18,7 +18,7 @@ interface Distributor {
 
 export default function DistributorsPage() {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
-    const router = useRouter();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function DistributorsPage() {
           {distributors.map(d => (
             <tr key={d.id}
               className="cursor-pointer hover:bg-gray-200 transition"
-                  onClick={() => router.push(`/admin/distributors/${d.id}`)}>
+                  onClick={() => router.push(`/advertising/distributors/${d.id}`)}>
               <td className="p-2 border">{d.id}</td>
               <td className="p-2 border">{d.fullName}</td>
               <td className="p-2 border">{d.phone}</td>

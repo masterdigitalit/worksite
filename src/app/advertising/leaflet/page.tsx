@@ -57,7 +57,7 @@ export default function LeafletPage() {
       {/* Кнопка добавления */}
       {activeTab === "leaflet" && (
         <button
-          onClick={() => router.push("/admin/leaflet/new")}
+          onClick={() => router.push("/advertising/leaflet/new")}
           className="mb-4 rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
         >
           Добавить листовку
@@ -65,7 +65,7 @@ export default function LeafletPage() {
       )}
       {activeTab === "distributors" && (
         <button
-          onClick={() => router.push("/admin/distributors/new")}
+          onClick={() => router.push("/advertising/distributors/new")}
           className="mb-4 rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
         >
           Добавить разносчика

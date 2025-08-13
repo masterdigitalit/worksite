@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/api/auth/auth";
 import { redirect } from "next/navigation";
 
-export async function requireRole(role: "admin" | "manager") {
+export async function requireRole(role: "admin" | "manager"| "advertising") {
   const session = await getServerSession(authOptions);
 
   if (!session) redirect("/login");

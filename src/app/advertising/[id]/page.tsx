@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface LeafletOrder {
   id: number;
@@ -9,10 +10,11 @@ interface LeafletOrder {
   quantity: number;
   leaflet: { name: string; value: number } | null;
   city: { name: string } | null;
-  distributor: { fullName: string } | null;
-  state: string;
+  distributor: { id: number; fullName: string } | null;
+  state: "IN_PROCESS" | "DONE" | "DECLINED" | string;
   createdAt: string;
-  distributorProfit:number;
+  distributorProfit: number;
+  wasBack?: boolean;
 }
 
 export default function LeafletOrderPage() {
@@ -44,28 +46,33 @@ export default function LeafletOrderPage() {
       const res = await fetch(`/api/distribution/complete/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          success,
-          returnedLeaflets,
-        }),
+        body: JSON.stringify({ success, returnedLeaflets }),
       });
 
-      if (!res.ok) {
-        throw new Error("Ошибка завершения заказа");
-      }
+      if (!res.ok) throw new Error("Ошибка завершения заказа");
 
-      // Перезагружаем данные
       const updated = await res.json();
       setOrder(updated);
 
-      // Возврат к списку
-   
     } catch (err: any) {
       alert(err.message);
     } finally {
       setSubmitting(false);
     }
   }
+
+  const translateStatus = (status: string) => {
+    switch (status) {
+      case "IN_PROCESS":
+        return "В РАБОТЕ";
+      case "DONE":
+        return "ВЫПОЛНЕН";
+      case "DECLINED":
+        return "ПРОВАЛЕН";
+      default:
+        return status;
+    }
+  };
 
   if (loading) return <p className="p-4">Загрузка...</p>;
   if (error) return <p className="p-4 text-red-600">Ошибка: {error}</p>;
@@ -79,14 +86,27 @@ export default function LeafletOrderPage() {
       <p><strong>Количество:</strong> {order.quantity}</p>
       <p><strong>Листовка:</strong> {order.leaflet?.name || "-"}</p>
       <p><strong>Город:</strong> {order.city?.name || "-"}</p>
-      <p><strong>Разносчик:</strong> {order.distributor?.fullName || "-"}</p>
-      <p><strong>Статус:</strong> {order.state}</p>
+      <p>
+        <strong>Разносчик:</strong>{" "}
+        {order.distributor ? (
+          <Link
+            href={`/advertising/distributors/${order.distributor.id}`}
+            className="text-blue-600 hover:underline"
+          >
+            {order.distributor.fullName}
+          </Link>
+        ) : (
+          "-"
+        )}
+      </p>
+      <p><strong>Статус:</strong> {translateStatus(order.state)}</p>
       <p><strong>Создан:</strong> {new Date(order.createdAt).toLocaleString()}</p>
-        {order.state === "DONE" && (<>
-        <p><strong>Заработал:</strong> {order.distributorProfit|| "-"}</p>
-      </>)
 
-      }
+      {order.state === "DONE" && (
+        <p><strong>Заработал:</strong> {order.distributorProfit || "-"}</p>
+      )}
+
+      {order.wasBack && <p>Листовки вернули</p>}
 
       {order.state === "IN_PROCESS" && (
         <div className="mt-4">

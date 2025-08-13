@@ -1,17 +1,25 @@
 import { prisma } from "@/server/db";
 
 export async function getProfitStats() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
   const data = await prisma.order.aggregate({
     _sum: {
       received: true,
       outlay: true,
       receivedworker: true,
     },
-      _count: {
+    _count: {
       id: true,
     },
     where: {
       status: "DONE",
+      dateDone: {
+        gte: startOfMonth,
+        lt: startOfNextMonth,
+      },
     },
   });
 

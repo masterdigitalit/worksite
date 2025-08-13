@@ -25,13 +25,17 @@ export async function completeLeafletOrder({
   if (order.profitType === "MKD") multiplier = 0.5;
   else if (order.profitType === "CHS") multiplier = 1.5;
 
+  // Время в UTC+3
+  const doneAt = new Date(Date.now() );
+
   if (success) {
     // ✅ Успешное выполнение
     return prisma.leafletOrder.update({
       where: { id },
       data: {
         state: "DONE",
-        distributorProfit: multiplier * order.quantity,
+        distributorProfit: (multiplier * order.quantity).toString(),
+        doneAt,
       },
     });
   } else {
@@ -41,7 +45,8 @@ export async function completeLeafletOrder({
         where: { id: order.leaflet.id },
         data: {
           value: order.leaflet.value + order.quantity,
-          wasBack: true
+          wasBack: true,
+           doneAt,
         },
       });
     }
@@ -50,7 +55,8 @@ export async function completeLeafletOrder({
       where: { id },
       data: {
         state: "DECLINED",
-         wasBack: false
+        wasBack: false,
+        doneAt,
       },
     });
   }

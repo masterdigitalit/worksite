@@ -122,8 +122,11 @@ model LeafletOrder {
   distributor   distributor        @relation(fields: [distributorId], references: [id])
   state         LeafletOrderState  @default(IN_PROCESS)
   createdAt     DateTime           @default(now())
-  distributorProfit  Int?
+  doneAt     DateTime?           
+  distributorProfit  String?
   wasBack       Boolean?
+  createdBy     String?
+
 }
 
 model Leaflet {

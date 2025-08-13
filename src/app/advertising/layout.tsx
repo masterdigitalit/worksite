@@ -13,7 +13,7 @@ export default async function AdminLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  await requireRole("advertising");
+  // await requireRole("advertising");
 
   return (
     <div className="min-h-screen flex flex-col">

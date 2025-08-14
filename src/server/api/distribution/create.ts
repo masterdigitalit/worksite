@@ -6,6 +6,7 @@ export async function createLeafletOrder(data: {
   leafletId: number;
   cityId: number;
   distributorId: number;
+  fullName:string;
 }) {
   return await prisma.$transaction(async (tx) => {
     // Проверяем наличие листовки
@@ -21,6 +22,7 @@ export async function createLeafletOrder(data: {
     if (leaflet.value < data.quantity) {
       throw new Error("Недостаточно листовок на складе");
     }
+    console.log(data)
 
     // Создаём заказ с фиксированным state
     const order = await tx.leafletOrder.create({
@@ -31,6 +33,7 @@ export async function createLeafletOrder(data: {
         cityId: data.cityId,
         distributorId: data.distributorId,
         state: LeafletOrderState.IN_PROGRESS,
+        createdBy:data.fullName
       },
     });
 

@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const newOrder = await createLeafletOrder(body);
-    return NextResponse.json(newOrder, { status: 201 });
+    return NextResponse.json(newOrder, { status: 200 });
   } catch (error) {
     console.error("Error creating LeafletOrder:", error);
     return NextResponse.json(

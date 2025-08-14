@@ -45,10 +45,17 @@ export async function completeLeafletOrder({
         where: { id: order.leaflet.id },
         data: {
           value: order.leaflet.value + order.quantity,
-          wasBack: true,
-           doneAt,
+          
         },
       });
+      await prisma.leafletOrder.update({
+      where: { id },
+      data: {
+        state: "DECLINED",
+        wasBack: true,
+        doneAt,
+      },
+    });
     }
 
     return prisma.leafletOrder.update({

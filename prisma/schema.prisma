@@ -124,7 +124,8 @@ model LeafletOrder {
   createdAt     DateTime           @default(now())
   doneAt     DateTime?           
   distributorProfit  String?
-  wasBack       Boolean?
+  returned      Int?
+  given         Int?
   createdBy     String?
 
 }

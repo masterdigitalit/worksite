@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 interface LeafletOrder {
@@ -14,18 +14,21 @@ interface LeafletOrder {
   state: "IN_PROCESS" | "DONE" | "DECLINED" | string;
   createdAt: string;
   distributorProfit: number;
-  wasBack?: boolean;
+  given : number;
+  returned:number;
 }
 
 export default function LeafletOrderPage() {
   const { id } = useParams();
-  const router = useRouter();
 
   const [order, setOrder] = useState<LeafletOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [finishStep, setFinishStep] = useState<"start" | "fail-options" | null>(null);
+  const [finishStep, setFinishStep] = useState<null | "partial">(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const [partialDistributed, setPartialDistributed] = useState<number | null>(null);
+  const [partialReturned, setPartialReturned] = useState<number | null>(null);
 
   // Загружаем заказ
   useEffect(() => {
@@ -38,7 +41,7 @@ export default function LeafletOrderPage() {
   }, [id]);
 
   // Завершение заказа
-  async function finishOrder(success: boolean, returnedLeaflets?: boolean) {
+  async function finishOrder(success: boolean, partialData?: { distributed: number; returned: number }) {
     if (!id || submitting) return;
     setSubmitting(true);
 
@@ -46,14 +49,20 @@ export default function LeafletOrderPage() {
       const res = await fetch(`/api/distribution/complete/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ success, returnedLeaflets }),
+        body: JSON.stringify(
+          partialData
+            ? { success, ...partialData }
+            : { success }
+        ),
       });
 
       if (!res.ok) throw new Error("Ошибка завершения заказа");
 
       const updated = await res.json();
       setOrder(updated);
-
+      setFinishStep(null);
+      setPartialDistributed(null);
+      setPartialReturned(null);
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -102,8 +111,12 @@ export default function LeafletOrderPage() {
       <p><strong>Статус:</strong> {translateStatus(order.state)}</p>
       <p><strong>Создан:</strong> {new Date(order.createdAt).toLocaleString()}</p>
 
-      {order.state === "DONE" && (
+      {order.state !== "IN_PROGRESS" && (
+        <>
         <p><strong>Заработал:</strong> {order.distributorProfit || "-"}</p>
+        <p><strong>Раздал:</strong> {order.given || "-"}</p>
+        <p><strong>Вернул:</strong> {order.returned || "-"}</p>
+</>
       )}
 
       {order.wasBack && <p>Листовки вернули</p>}
@@ -111,50 +124,73 @@ export default function LeafletOrderPage() {
       {order.state === "IN_PROCESS" && (
         <div className="mt-4">
           {finishStep === null && (
-            <button
-              onClick={() => setFinishStep("start")}
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-              disabled={submitting}
-            >
-              Завершить заказ
-            </button>
-          )}
-
-          {finishStep === "start" && (
             <div className="space-x-2">
               <button
                 onClick={() => finishOrder(true)}
                 className="px-4 py-2 bg-green-600 text-white rounded"
                 disabled={submitting}
               >
-                ✅ Успешно
+                ✅ Раздал всё
               </button>
               <button
-                onClick={() => setFinishStep("fail-options")}
-                className="px-4 py-2 bg-red-600 text-white rounded"
+                onClick={() => setFinishStep("partial")}
+                className="px-4 py-2 bg-yellow-600 text-white rounded"
                 disabled={submitting}
               >
-                ❌ Неуспешно
+                📦 Частично
               </button>
             </div>
           )}
 
-          {finishStep === "fail-options" && (
-            <div className="space-x-2">
-              <button
-                onClick={() => finishOrder(false, true)}
-                className="px-4 py-2 bg-yellow-600 text-white rounded"
-                disabled={submitting}
-              >
-                📦 Листовки вернули
-              </button>
-              <button
-                onClick={() => finishOrder(false, false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded"
-                disabled={submitting}
-              >
-                📦 Листовки не вернули
-              </button>
+          {finishStep === "partial" && (
+            <div className="space-y-2 mt-3">
+              <input
+                type="number"
+                placeholder="Сколько раздал"
+                className="border p-2 w-full rounded"
+                value={partialDistributed ?? ""}
+                onChange={(e) => setPartialDistributed(Number(e.target.value))}
+              />
+              <input
+                type="number"
+                placeholder="Сколько вернул"
+                className="border p-2 w-full rounded"
+                value={partialReturned ?? ""}
+                onChange={(e) => setPartialReturned(Number(e.target.value))}
+              />
+              <div className="space-x-2">
+                <button
+                  onClick={() => {
+                    if (
+                      partialDistributed === null ||
+                      partialReturned === null ||
+                      isNaN(partialDistributed) ||
+                      isNaN(partialReturned)
+                    ) {
+                      alert("Заполните оба поля!");
+                      return;
+                    }
+                    finishOrder(false, {
+                      distributed: partialDistributed,
+                      returned: partialReturned,
+                    });
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  disabled={submitting}
+                >
+                  Отправить
+                </button>
+                <button
+                  onClick={() => {
+                    setFinishStep(null);
+                    setPartialDistributed(null);
+                    setPartialReturned(null);
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded"
+                >
+                  Отмена
+                </button>
+              </div>
             </div>
           )}
         </div>

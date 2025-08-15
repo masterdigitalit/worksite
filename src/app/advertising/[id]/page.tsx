@@ -111,7 +111,7 @@ export default function LeafletOrderPage() {
       <p><strong>Статус:</strong> {translateStatus(order.state)}</p>
       <p><strong>Создан:</strong> {new Date(order.createdAt).toLocaleString()}</p>
 
-      {order.state !== "IN_PROGRESS" && (
+      {order.state !== "IN_PROCESS" && (
         <>
         <p><strong>Заработал:</strong> {order.distributorProfit || "-"}</p>
         <p><strong>Раздал:</strong> {order.given || "-"}</p>

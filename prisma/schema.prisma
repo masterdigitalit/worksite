@@ -90,6 +90,8 @@ model distributor {
   documents      DistributorDocument[]  // связь с документами
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
+  invitedBy      String?
+      
 }
 
 model DistributorDocument {

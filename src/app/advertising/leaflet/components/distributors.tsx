@@ -43,6 +43,7 @@ export default function DistributorsPage() {
             <th className="p-2 border">Телефон</th>
             <th className="p-2 border">Telegram</th>
             <th className="p-2 border">Документы</th>
+                        <th className="p-2 border">Пригласил</th>
           </tr>
         </thead>
         <tbody>
@@ -57,6 +58,7 @@ export default function DistributorsPage() {
               <td className="p-2 border text-center">
                 {d.documents && d.documents.length > 0 ? "✅" : "—"}
               </td>
+               <td className="p-2 border">{d.invitedBy || "-"}</td>
             </tr>
           ))}
         </tbody>

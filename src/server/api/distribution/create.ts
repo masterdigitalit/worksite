@@ -7,6 +7,7 @@ export async function createLeafletOrder(data: {
   cityId: number;
   distributorId: number;
   fullName:string;
+  
 }) {
   return await prisma.$transaction(async (tx) => {
     // Проверяем наличие листовки

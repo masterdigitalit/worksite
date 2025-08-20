@@ -276,6 +276,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
             <th className="p-2 border">Статус</th>
             <th className="p-2 border">Создан</th>
              <th className="p-2 border">Заработал</th>
+                          <th className="p-2 border">Создал</th>
           </tr>
         </thead>
         <tbody>
@@ -307,6 +308,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                 {new Date(order.createdAt).toLocaleString()}
               </td>
                <td className="p-2 border">{order.distributorProfit || "-"}</td>
+                   <td className="p-2 border">{order.createdBy || "-"}</td>
             </tr>
           ))}
         </tbody>

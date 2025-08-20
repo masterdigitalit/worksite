@@ -19,6 +19,7 @@ export default async function AdminLayout({
     <div className="min-h-screen flex flex-col">
       <AdvertisingHeader
         fullName={session.user.fullName ?? "?"}
+        session={session}
         visibility={session.user.visibility}
       />
       <main className="flex-1 p-6 bg-gray-50">

@@ -6,9 +6,11 @@ import { useState } from "react";
 export default function AdvertisingHeader({
   fullName,
   visibility,
+  session
 }: {
   fullName: string;
   visibility: string;
+   session:string
 }) {
   const [open, setOpen] = useState(false);
 
@@ -30,6 +32,7 @@ export default function AdvertisingHeader({
       
                    <Link href="/advertising/leaflet"  className="hover:text-blue-300 transition">📰 Листовки</Link>
                        <Link href="/advertising" className="hover:text-blue-300 transition">Листопад</Link>
+                       {session.user.role ==="admin"&& <Link href="/admin" className="hover:text-blue-300 transition">Назад на админку</Link> }
                        
        
         </nav>

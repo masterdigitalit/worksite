@@ -1,5 +1,6 @@
 import { prisma } from "@/server/db";
 import { LeafletOrderState } from "@prisma/client";
+import { Create } from "../logs/create";
 export async function createLeafletOrder(data: {
   profitType: "MKD" | "CHS";
   quantity: number;
@@ -9,6 +10,13 @@ export async function createLeafletOrder(data: {
   fullName:string;
   
 }) {
+    const distributor = await  prisma.distributor.findUnique({
+     where :{id:data.distributorId}
+    });
+    console.log(data)
+
+    await Create({whoDid:data.fullName, whatHappend:`Выдал ${distributor?.fullName + '  ' + data.quantity } `, type:"advertising"})
+
   return await prisma.$transaction(async (tx) => {
     // Проверяем наличие листовки
     const leaflet = await tx.leaflet.findUnique({
@@ -24,6 +32,7 @@ export async function createLeafletOrder(data: {
       throw new Error("Недостаточно листовок на складе");
     }
     console.log(data)
+    
 
     // Создаём заказ с фиксированным state
     const order = await tx.leafletOrder.create({
@@ -37,7 +46,7 @@ export async function createLeafletOrder(data: {
         createdBy:data.fullName
       },
     });
-
+  
     // Обновляем количество в листовке
     await tx.leaflet.update({
       where: { id: data.leafletId },

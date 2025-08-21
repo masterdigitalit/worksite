@@ -1,6 +1,6 @@
 // /server/api/Distributor/new.ts
 import { prisma } from "@/server/db";
-
+import { Create } from "@/server/api/logs/create";
 export async function createDistributor(data: {
   fullName: string;
   phone: string;
@@ -8,6 +8,7 @@ export async function createDistributor(data: {
   state?: "IN_PROCESS" 
  invitedBy:string
 }) {
+  await Create({whoDid: data.invitedBy, whatHappend:`Добавил работника ${data.fullName}`,type: 'advertising'})
 
   return prisma.distributor.create({
     data: {

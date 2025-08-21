@@ -151,3 +151,20 @@ enum ProfitType {
   MKD
   CHS
 }
+
+
+
+model Logs{
+   id            Int                @id @default(autoincrement())
+   whoDid          String? 
+   whatHappend     String? 
+   type logTypes
+
+
+}
+
+enum logTypes {
+    orders
+    advertising
+    accounts
+}

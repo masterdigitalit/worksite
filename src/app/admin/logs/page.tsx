@@ -41,7 +41,9 @@ export default function LogsPage() {
               </p>
               <p>
                 <span className="font-medium">Что сделал:</span>{" "}
-                {log.whatHappend ?? "—"}
+             <div
+  dangerouslySetInnerHTML={{ __html: log.whatHappend }}
+/>
               </p>
             </div>
           </div>

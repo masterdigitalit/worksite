@@ -139,6 +139,13 @@ export default function LeafletOrderPage() {
               >
                 📦 Частично
               </button>
+               <button
+          onClick={() => finishOrder(false, {distributed:0, returned: order.quantity})}
+          className="px-4 py-2 bg-red-600 text-white rounded"
+          disabled={submitting}
+        >
+          ❌ Отмена
+        </button>
             </div>
           )}
 
@@ -198,3 +205,6 @@ export default function LeafletOrderPage() {
     </div>
   );
 }
+
+
+

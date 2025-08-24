@@ -1,4 +1,16 @@
 import { prisma } from "@/server/db";
+import { Create } from "../logs/create";
+
+
+
+interface doneOrder {
+  orderId: number,
+  received: number,
+  outlay: number,
+  masterId: number,
+  receivedworker: number,
+  whoDid:string
+}
 
 export async function setPendingToOnTheWay(orderId: number, masterId: number) {
   return prisma.order.update({
@@ -28,13 +40,20 @@ export async function setProgressSD(orderId: number) {
     },
   });
 }
-export async function completeOrder(
-  orderId: number,
-  received: number,
-  outlay: number,
-  masterId: number,
-  receivedworker: number
-) {
+export async function completeOrder({
+  orderId,
+  received ,
+  outlay ,
+  masterId,
+  receivedworker ,
+  whoDid
+}:doneOrder) {
+  
+    await Create({
+      whoDid,
+      whatHappend: `Закрыт заказ #${orderId} получено: ${received} затраты :${outlay} получил работник :${receivedworker}` ,
+      type: "advertising",
+    });
     
   // Обновляем заказ: ставим статус, даты и финансовые поля
   const updatedOrder = await prisma.order.update({

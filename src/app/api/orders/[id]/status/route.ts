@@ -7,10 +7,13 @@ import {
   setProgressSD,
 } from "@/server/api/orders/UpdateOrderStatus";
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/api/auth/auth";
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+      const session = await getServerSession(authOptions);
   try{
   const { id } = await context.params;
   const orderId = parseInt(id);
@@ -58,13 +61,15 @@ export async function PATCH(
   });
 }
 
-        const updatedOrder = await completeOrder(
-          orderId,
-          received,
-          outlay,
-          masterId,
-          receivedworker
-        );
+        const updatedOrder = await completeOrder({
+          masterId:masterId,
+          orderId:orderId,
+          outlay:outlay,
+          received:received,
+          receivedworker:receivedworker,
+          whoDid:  session.user.fullName
+          
+      });
         return NextResponse.json(updatedOrder);
       }
       case "DECLINED": {

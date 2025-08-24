@@ -53,7 +53,7 @@ async function notifyUpcomingOrders() {
         `👤 Клиент: ${order.fullName}\n` +
         `Листовка - ${order.leaflet?.name || 'Не указана'}\n\n`+
         `${SITE_URL}/admin/orders/${order.id}\n\n` +
-        `@Shulna`;
+        `@Broke_Name   @OxyMilles`;
 
       await bot.telegram.sendMessage(ADMIN_CHAT_ID, msg, {
         parse_mode: "HTML",

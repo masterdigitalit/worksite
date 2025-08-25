@@ -21,7 +21,7 @@ export async function getUpcomingOrders() {
       },
       
     },
-     include: { city: true },
+     include: { city: true, leaflet:true },
   });
 
   return orders;

@@ -1,31 +1,23 @@
-'use client'
-
-import React, { Suspense, useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useSearchParams } from 'next/navigation'
+'use client';
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useGeolocation } from "../hooks/useGeolocation";
 
 export default function LoginForm() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-
-  return (
-    <Suspense fallback={null}>
-      <InnerLoginForm username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
-    </Suspense>
-  )
-}
-
-function InnerLoginForm({ username, setUsername, password, setPassword }) {
-  const searchParams = useSearchParams()
-  const error = searchParams.get('error')
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const { coords } = useGeolocation();
 
   const handleLogin = async () => {
-    await signIn('credentials', {
+    if (!coords) return; // 🔹 Без геопозиции не логиним
+    await signIn("credentials", {
       username,
       password,
-      callbackUrl: '/',
-    })
-  }
+      callbackUrl: "/",
+      lat: coords.lat,
+      lng: coords.lng,
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -42,13 +34,22 @@ function InnerLoginForm({ username, setUsername, password, setPassword }) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      {error && <div className="text-red-600">Неверный логин или пароль</div>}
+
       <button
         onClick={handleLogin}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
+        disabled={!coords} // 🔹 Заблокировано, пока нет координат
+        className={`px-6 py-2 rounded text-white ${
+          coords ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
+        }`}
       >
         Войти
       </button>
+
+      {!coords && (
+        <p className="text-red-600 text-sm">
+          Разрешите доступ к геопозиции, чтобы войти
+        </p>
+      )}
     </div>
-  )
+  );
 }

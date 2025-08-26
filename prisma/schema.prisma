@@ -17,6 +17,21 @@ model User {
   telegramUsername String?
   phone            String?
   visibility       String    @default("FULL")
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique     // jti (id токена)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  valid     Boolean  @default(true)
+    latitude  Float?
+  longitude Float?
+  userAgent String?  // браузер/устройство
+  ip        String?  // IP-адрес
 }
 
 model Worker {

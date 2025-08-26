@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Visibility = "MINIMAL" | "PARTIAL" | "ADVERTISING";
 type Role = "admin" | "advertising";
@@ -15,6 +16,7 @@ interface Manager {
 }
 
 export default function ManagersPage() {
+    const router = useRouter();
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -129,7 +131,7 @@ export default function ManagersPage() {
           </thead>
           <tbody>
             {managers.map((m) => (
-              <tr key={m.id} className="hover:bg-gray-50 cursor-pointer">
+              <tr key={m.id} className="hover:bg-gray-50 cursor-pointer"    onClick={() => router.push(`/admin/managers/${m.id}`)}>
                 <td className="p-2 border">{m.fullName}</td>
                 <td className="p-2 border">{m.username}</td>
                 <td className="p-2 border">{m.role}</td>

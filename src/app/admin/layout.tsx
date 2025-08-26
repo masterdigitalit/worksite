@@ -1,22 +1,21 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/api/auth/auth";
-import { requireRole } from "../../../lib/auth/requireRole";
 import { redirect } from "next/navigation";
 import AdminHeader from "@/app/admin/components/AdminHeader";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
+
   if (!session) redirect("/login");
-  await requireRole("admin");
 
   return (
+    
     <div className="min-h-screen flex flex-col">
+      
       <AdminHeader
         fullName={session.user.fullName ?? "?"}
         visibility={session.user.visibility}

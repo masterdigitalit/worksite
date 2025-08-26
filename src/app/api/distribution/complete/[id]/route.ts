@@ -5,6 +5,7 @@ import { authOptions } from "@/server/api/auth/auth";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
+    console.log(session)
 
     
   try {

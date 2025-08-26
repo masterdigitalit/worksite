@@ -16,7 +16,7 @@ async function main() {
     },
   });
 
-  console.log("✅ Admin created");
+
 }
 
 main()

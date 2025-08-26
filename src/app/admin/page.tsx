@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/api/auth/auth";
-import { redirect } from "next/navigation";
+
 
 import { getGoal } from "@/server/api/target/get";
 import { getTodayStats } from "@/server/api/stats/getDailyStats";
@@ -35,6 +35,7 @@ const groupTitleMap: Record<string, string> = {
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
+  
  
 
   const fullName =
@@ -61,7 +62,7 @@ export default async function AdminPage() {
   const avgProfitall = profitStats.count
     ? Math.round((profitStats.received - profitStats.outlay) / profitStats.count)
     : 0;
-    console.log(todayStats)
+
 
   return (
     <div className="p-6 space-y-6">
@@ -139,7 +140,7 @@ function StatCard({
   target: number;
 }) {
   const { profit, count, received, outlay, receivedworker } = stats;
-  console.log(target)
+
   const base = target || 1;
   const profitPercent = Math.round((profit / base) * 100);
   const costPercent = Math.min(100 - profitPercent, 100);

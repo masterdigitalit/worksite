@@ -24,7 +24,7 @@ export default function NewCityPage() {
 
       router.push("/admin/city");
     } catch (err) {
-      console.error(err);
+
       alert("Не удалось добавить город");
     } finally {
       setLoading(false);

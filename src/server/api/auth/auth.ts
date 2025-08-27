@@ -45,16 +45,10 @@ export const authOptions: NextAuthOptions = {
             ? headers.get("user-agent")
             : (headers["user-agent"] as string | undefined)) || null;
 
-        const xffRaw =
-          (typeof headers.get === "function"
-            ? headers.get("x-forwarded-for")
-            : (headers["x-forwarded-for"] as string | undefined)) || "";
+       
 
-        // @ts-expect-error может отсутствовать в Edge
-        const socketIp = req?.socket?.remoteAddress as string | undefined;
-
-   const ip =(Array.isArray(xffRaw) ? xffRaw[0] : xffRaw)?.toString().split(",")[0].trim() || socketIp ||null;
-
+// берём первый IP из X-Forwarded-For или X-Real-IP
+const ip = headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||headers["x-real-ip"]?.toString() ||req.socket?.remoteAddress ||null;
 
         const sessionInDb = await prisma.session.create({
           data: {

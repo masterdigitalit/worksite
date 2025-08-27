@@ -2,7 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 function checkRole(token: any, allowedRoles: string[]) {
-  if (!token) return false;
+  if (!token)  return NextResponse.redirect('/login');
   return allowedRoles.includes(token.role);
 }
 

@@ -53,10 +53,8 @@ export const authOptions: NextAuthOptions = {
         // @ts-expect-error может отсутствовать в Edge
         const socketIp = req?.socket?.remoteAddress as string | undefined;
 
-        const ip =
-          (Array.isArray(xffRaw) ? xffRaw[0] : xffRaw)?.toString() ||
-          socketIp ||
-          null;
+   const ip =(Array.isArray(xffRaw) ? xffRaw[0] : xffRaw)?.toString().split(",")[0].trim() || socketIp ||null;
+
 
         const sessionInDb = await prisma.session.create({
           data: {

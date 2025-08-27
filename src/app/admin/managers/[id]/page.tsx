@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { MapPin, Clock, Globe, Smartphone, Shield, Trash2, Power } from "lucide-react";
 
 interface Session {
   id: string;
@@ -44,7 +45,7 @@ export default function ManagerSessionsPage() {
     await fetch(`/api/manager/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: id, }),
+      body: JSON.stringify({ id }),
     });
     fetchSessions();
   };
@@ -52,36 +53,45 @@ export default function ManagerSessionsPage() {
   useEffect(() => {
     fetchSessions();
   }, [id]);
-  console.log(sessions)
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Сессии пользователя {id}</h1>
-
-      <button
-        onClick={deleteUser}
-        className="mb-4 px-4 py-2 bg-red-600 text-white rounded"
-      >
-        Удалить пользователя
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Сессии пользователя {id}</h1>
+        <button
+          onClick={deleteUser}
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition"
+        >
+          <Trash2 size={18} /> Удалить пользователя
+        </button>
+      </div>
 
       {loading ? (
         <p>Загрузка...</p>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4">
           {sessions.map((s) => (
             <div
               key={s.id}
-              className={`p-4 border rounded-lg shadow-sm flex justify-between items-center ${
-                s.valid ? "bg-green-50" : "bg-gray-200"
-              }`}
+              className={`p-5 rounded-2xl shadow flex justify-between items-start transition border 
+                ${s.valid ? "bg-white border-green-300" : "bg-gray-100 border-gray-300"}`}
             >
-              <div>
-                <p><b>Token:</b> {s.token}</p>
-                <p><b>IP:</b> {s.ip || "—"}</p>
-                <p><b>UA:</b> {s.userAgent || "—"}</p>
+              <div className="space-y-2 text-sm">
+                <p className="font-mono text-xs break-all">
+                  <Shield size={14} className="inline mr-1 text-gray-500" /> 
+                  <b>Token:</b> {s.token}
+                </p>
+                <p>
+                  <Globe size={14} className="inline mr-1 text-gray-500" /> 
+                  <b>IP:</b> {s.ip || "—"}
+                </p>
+                <p>
+                  <Smartphone size={14} className="inline mr-1 text-gray-500" /> 
+                  <b>UA:</b> {s.userAgent || "—"}
+                </p>
                 {s.latitude && s.longitude && (
                   <p>
+                    <MapPin size={14} className="inline mr-1 text-gray-500" /> 
                     <b>Координаты:</b>{" "}
                     <a
                       href={`https://yandex.ru/maps/?pt=${s.longitude},${s.latitude}&z=16&l=map`}
@@ -94,19 +104,24 @@ export default function ManagerSessionsPage() {
                   </p>
                 )}
                 <p>
+                  <Clock size={14} className="inline mr-1 text-gray-500" /> 
                   <b>Создана:</b> {new Date(s.createdAt).toLocaleString()}
                 </p>
                 <p>
+                  <Clock size={14} className="inline mr-1 text-gray-500" /> 
                   <b>Истекает:</b> {new Date(s.expiresAt).toLocaleString()}
                 </p>
               </div>
-              {s.valid && (
+
+              {s.valid ? (
                 <button
                   onClick={() => disableSession(s.token)}
-                  className="px-3 py-1 bg-red-500 text-white rounded"
+                  className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition"
                 >
-                  Отключить
+                  <Power size={16} /> Отключить
                 </button>
+              ) : (
+                <span className="px-3 py-1 text-xs rounded bg-gray-300 text-gray-700">Выключена</span>
               )}
             </div>
           ))}

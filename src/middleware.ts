@@ -13,6 +13,12 @@ export default withAuth({
       if (!token) {
         url.pathname = "/api/auth/signout";
         return NextResponse.redirect(url);
+        
+      }
+
+        if (!token?.jti) {
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
       }
 
       // Ограничение по маршрутам

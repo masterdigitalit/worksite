@@ -40,11 +40,11 @@ export default function ManagerSessionsPage() {
     fetchSessions();
   };
 
-  const disableAll = async () => {
-    await fetch(`/api/manager/sessions`, {
+  const deleteUser = async () => {
+    await fetch(`/api/manager/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: id }),
+      body: JSON.stringify({ id: id, }),
     });
     fetchSessions();
   };
@@ -59,10 +59,10 @@ export default function ManagerSessionsPage() {
       <h1 className="text-xl font-bold mb-4">Сессии пользователя {id}</h1>
 
       <button
-        onClick={disableAll}
+        onClick={deleteUser}
         className="mb-4 px-4 py-2 bg-red-600 text-white rounded"
       >
-        Отключить все сессии
+        Удалить пользователя
       </button>
 
       {loading ? (

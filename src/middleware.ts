@@ -2,8 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 function checkRole(token: any, allowedRoles: string[]) {
- 
-  if (!token)  return NextResponse.redirect('/');
+  if (!token) return false;
   return allowedRoles.includes(token.role);
 }
 
@@ -11,6 +10,10 @@ export default withAuth({
   callbacks: {
     authorized: ({ token, req }) => {
       const url = req.nextUrl.clone();
+      if (!token) {
+        url.pathname = "/api/auth/signout";
+        return NextResponse.redirect(url);
+      }
 
       // Ограничение по маршрутам
       const path = req.nextUrl.pathname;

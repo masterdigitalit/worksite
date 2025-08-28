@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
+import { usePathname } from "next/navigation";
 export default function CheckValidSession() {
+    const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -33,7 +34,9 @@ export default function CheckValidSession() {
     }
 
     check();
-  }, [router, session]);
+  }, [router, session, pathname]);
+
+
 
   return null;
 }

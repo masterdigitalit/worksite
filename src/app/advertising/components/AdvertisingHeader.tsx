@@ -1,5 +1,6 @@
 'use client';
-
+import { SessionProvider } from "next-auth/react";
+import CheckValidSession from "@/app/admin/components/useCheckValidSession";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -17,7 +18,9 @@ export default function AdvertisingHeader({
   const closeMenu = () => setOpen(false);
 
   return (
+    
     <header className="bg-gray-900 text-white px-6 py-4 shadow relative z-50">
+       <SessionProvider><CheckValidSession /></SessionProvider>
       <div className="flex justify-between items-center">
         {/* Кнопка бургер-меню */}
         <button

@@ -91,7 +91,7 @@ export default function LeafletPage() {
                 <tr
                   key={item.id}
                   className="cursor-pointer hover:bg-gray-200 transition"
-                  onClick={() => router.push(`/leaflet/${item.id}`)}
+                  onClick={() => router.push(`/advertising/leaflet/${item.id}`)}
                 >
                   <td className="border px-4 py-2">{item.id}</td>
                   <td className="border px-4 py-2">{item.name}</td>

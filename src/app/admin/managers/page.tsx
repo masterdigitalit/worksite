@@ -126,7 +126,7 @@ export default function ManagersPage() {
               <th className="p-2 border">Username</th>
               <th className="p-2 border">Роль</th>
               <th className="p-2 border">Visibility</th>
-              <th className="p-2 border">Действия</th>
+            
             </tr>
           </thead>
           <tbody>
@@ -136,14 +136,8 @@ export default function ManagersPage() {
                 <td className="p-2 border">{m.username}</td>
                 <td className="p-2 border">{m.role}</td>
                 <td className="p-2 border">{m.role === "advertising" ? "-" : m.visibility}</td>
-                <td className="p-2 border">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => openForm(m)}
-                  >
-                    Редактировать
-                  </button>
-                </td>
+       
+              
               </tr>
             ))}
           </tbody>

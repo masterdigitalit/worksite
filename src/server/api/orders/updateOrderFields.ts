@@ -1,6 +1,7 @@
 import { prisma } from "@/server/db";
+import { Create } from "../logs/create";
 
-export async function updateOrderFields(orderId: number, fields: any) {
+export async function updateOrderFields(orderId: number, fields: any, whoDid: string) {
   console.log("Обновление заказа:", orderId, fields);
 
   // Получаем старый заказ
@@ -27,10 +28,12 @@ export async function updateOrderFields(orderId: number, fields: any) {
 
   const newMasterId = fields.masterId ?? oldMasterId;
   const newStatus = fields.status ?? oldStatus;
-  const newReceivedWorker = typeof fields.receivedworker === "number" ? fields.receivedworker : oldReceivedWorker;
+  const newReceivedWorker =
+    typeof fields.receivedworker === "number" ? fields.receivedworker : oldReceivedWorker;
 
   const oldDateStr = oldDateArrive instanceof Date ? oldDateArrive.toISOString() : oldDateArrive;
-  const newDateStr = fields.arriveDate instanceof Date ? fields.arriveDate.toISOString() : fields.arriveDate;
+  const newDateStr =
+    fields.arriveDate instanceof Date ? fields.arriveDate.toISOString() : fields.arriveDate;
 
   const dateArriveChanged = newDateStr !== undefined && newDateStr !== oldDateStr;
 
@@ -56,6 +59,29 @@ export async function updateOrderFields(orderId: number, fields: any) {
     where: { id: orderId },
     data: dataToUpdate,
   });
+
+  // --- логирование изменений ---
+  const changes: string[] = [];
+  if (oldMasterId !== newMasterId) {
+    changes.push(`мастер: ${oldMasterId ?? "—"} → ${newMasterId ?? "—"}`);
+  }
+  if (oldStatus !== newStatus) {
+    changes.push(`статус: ${oldStatus} → ${newStatus}`);
+  }
+  if (oldReceivedWorker !== newReceivedWorker) {
+    changes.push(`получил работник: ${oldReceivedWorker} → ${newReceivedWorker}`);
+  }
+  if (dateArriveChanged) {
+    changes.push(`дата приезда изменена: ${oldDateStr} → ${newDateStr}`);
+  }
+
+  if (changes.length > 0) {
+    await Create({
+      whoDid,
+      whatHappend: `Обновлён заказ #${orderId}: ${changes.join(", ")}`,
+      type: "orders",
+    });
+  }
 
   // Логика изменения мастера
   if (oldMasterId !== newMasterId) {

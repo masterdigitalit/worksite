@@ -1,18 +1,22 @@
 import { prisma } from "@/server/db";
 import { Create } from "../logs/create";
 
-
-
 interface doneOrder {
-  orderId: number,
-  received: number,
-  outlay: number,
-  masterId: number,
-  receivedworker: number,
-  whoDid:string
+  orderId: number;
+  received: number;
+  outlay: number;
+  masterId: number;
+  receivedworker: number;
+  whoDid: string;
 }
 
-export async function setPendingToOnTheWay(orderId: number, masterId: number) {
+export async function setPendingToOnTheWay(orderId: number, masterId: number, whoDid: string) {
+  await Create({
+    whoDid,
+    whatHappend: `Заказ #${orderId} назначен мастеру #${masterId}, статус изменён на ON_THE_WAY`,
+    type: "orders",
+  });
+
   return prisma.order.update({
     where: { id: orderId },
     data: {
@@ -22,7 +26,13 @@ export async function setPendingToOnTheWay(orderId: number, masterId: number) {
   });
 }
 
-export async function setOnTheWayToInProgress(orderId: number) {
+export async function setOnTheWayToInProgress(orderId: number, whoDid: string) {
+  await Create({
+    whoDid,
+    whatHappend: `Заказ #${orderId} изменён со статуса ON_THE_WAY на IN_PROGRESS`,
+    type: "orders",
+  });
+
   return prisma.order.update({
     where: { id: orderId },
     data: {
@@ -31,7 +41,14 @@ export async function setOnTheWayToInProgress(orderId: number) {
     },
   });
 }
-export async function setProgressSD(orderId: number) {
+
+export async function setProgressSD(orderId: number, whoDid: string) {
+  await Create({
+    whoDid,
+    whatHappend: `Заказ #${orderId} изменён на IN_PROGRESS_SD`,
+    type: "orders",
+  });
+
   return prisma.order.update({
     where: { id: orderId },
     data: {
@@ -40,22 +57,22 @@ export async function setProgressSD(orderId: number) {
     },
   });
 }
+
 export async function completeOrder({
   orderId,
-  received ,
-  outlay ,
+  received,
+  outlay,
   masterId,
-  receivedworker ,
-  whoDid
-}:doneOrder) {
-  
-    await Create({
-      whoDid,
-      whatHappend: `Закрыт заказ #${orderId} получено: ${received} затраты :${outlay} получил работник :${receivedworker}` ,
-      type: "advertising",
-    });
-    
-  // Обновляем заказ: ставим статус, даты и финансовые поля
+  receivedworker,
+  whoDid,
+}: doneOrder) {
+  await Create({
+    whoDid,
+    whatHappend: `Закрыт заказ #${orderId} | получено: ${received}, затраты: ${outlay}, работнику: ${receivedworker}`,
+    type: "orders",
+  });
+
+  // Обновляем заказ
   const updatedOrder = await prisma.order.update({
     where: { id: orderId },
     data: {
@@ -64,14 +81,11 @@ export async function completeOrder({
       outlay,
       receivedworker,
       dateDone: new Date(),
-      masterId: masterId,
+      masterId,
     },
   });
-  console.log(orderId, masterId, received, outlay)
 
   // Обновляем мастера
-
-
   await prisma.worker.update({
     where: { id: masterId },
     data: {
@@ -87,9 +101,13 @@ export async function completeOrder({
   return updatedOrder;
 }
 
+export async function declineOrder(orderId: number, whoDid: string) {
+  await Create({
+    whoDid,
+    whatHappend: `Заказ #${orderId} отклонён (DECLINED)`,
+    type: "orders",
+  });
 
-
-export async function declineOrder(orderId: number) {
   return prisma.order.update({
     where: { id: orderId },
     data: {

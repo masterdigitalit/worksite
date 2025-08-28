@@ -8,8 +8,10 @@ export default function CheckValidSession() {
     const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+ 
 
   useEffect(() => {
+      console.log(pathname)
     async function check() {
 			console.log(session)
       if (!session?.user.token) return;
@@ -34,7 +36,7 @@ export default function CheckValidSession() {
     }
 
     check();
-  }, [router, session, pathname]);
+  }, [ session, pathname]);
 
 
 

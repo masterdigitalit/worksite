@@ -93,7 +93,7 @@ export default function AdminHeader({
             <Link href="/admin/city"  onClick={closeMenu}className="hover:text-blue-300 transition">🏙️ Города</Link>
             <Link href="/admin/logs" onClick={closeMenu} className="hover:text-blue-300 transition">🖥️ Логи</Link>
             <Link href="/admin/target" onClick={closeMenu} className="hover:text-blue-300 transition">📈 Цель</Link>
-              <Link href="/admin/managers" className="hover:text-blue-300 transition">Менеджеры</Link>
+              <Link href="/admin/managers"  onClick={closeMenu} className="hover:text-blue-300 transition">Менеджеры</Link>
           </>
         )}
       </div>

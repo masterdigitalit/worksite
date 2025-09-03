@@ -6,17 +6,22 @@ import { useRouter } from "next/navigation";
 type Visibility = "MINIMAL" | "PARTIAL" | "ADVERTISING";
 type Role = "admin" | "advertising";
 
+
 interface Manager {
   id: number;
-  name: string;
+  fullName: string;
   username: string;
   visibility?: Visibility;
   role: Role;
   password?: string;
 }
+const roles =  {
+  admin: 'Админ',
+  advertising:'Рекламщик'
+}
 
 export default function ManagersPage() {
-    const router = useRouter();
+  const router = useRouter();
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -69,22 +74,15 @@ export default function ManagersPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!name.trim()) {
-      alert("Введите имя");
-      return;
-    }
-    if (!username.trim()) {
-      alert("Введите username");
-      return;
-    }
-    if (!editingManager && !password.trim()) {
-      alert("Введите пароль");
-      return;
-    }
+    if (!name.trim()) return alert("Введите имя");
+    if (!username.trim()) return alert("Введите username");
+    if (!editingManager && !password.trim()) return alert("Введите пароль");
 
     try {
       const method = editingManager ? "PUT" : "POST";
-      const url = editingManager ? `/api/managers/${editingManager.id}` : "/api/manager/new";
+      const url = editingManager
+        ? `/api/managers/${editingManager.id}`
+        : "/api/manager/new";
 
       const bodyPayload: any = { name, username, role };
       if (role !== "advertising") bodyPayload.visibility = visibility;
@@ -106,12 +104,12 @@ export default function ManagersPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Менеджеры</h1>
 
       <button
         onClick={() => openForm()}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto"
       >
         Добавить менеджера
       </button>
@@ -119,38 +117,68 @@ export default function ManagersPage() {
       {loading ? (
         <p>Загрузка...</p>
       ) : (
-        <table className="min-w-full border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2 border">Имя</th>
-              <th className="p-2 border">Username</th>
-              <th className="p-2 border">Роль</th>
-              <th className="p-2 border">Visibility</th>
-            
-            </tr>
-          </thead>
-          <tbody>
-            {managers.map((m) => (
-              <tr key={m.id} className="hover:bg-gray-50 cursor-pointer"    onClick={() => router.push(`/admin/managers/${m.id}`)}>
-                <td className="p-2 border">{m.fullName}</td>
-                <td className="p-2 border">{m.username}</td>
-                <td className="p-2 border">{m.role}</td>
-                <td className="p-2 border">{m.role === "advertising" ? "-" : m.visibility}</td>
-       
-              
+        <>
+          {/* Десктоп: таблица */}
+          <table className="hidden sm:table min-w-full border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 border">Имя</th>
+                <th className="p-2 border">Username</th>
+                <th className="p-2 border">Роль</th>
+                <th className="p-2 border">Visibility</th>
               </tr>
+            </thead>
+            <tbody>
+              {managers.map((m) => (
+                <tr
+                  key={m.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => router.push(`/admin/managers/${m.id}`)}
+                >
+                  <td className="p-2 border">{m.fullName}</td>
+                  <td className="p-2 border">{m.username}</td>
+                  <td className="p-2 border">{roles[m.role]}</td>
+                  <td className="p-2 border">
+                    {m.role === "advertising" ? "-" : m.visibility}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Мобилки: карточки */}
+          <div className="space-y-3 sm:hidden">
+            {managers.map((m) => (
+              <div
+                key={m.id}
+                onClick={() => router.push(`/admin/managers/${m.id}`)}
+                className="p-4 border rounded-lg shadow-sm bg-white hover:bg-gray-50 cursor-pointer"
+              >
+                <p className="font-bold text-lg">{m.fullName}</p>
+                <p className="text-sm text-gray-600">@{m.username}</p>
+                <p>
+                  <span className="font-medium">Роль:</span> {roles[m.role]}
+                </p>
+                {m.role !== "advertising" && (
+                  <p>
+                    <span className="font-medium">Visibility:</span>{" "}
+                    {m.visibility}
+                  </p>
+                )}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
 
+      {/* Форма */}
       {showForm && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
           onClick={() => setShowForm(false)}
         >
           <div
-            className="bg-white rounded p-6 max-w-md w-full"
+            className="bg-white rounded p-6 max-w-md w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-semibold mb-4">
@@ -221,17 +249,17 @@ export default function ManagersPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-4">
                 <button
                   type="button"
-                  className="px-4 py-2 border rounded hover:bg-gray-100"
+                  className="px-4 py-2 border rounded hover:bg-gray-100 w-full sm:w-auto"
                   onClick={() => setShowForm(false)}
                 >
                   Отмена
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 w-full sm:w-auto"
                 >
                   Сохранить
                 </button>

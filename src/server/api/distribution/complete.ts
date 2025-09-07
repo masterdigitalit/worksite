@@ -17,7 +17,7 @@ export async function completeLeafletOrder({
   returned,
   whoDid
 }: CompleteLeafletOrderInput) {
-    console.log(whoDid)
+   
   
   const order = await prisma.leafletOrder.findUnique({
     where: { id },

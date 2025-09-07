@@ -13,7 +13,7 @@ async function main() {
         where: { id: user.id },
         data: { password: hashed },
       });
-      console.log(`🔐 Захэширован пароль для ${user.username}`);
+
     }
   }
 

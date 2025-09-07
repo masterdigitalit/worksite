@@ -7,7 +7,7 @@ export default async function OrdersPage() {
 
   // Пример: на основе роли или чего-то ещё выбираем видимость
   const visibility = session?.user?.visibility 
-  console.log(session?.user?.visibility, visibility)
+
 
   return <OrdersClient visibility={visibility} />;
 }

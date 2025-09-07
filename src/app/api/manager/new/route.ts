@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
-    console.log(error);
+  
     return NextResponse.json({ error: error.message || "Ошибка сервера" }, { status: 500 });
   }
 }

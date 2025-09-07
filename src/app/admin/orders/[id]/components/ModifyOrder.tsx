@@ -83,8 +83,7 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
         const r = parseInt(received);
         const o = parseInt(outlay);
         const rw = parseInt(receivedWorker);
-        console.log(r,o,rw)
-
+      
         if (isNaN(r)) return toastError("Введите корректную сумму получена");
         if (isNaN(o)) return toastError("Введите корректные расходы");
         if (isNaN(rw)) return toastError("Введите корректную сумму выплаты мастеру");
@@ -99,7 +98,7 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
           dateDone: new Date().toISOString(),
           masterId: order.masterId,
         });
-        console.log(payload)
+     
       }
 
       const res = await fetch(`/api/orders/${order.id}/status`, {

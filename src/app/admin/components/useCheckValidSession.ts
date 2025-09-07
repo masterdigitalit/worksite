@@ -11,9 +11,9 @@ export default function CheckValidSession() {
  
 
   useEffect(() => {
-      console.log(pathname)
+
     async function check() {
-			console.log(session)
+		
       if (!session?.user.token) return;
 
       try {

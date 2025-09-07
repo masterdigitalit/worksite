@@ -2,7 +2,7 @@ import { prisma } from "@/server/db";
 import { Create } from "../logs/create";
 
 export async function updateOrderFields(orderId: number, fields: any, whoDid: string) {
-  console.log("Обновление заказа:", orderId, fields);
+ 
 
   // Получаем старый заказ
   const oldOrder = await prisma.order.findUnique({

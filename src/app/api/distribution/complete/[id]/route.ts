@@ -5,13 +5,13 @@ import { authOptions } from "@/server/api/auth/auth";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
-    console.log(session)
+   
 
     
   try {
     const id = parseInt(params.id);
     const { success, returnedLeaflets, distributed, returned } = await req.json();
- console.log(success, returnedLeaflets, distributed, returned)
+
     const result = await completeLeafletOrder({
       id,
       success,

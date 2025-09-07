@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 		}
 
 		const sessions = await getUserSessions(userId);
-		console.log(sessions)
+		
 		return NextResponse.json(sessions, { status: 200 });
 	} catch (error: any) {
 		console.error("GET /sessions error:", error);

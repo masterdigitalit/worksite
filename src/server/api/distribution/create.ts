@@ -13,7 +13,7 @@ export async function createLeafletOrder(data: {
     const distributor = await  prisma.distributor.findUnique({
      where :{id:data.distributorId}
     });
-    console.log(data)
+   
 
     await Create({whoDid:data.fullName, whatHappend:`Выдал ${distributor?.fullName + '  ' + data.quantity } `, type:"advertising"})
 
@@ -31,7 +31,7 @@ export async function createLeafletOrder(data: {
     if (leaflet.value < data.quantity) {
       throw new Error("Недостаточно листовок на складе");
     }
-    console.log(data)
+ 
     
 
     // Создаём заказ с фиксированным state

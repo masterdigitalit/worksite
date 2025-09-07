@@ -63,11 +63,7 @@ const ip = headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||header
           },
         });
 
-        console.log("[authorize] created DB session:", {
-          userId: user.id,
-          token: sessionInDb.token,
-          expiresAt: sessionInDb.expiresAt.toISOString(),
-        });
+     
 
         // 4) Возвращаем объект пользователя + наш токен БД
         return {
@@ -98,7 +94,7 @@ const ip = headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||header
         token.expiresAt = user.expiresAt?.toISOString();
         token.valid = true;
 
-        console.log("[jwt][login] set dbToken from user:", token.dbToken);
+  
       } else {
         // Рефреш/любые последующие запросы — ничего не трогаем
         // (dbToken остаётся прежним)
@@ -126,7 +122,7 @@ const ip = headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||header
         session.user.token = token.dbToken as string | undefined;
         session.user.expiresAt = token.expiresAt as string | undefined;
 
-        console.log("[session] user.token (from dbToken):", session.user.token);
+      
       }
       return session;
     },

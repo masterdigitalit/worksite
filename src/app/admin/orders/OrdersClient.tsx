@@ -64,7 +64,7 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
   const [arriveDateTo, setArriveDateTo] = useState("");
 
   const router = useRouter();
-  console.log(orders);
+
 
   useEffect(() => {
     fetch("/api/orders")

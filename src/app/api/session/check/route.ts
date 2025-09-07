@@ -4,7 +4,7 @@ import { checkSession } from "@/server/api/sessions/chech";
 
 export async function GET(req: NextRequest) {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  console.log(token)
+ 
 
   const result = await checkSession(token || "");
 

@@ -121,7 +121,7 @@ ${order.phone} ${order.fullName}
       setTimeout(() => setCopied(false), 2000);
     });
   };
-  console.log(order)
+
 
   async function handleCancelOrder() {
     if (!order) return;

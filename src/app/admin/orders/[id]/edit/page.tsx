@@ -258,7 +258,7 @@ useEffect(() => {
         receivedworker: 0,
       }),
     };
-    console.log(payload)
+   
 
     const res = await fetch(`/api/orders/${order.id}/update`, {
       method: "PATCH",
@@ -280,7 +280,7 @@ useEffect(() => {
   if (loading || !order) return <p className="p-6">Загрузка...</p>;
 
   const isDoneOriginally = originalOrder?.status === "DONE";
-    console.log(order)
+  
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-2xl font-bold">

@@ -72,7 +72,7 @@ export default function AddNewOrderPage({
 }) {
   const [cities, setCities] = useState([]);
   const [leaflet, setLeaflet] = useState([]);
-  console.log(cities);
+
 
   useEffect(() => {
     fetch("/api/city/all")
@@ -104,7 +104,7 @@ export default function AddNewOrderPage({
     equipmentType: "",
     paymentType: "",
   });
-  console.log(form);
+ 
 
   const step = steps[stepIndex];
 

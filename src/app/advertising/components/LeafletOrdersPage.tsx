@@ -1,7 +1,5 @@
-
-
 "use client";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Leaflet {
@@ -19,12 +17,8 @@ interface Distributor {
   fullName: string;
 }
 
-type ProfitType = "МКД" | "ЧС"; // МКД - много квартирный дом, ЧС - частный сектор
-type LeafletOrderState = "IN_PROCESS" | "DONE";
-
-
-
-
+type ProfitType = "МКД" | "ЧС";
+type LeafletOrderState = "IN_PROCESS" | "DONE" | "DECLINED";
 
 interface LeafletOrdersPageProps {
   fullName: string;
@@ -34,16 +28,13 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
   const [leafletOrders, setLeafletOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Данные для селектов
   const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [distributors, setDistributors] = useState<Distributor[]>([]);
 
-  // Модальное окно
   const [showModal, setShowModal] = useState(false);
 
-  // Форма
-  const [profitType, setProfitType] = useState<ProfitType>("MKD");
+  const [profitType, setProfitType] = useState<ProfitType>("МКД");
   const [quantity, setQuantity] = useState(1);
   const [leafletId, setLeafletId] = useState<number | null>(null);
   const [cityId, setCityId] = useState<number | null>(null);
@@ -75,15 +66,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (
-      !profitType ||
-      !quantity ||
-      !leafletId ||
-      !cityId ||
-      !distributorId ||
-			!fullName
-    
-    ) {
+    if (!profitType || !quantity || !leafletId || !cityId || !distributorId || !fullName) {
       alert("Заполните все поля");
       return;
     }
@@ -98,8 +81,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           leafletId,
           cityId,
           distributorId,
-					fullName
-        
+          fullName,
         }),
       });
 
@@ -109,13 +91,11 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
       setLeafletOrders([newOrder, ...leafletOrders]);
       setShowModal(false);
 
-      // Очистка формы
-      setProfitType("MKD");
+      setProfitType("МКД");
       setQuantity(1);
       setLeafletId(null);
       setCityId(null);
       setDistributorId(null);
-  
     } catch {
       alert("Ошибка при добавлении заказа");
     }
@@ -125,16 +105,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
 
   return (
     <div className="p-4 relative">
-      <h1 className="text-xl font-bold mb-4">Заказы листовок</h1>
-
-      <button
-        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}
-      >
-        Добавить листопад
-      </button>
-
-      {showModal && (
+            {showModal && (
         <>
           {/* Фон */}
           <div
@@ -262,57 +233,114 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           </div>
         </>
       )}
+      <h1 className="text-xl font-bold mb-4">Заказы листовок</h1>
 
-      {/* Таблица заказов */}
-      <table className="min-w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Тип прибыли</th>
-            <th className="p-2 border">Количество</th>
-            <th className="p-2 border">Листовка</th>
-            <th className="p-2 border">Город</th>
-            <th className="p-2 border">Разносчик</th>
-            <th className="p-2 border">Статус</th>
-            <th className="p-2 border">Создан</th>
-             <th className="p-2 border">Заработал</th>
-                          <th className="p-2 border">Создал</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leafletOrders.map((order) => (
-            <tr key={order.id}
-						  className="cursor-pointer hover:bg-gray-200 transition"
-  onClick={() => router.push(`/advertising/${order.id}`)}>
-              <td className="p-2 border">{order.id}</td>
-              <td className="p-2 border">{order.profitType}</td>
-              <td className="p-2 border">{order.quantity}</td>
-              <td className="p-2 border">{order.leaflet?.name || "-"}</td>
-              <td className="p-2 border">{order.city?.name || "-"}</td>
-              <td className="p-2 border">{order.distributor?.fullName || "-"}</td>
-              <td
-                className={`p-2 border font-semibold ${
-                  order.state === "IN_PROCESS" && "text-orange-500" 
-                } ${
-                  order.state === "DONE" && "text-green-600" 
-                } ${
-                  order.state === "DECLINED" && "text-red-500" 
-                }`}
-                
-              >
-                {order.state === "IN_PROCESS" && "В процессе" }
-                     {order.state === "DONE" && "Успешно" }
-                       {order.state === "DECLINED" && "Провалено" }
-              </td>
-              <td className="p-2 border">
-                {new Date(order.createdAt).toLocaleString()}
-              </td>
-               <td className="p-2 border">{order.distributorProfit || "-"}</td>
-                   <td className="p-2 border">{order.createdBy || "-"}</td>
+      <button
+        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        onClick={() => setShowModal(true)}
+      >
+        Добавить листопад
+      </button>
+
+      {/* Таблица для десктопа */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="min-w-full border text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border">ID</th>
+              <th className="p-2 border">Тип прибыли</th>
+              <th className="p-2 border">Количество</th>
+              <th className="p-2 border">Листовка</th>
+              <th className="p-2 border">Город</th>
+              <th className="p-2 border">Разносчик</th>
+              <th className="p-2 border">Статус</th>
+              <th className="p-2 border">Создан</th>
+              <th className="p-2 border">Заработал</th>
+              <th className="p-2 border">Создал</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {leafletOrders.map((order) => (
+              <tr
+                key={order.id}
+                className="cursor-pointer hover:bg-gray-200 transition"
+                onClick={() => router.push(`/advertising/${order.id}`)}
+              >
+                <td className="p-2 border">{order.id}</td>
+                <td className="p-2 border">{order.profitType}</td>
+                <td className="p-2 border">{order.quantity}</td>
+                <td className="p-2 border">{order.leaflet?.name || "-"}</td>
+                <td className="p-2 border">{order.city?.name || "-"}</td>
+                <td className="p-2 border">{order.distributor?.fullName || "-"}</td>
+                <td
+                  className={`p-2 border font-semibold ${
+                    order.state === "IN_PROCESS" && "text-orange-500"
+                  } ${order.state === "DONE" && "text-green-600"} ${
+                    order.state === "DECLINED" && "text-red-500"
+                  }`}
+                >
+                  {order.state === "IN_PROCESS" && "В процессе"}
+                  {order.state === "DONE" && "Успешно"}
+                  {order.state === "DECLINED" && "Провалено"}
+                </td>
+                <td className="p-2 border">{new Date(order.createdAt).toLocaleString()}</td>
+                <td className="p-2 border">{order.distributorProfit || "-"}</td>
+                <td className="p-2 border">{order.createdBy || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Карточки для мобильных */}
+      <div className="grid gap-4 md:hidden">
+        {leafletOrders.map((order) => (
+          <div
+            key={order.id}
+            className="border rounded p-4 shadow-sm cursor-pointer hover:bg-gray-50"
+            onClick={() => router.push(`/advertising/${order.id}`)}
+          >
+            <p>
+              <span className="font-semibold">ID:</span> {order.id}
+            </p>
+            <p>
+              <span className="font-semibold">Тип прибыли:</span> {order.profitType}
+            </p>
+            <p>
+              <span className="font-semibold">Количество:</span> {order.quantity}
+            </p>
+            <p>
+              <span className="font-semibold">Листовка:</span> {order.leaflet?.name || "-"}
+            </p>
+            <p>
+              <span className="font-semibold">Город:</span> {order.city?.name || "-"}
+            </p>
+            <p>
+              <span className="font-semibold">Разносчик:</span>{" "}
+              {order.distributor?.fullName || "-"}
+            </p>
+            <p>
+              <span className="font-semibold">Статус:</span>{" "}
+              {order.state === "IN_PROCESS" && (
+                <span className="text-orange-500">В процессе</span>
+              )}
+              {order.state === "DONE" && <span className="text-green-600">Успешно</span>}
+              {order.state === "DECLINED" && <span className="text-red-500">Провалено</span>}
+            </p>
+            <p>
+              <span className="font-semibold">Создан:</span>{" "}
+              {new Date(order.createdAt).toLocaleString()}
+            </p>
+            <p>
+              <span className="font-semibold">Заработал:</span>{" "}
+              {order.distributorProfit || "-"}
+            </p>
+            <p>
+              <span className="font-semibold">Создал:</span> {order.createdBy || "-"}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

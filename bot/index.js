@@ -106,6 +106,23 @@ bot.command("work", async (ctx) => {
   await ctx.reply("✅ Сообщение о восстановлении отправлено.");
 });
 
+
+
+
+
+bot.command("callback", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
+
+  await ctx.telegram.sendMessage(
+    OWNER_ID,
+    "✅ Сайт  работает стабильно",
+    { parse_mode: "HTML" }
+  );
+ 
+});
+
+
+
 // Запускаем проверку заказов каждую минуту
 cron.schedule("*/1 * * * *", () => {
   notifyUpcomingOrders();

@@ -17,7 +17,7 @@ interface Distributor {
   fullName: string;
 }
 
-type ProfitType = "МКД" | "ЧС";
+type ProfitType = "MKD"|"CHS";
 type LeafletOrderState = "IN_PROCESS" | "DONE" | "DECLINED";
 
 interface LeafletOrdersPageProps {
@@ -34,7 +34,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
 
   const [showModal, setShowModal] = useState(false);
 
-  const [profitType, setProfitType] = useState<ProfitType>("МКД");
+  const [profitType, setProfitType] = useState<ProfitType>("MKD");
   const [quantity, setQuantity] = useState(1);
   const [leafletId, setLeafletId] = useState<number | null>(null);
   const [cityId, setCityId] = useState<number | null>(null);

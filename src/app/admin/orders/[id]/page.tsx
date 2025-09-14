@@ -114,6 +114,7 @@ ${order.phone} ${order.fullName}
   : "";
 // ${order.campaign ? `Листовка ${order.campaign}` : ""}
 
+console.log(order?.leaflet?.name)
   const handleCopy = () => {
     if (!copyText) return;
     navigator.clipboard.writeText(copyText).then(() => {

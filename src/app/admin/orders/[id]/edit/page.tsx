@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "react-toastify";
 
 interface Order {
   id: number;
@@ -9,12 +10,13 @@ interface Order {
   phone: string;
   address: string;
   arriveDate: string;
-  city: string;
+  city: any;
   status: string;
   visitType: string;
   equipmentType: string;
   callRequired: boolean;
   problem?: string;
+  leaflet: any;
   paymentType: string;
   masterId?: number | null;
   received?: number | null;
@@ -60,10 +62,6 @@ function preserveUserInputAsUTC(datetimeStr: string): Date {
   const [hour, minute] = timePart.split(":").map(Number);
   return new Date(Date.UTC(year, month - 1, day, hour, minute));
 }
-
-
-
-
 
 function EditableInfoBlock({
   title,
@@ -128,7 +126,6 @@ function EditableInfoBlock({
 }
 
 function MasterInfo({ masterId }: { masterId?: number | null }) {
-  
   const [worker, setWorker] = useState<Worker | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -173,22 +170,21 @@ function MasterInfo({ masterId }: { masterId?: number | null }) {
 
 export default function EditOrderPage() {
   const [cities, setCities] = useState([]);
-
-useEffect(() => {
-  fetch("/api/city/all")
-    .then((res) => res.json())
-    .then(setCities)
-    .catch(console.error);
-}, []);
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
   const [updatedFields, setUpdatedFields] = useState<Partial<Order>>({});
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // В локальном состоянии для receivedworker храним строку для контроля ввода
+  const [leaflet, setLeaflet] = useState([]);
   const [receivedWorkerStr, setReceivedWorkerStr] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/city/all")
+      .then((res) => res.json())
+      .then(setCities)
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     fetch(`/api/orders/${params.id}`)
@@ -203,40 +199,34 @@ useEffect(() => {
     fetch("/api/workers")
       .then((res) => res.json())
       .then(setWorkers);
+
+    fetch("/api/leaflet/all")
+      .then((res) => res.json())
+      .then(setLeaflet);
   }, [params.id]);
 
-  // Обновляем order при вводе в форму
   function handleFieldChange(name: keyof Order, value: any) {
-    // Для полей financial приводим к числу (если пустая строка — null)
     if (["received", "outlay", "receivedworker"].includes(name)) {
       const num = value === "" ? null : Number(value);
       value = isNaN(num) ? null : num;
     }
-
     setOrder((prev) => (prev ? { ...prev, [name]: value } : prev));
     setUpdatedFields((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Автоматический расчет receivedworker при изменении received, outlay, paymentType
   useEffect(() => {
     if (!order) return;
-
-    // Берём числа (если null или undefined, считаем 0)
     const r = Number(order.received ?? 0);
     const o = Number(order.outlay ?? 0);
     let percent = 0.5;
 
     if (order.paymentType === "LOW") percent = 0.7;
     else if (order.paymentType === "MEDIUM") percent = 0.6;
-    else if (order.paymentType === "HIGH") percent = 0.5;
 
     const profit = r - o;
     const calculated = Math.floor(profit * percent);
-
-    // Если profit отрицательный, не даём отрицательный receivedworker
     const finalValue = calculated > 0 ? calculated : 0;
 
-    // Обновляем в локальном состоянии и в order
     setReceivedWorkerStr(finalValue.toString());
     setOrder((prev) => (prev ? { ...prev, receivedworker: finalValue } : prev));
     setUpdatedFields((prev) => ({ ...prev, receivedworker: finalValue }));
@@ -258,7 +248,6 @@ useEffect(() => {
         receivedworker: 0,
       }),
     };
-   
 
     const res = await fetch(`/api/orders/${order.id}/update`, {
       method: "PATCH",
@@ -267,7 +256,8 @@ useEffect(() => {
     });
 
     if (!res.ok) {
-      return alert("Ошибка при сохранении изменений");
+      toast.error("Ошибка при сохранении изменений");
+      return;
     }
 
     const updatedOrder = await res.json();
@@ -275,18 +265,20 @@ useEffect(() => {
     setOriginalOrder(updatedOrder);
     setUpdatedFields({});
     setReceivedWorkerStr(updatedOrder.receivedworker?.toString() ?? "");
+    toast.success("Изменения успешно сохранены");
   }
 
   if (loading || !order) return <p className="p-6">Загрузка...</p>;
 
   const isDoneOriginally = originalOrder?.status === "DONE";
-  
+
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-2xl font-bold">
         Редактирование заказа #{order.id}
       </h1>
 
+      {/* Все поля формы (оставил твои, не убирал) */}
       <EditableInfoBlock
         title="ФИО клиента"
         name="fullName"
@@ -336,19 +328,28 @@ useEffect(() => {
         value={order.problem || ""}
         onChange={handleFieldChange}
       />
-  
       <EditableInfoBlock
-  title="Город"
-  name="city"
-  type="select"
-  options={cities.map((el) => ({
-    value: String(el.id), // обязательно строка
-    label: el.name,
-  }))}
-  value={String(order.city?.id ?? order.city)} // тут должен быть ID города
-  onChange={(name, val) => handleFieldChange(name, Number(val))} // преобразуем обратно в число
-/>
-
+        title="Город"
+        name="city"
+        type="select"
+        options={cities.map((el: any) => ({
+          value: String(el.id),
+          label: el.name,
+        }))}
+        value={String(order.city?.id ?? order.city)}
+        onChange={(name, val) => handleFieldChange(name, Number(val))}
+      />
+      <EditableInfoBlock
+        title="Листовка"
+        name="leaflet"
+        type="select"
+        options={leaflet.map((el: any) => ({
+          value: String(el.id),
+          label: el.name,
+        }))}
+        value={String(order.leaflet?.id ?? order.leaflet)}
+        onChange={(name, val) => handleFieldChange(name, Number(val))}
+      />
       <EditableInfoBlock
         title="Прибор"
         name="equipmentType"
@@ -370,7 +371,6 @@ useEffect(() => {
         value={order.paymentType}
         onChange={handleFieldChange}
       />
-
       <EditableInfoBlock
         title="Получено от клиента (₽)"
         name="received"
@@ -393,13 +393,12 @@ useEffect(() => {
         type="number"
         value={receivedWorkerStr}
         onChange={(name, value) => {
-          // Чтобы вручную менять receivedworker (если нужно)
           setReceivedWorkerStr(value);
           const numValue = Number(value);
           setOrder((prev) =>
             prev
               ? { ...prev, receivedworker: isNaN(numValue) ? 0 : numValue }
-              : prev,
+              : prev
           );
           setUpdatedFields((prev) => ({
             ...prev,
@@ -408,7 +407,6 @@ useEffect(() => {
         }}
         disabled={!isDoneOriginally}
       />
-
       <EditableInfoBlock
         title="ID мастера"
         name="masterId"

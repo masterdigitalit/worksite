@@ -50,6 +50,14 @@ export async function updateOrderFields(orderId: number, fields: any, whoDid: st
       },
     };
   }
+  if (fields.leaflet) {
+  dataToUpdate.leaflet = {
+    connect: {
+      id: parseInt(fields.leaflet),
+    },
+  };
+
+}
 
   if (dateArriveChanged) {
     dataToUpdate.wastimechanged = oldWastimechanged + 1;
@@ -58,6 +66,7 @@ export async function updateOrderFields(orderId: number, fields: any, whoDid: st
   const updatedOrder = await prisma.order.update({
     where: { id: orderId },
     data: dataToUpdate,
+    include:{city:true, leaflet:true}
   });
 
   // --- логирование изменений ---

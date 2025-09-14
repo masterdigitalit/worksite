@@ -1,312 +1,91 @@
-"use client";
+'use client'
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
-interface Leaflet {
-  id: number;
-  name: string;
-}
-
-interface City {
-  id: number;
-  name: string;
-}
-
-interface Distributor {
-  id: number;
-  fullName: string;
-}
-
-type ProfitType = "MKD" | "CHS"; // Исправил типы, в селекте ты используешь "MKD" и "CHS"
-type LeafletOrderState = "IN_PROCESS" | "DONE";
-
-export default function LeafletOrdersPage() {
-  const [leafletOrders, setLeafletOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [distributors, setDistributors] = useState<Distributor[]>([]);
-
-  // Модальное окно
-  const [showModal, setShowModal] = useState(false);
-
-  // Форма
-  const [profitType, setProfitType] = useState<ProfitType>("MKD");
-  const [quantity, setQuantity] = useState(1);
-  const [leafletId, setLeafletId] = useState<number | null>(null);
-  const [cityId, setCityId] = useState<number | null>(null);
-  const [distributorId, setDistributorId] = useState<number | null>(null);
-
-  // Для поиска по разносчикам
-  const [distributorSearch, setDistributorSearch] = useState("");
-
+export default function NewWorkerPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [telegramUsername, setTelegramUsername] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      const [ordersRes, leafletsRes, citiesRes, distributorsRes] = await Promise.all([
-        fetch("/api/distribution/getAll"),
-        fetch("/api/leaflet/all"),
-        fetch("/api/city/all"),
-        fetch("/api/distributors/all"),
-      ]);
-      const orders = await ordersRes.json();
-      const leafletsData = await leafletsRes.json();
-      const citiesData = await citiesRes.json();
-      const distributorsData = await distributorsRes.json();
-
-      setLeafletOrders(orders);
-      setLeaflets(leafletsData);
-      setCities(citiesData);
-      setDistributors(distributorsData);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
-
-  // Фильтрация разносчиков по поиску
-  const filteredDistributors = distributors.filter((d) =>
-    d.fullName.toLowerCase().includes(distributorSearch.toLowerCase())
-  );
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !profitType ||
-      !quantity ||
-      !leafletId ||
-      !cityId ||
-      !distributorId
-    ) {
-      alert("Заполните все поля");
+    if (!fullName || !phone) {
+      setError("Заполните обязательные поля: имя и телефон");
       return;
     }
 
+    setLoading(true);
+    setError("");
+
     try {
-      const res = await fetch("/api/distribution/new", {
+      const res = await fetch("/api/workers/new", {
         method: "POST",
+        body: JSON.stringify({ fullName, phone, telegramUsername }),
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profitType,
-          quantity,
-          leafletId,
-          cityId,
-          distributorId,
-        }),
       });
 
-      if (!res.ok) throw new Error("Ошибка при добавлении");
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || "Ошибка при создании");
+      }
 
-      const newOrder = await res.json();
-      setLeafletOrders([newOrder, ...leafletOrders]);
-      setShowModal(false);
-
-      // Очистка формы
-      setProfitType("MKD");
-      setQuantity(1);
-      setLeafletId(null);
-      setCityId(null);
-      setDistributorId(null);
-      setDistributorSearch("");
-    } catch {
-      alert("Ошибка при добавлении заказа");
+      router.push("/admin/workers");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }
-
-  if (loading) return <p>Загрузка...</p>;
+  };
 
   return (
-    <div className="p-4 relative">
-      <h1 className="text-xl font-bold mb-4">Заказы листовок</h1>
+    <div className="max-w-md mx-auto p-4">
+      <h1 className="text-xl font-semibold mb-4">Добавить работника</h1>
 
-      <button
-        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}
-      >
-        Добавить листопад
-      </button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label>ФИО *</label>
+          <input
+            className="w-full p-2 border rounded"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+          />
+        </div>
 
-      {showModal && (
-        <>
-          {/* Фон */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={() => setShowModal(false)}
-          ></div>
+        <div>
+          <label>Телефон *</label>
+          <input
+            className="w-full p-2 border rounded"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
+        </div>
 
-          {/* Модалка */}
-          <div
-            className="fixed top-1/2 left-1/2 w-full max-w-lg bg-white rounded shadow-lg p-6 z-50"
-            style={{ transform: "translate(-50%, -50%)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-semibold mb-4">Новый заказ листовки</h2>
+        <div>
+          <label>Telegram (необязательно)</label>
+          <input
+            className="w-full p-2 border rounded"
+            value={telegramUsername}
+            onChange={(e) => setTelegramUsername(e.target.value)}
+          />
+        </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Profit Type */}
-              <div>
-                <label className="block mb-1 font-semibold">Тип прибыли*</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={profitType}
-                  onChange={(e) => setProfitType(e.target.value as ProfitType)}
-                  required
-                >
-                  <option value="MKD">МКД (много квартирный дом)</option>
-                  <option value="CHS">ЧС (частный сектор)</option>
-                </select>
-              </div>
+        {error && <p className="text-red-500">{error}</p>}
 
-              {/* Quantity */}
-              <div>
-                <label className="block mb-1 font-semibold">Количество*</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-
-              {/* Leaflet */}
-              <div>
-                <label className="block mb-1 font-semibold">Листовка*</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={leafletId ?? ""}
-                  onChange={(e) => setLeafletId(Number(e.target.value))}
-                  required
-                >
-                  <option value="" disabled>
-                    Выберите листовку
-                  </option>
-                  {leaflets.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* City */}
-              <div>
-                <label className="block mb-1 font-semibold">Город*</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={cityId ?? ""}
-                  onChange={(e) => setCityId(Number(e.target.value))}
-                  required
-                >
-                  <option value="" disabled>
-                    Выберите город
-                  </option>
-                  {cities.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Distributor с поиском */}
-              <div>
-                <label className="block mb-1 font-semibold">Разносчик*</label>
-                <input
-                  type="text"
-                  value={distributorSearch}
-                  onChange={(e) => {
-                    setDistributorSearch(e.target.value);
-                    setDistributorId(null); // сбрасываем выбранного при новом поиске
-                  }}
-                  placeholder="Поиск разносчика..."
-                  className="w-full border rounded px-3 py-2 mb-1"
-                  autoComplete="off"
-                />
-                <div className="max-h-40 overflow-y-auto border rounded">
-                  {filteredDistributors.length > 0 ? (
-                    filteredDistributors.map((d) => (
-                      <div
-                        key={d.id}
-                        onClick={() => {
-                          setDistributorId(d.id);
-                          setDistributorSearch(d.fullName);
-                        }}
-                        className={`cursor-pointer px-3 py-1 hover:bg-gray-200 ${
-                          distributorId === d.id ? "bg-blue-200" : ""
-                        }`}
-                      >
-                        {d.fullName}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-3 py-1 text-gray-500">Нет результатов</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
-                >
-                  Отмена
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                  Добавить
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
-
-      {/* Таблица заказов */}
-      <table className="min-w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Тип прибыли</th>
-            <th className="p-2 border">Количество</th>
-            <th className="p-2 border">Листовка</th>
-            <th className="p-2 border">Город</th>
-            <th className="p-2 border">Разносчик</th>
-            <th className="p-2 border">Статус</th>
-            <th className="p-2 border">Создан</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leafletOrders.map((order) => (
-            <tr
-              key={order.id}
-              className="cursor-pointer hover:bg-gray-200 transition"
-              onClick={() => router.push(`/admin/distribution/${order.id}`)}
-            >
-              <td className="p-2 border">{order.id}</td>
-              <td className="p-2 border">{order.profitType}</td>
-              <td className="p-2 border">{order.quantity}</td>
-              <td className="p-2 border">{order.leaflet?.name || "-"}</td>
-              <td className="p-2 border">{order.city?.name || "-"}</td>
-              <td className="p-2 border">{order.distributor?.fullName || "-"}</td>
-              <td
-                className={`p-2 border font-semibold ${
-                  order.state === "IN_PROCESS" ? "text-orange-500" : "text-green-600"
-                }`}
-              >
-                {order.state === "IN_PROCESS" ? "В процессе" : "Выполнено"}
-              </td>
-              <td className="p-2 border">{new Date(order.createdAt).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <button
+          type="submit"
+          className="w-full p-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
+          disabled={loading}
+        >
+          {loading ? "Создание..." : "Создать"}
+        </button>
+      </form>
     </div>
   );
 }

@@ -23,6 +23,7 @@ export async function setPendingToOnTheWay(orderId: number, masterId: number, wh
       status: "ON_THE_WAY",
       masterId,
     },
+    include:{city:true, leaflet:true}
   });
 }
 
@@ -39,6 +40,7 @@ export async function setOnTheWayToInProgress(orderId: number, whoDid: string) {
       status: "IN_PROGRESS",
       dateStarted: new Date(),
     },
+        include:{city:true, leaflet:true}
   });
 }
 
@@ -55,6 +57,7 @@ export async function setProgressSD(orderId: number, whoDid: string) {
       status: "IN_PROGRESS_SD",
       dateStarted: new Date(),
     },
+        include:{city:true, leaflet:true}
   });
 }
 
@@ -83,6 +86,7 @@ export async function completeOrder({
       dateDone: new Date(),
       masterId,
     },
+        include:{city:true, leaflet:true}
   });
 
   // Обновляем мастера
@@ -96,6 +100,8 @@ export async function completeOrder({
         increment: receivedworker,
       },
     },
+        include:{city:true, leaflet:true}
+    
   });
 
   return updatedOrder;
@@ -114,5 +120,6 @@ export async function declineOrder(orderId: number, whoDid: string) {
       status: "DECLINED",
       dateStarted: new Date(),
     },
+        include:{city:true, leaflet:true}
   });
 }

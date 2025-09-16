@@ -100,7 +100,7 @@ export async function completeOrder({
         increment: receivedworker,
       },
     },
-        include:{city:true, leaflet:true}
+    
     
   });
 

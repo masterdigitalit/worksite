@@ -43,7 +43,7 @@ Thumbs.db
 
 # Turbo repo (если используется)
 turbo/
-
+security_test/
 # Test coverage
 coverage/
 package.json

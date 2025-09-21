@@ -89,8 +89,15 @@ export default function LeafletOrderPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white rounded-2xl shadow-md">
-      <h1 className="text-3xl font-extrabold mb-6">📄 Заказ №{order.id}</h1>
-
+  <div className="flex items-center justify-between mb-6">
+    <h1 className="text-3xl font-extrabold">📄 Заказ №{order.id}</h1>
+    <Link
+     href={`/advertising/${order.id}/edit`}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+    >
+      ✏️ Редактировать
+    </Link>
+  </div>
       <div className="grid grid-cols-2 gap-4 text-gray-700">
         <p><span className="font-semibold">Тип прибыли:</span> {order.profitType}</p>
         <p><span className="font-semibold">Количество:</span> {order.quantity}</p>

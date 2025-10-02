@@ -17,6 +17,7 @@ export async function createNewOrder(data: {
   leaflet: string;
   whoDid:string
 }) {
+  console.log(data)
    
 const order = await prisma.order.create({
   data: {

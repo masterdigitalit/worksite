@@ -219,7 +219,11 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
                   <td className="max-w-[10rem] truncate overflow-hidden border p-2 whitespace-nowrap">
                     {order.address}
                   </td>
-                 <td
+                  <td className="hidden border p-2 text-center md:table-cell">
+                    {order.visitType ?? "-"}
+                  </td>
+                  
+                 {/* <td
   className={clsx(
     "border p-2 text-center",
     order.wastimechanged !== 0 && "text-red-600 font-bold",
@@ -228,7 +232,7 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
 >
   {overdue && <div className="text-xs">Просрочено</div>}
   {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
-</td>
+</td> */}
                   <td
                     className={clsx(
                       "border p-2 font-medium",

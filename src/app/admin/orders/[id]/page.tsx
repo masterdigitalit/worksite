@@ -160,12 +160,22 @@ console.log(order?.leaflet?.name)
     <div className="mx-auto mt-8 max-w-3xl rounded-md bg-white p-6 shadow-md">
       <div className="mb-6 flex items-center justify-between border-b pb-3">
         <h1 className="text-3xl font-semibold">Заказ #{order.id}</h1>
-        <button
-          onClick={handleCopy}
-          className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-        >
-          {copied ? "Скопировано!" : "Скопировать данные"}
-        </button>
+        
+        <div className="flex gap-3">
+    <button
+      onClick={handleCopy}
+      className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
+    >
+      {copied ? "Скопировано!" : "Скопировать данные"}
+    </button>
+
+    <Link
+      href={`/admin/orders/new/repeat/${order.id}`}
+      className="rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+    >
+      Повторить
+    </Link>
+  </div>
       </div>
 
       <div className="mb-6 flex items-center justify-between border-b pb-2">

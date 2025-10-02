@@ -122,6 +122,25 @@ bot.command("callback", async (ctx) => {
 });
 
 
+async function heartbeat() {
+  try {
+    await bot.telegram.sendMessage(
+      OWNER_ID,
+      "✅ Бот работает стабильно",
+      { disable_notification: true }
+    );
+    logWithTime("💚", "Отправлен heartbeat");
+  } catch (e) {
+    logWithTime("💔", "Ошибка heartbeat: " + e.message);
+  }
+}
+
+// Запускаем каждые 4 часа (0 */4 * * *)
+cron.schedule("0 */4 * * *", () => {
+  heartbeat();
+});
+
+
 
 // Запускаем проверку заказов каждую минуту
 cron.schedule("*/1 * * * *", () => {

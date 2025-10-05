@@ -14,13 +14,23 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 const ADMIN_CHAT_ID = process.env.CHAT_ID;
 const API_BASE_URL = process.env.API_BASE_URL;
 const SITE_URL = process.env.SITE_URL;
-const OWNER_ID = 5273914742 // твой Telegram ID
+const OWNER_ID = 5273914742; // твой Telegram ID
 
 const visitTypeMap = {
   FIRST: "Первичный",
   GARAGE: "Гарантийный",
   FOLLOW_UP: "Повторный",
 };
+
+// 🔧 формат даты через Intl
+const formatDate = (date) =>
+  new Intl.DateTimeFormat("ru-RU", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(date));
 
 function logWithTime(emoji, message) {
   const time = new Date().toLocaleTimeString("ru-RU");
@@ -44,14 +54,14 @@ async function notifyUpcomingOrders() {
     for (const order of orders) {
       const msg =
         `🔔 <b>Приближается заявка #${order.id}</b>\n\n` +
-        `📅 Дата и время: <i>${new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}</i>\n` +
+        `📅 Дата и время: <i>${formatDate(order.arriveDate)}</i>\n` +
         `🚗 Тип визита: <b>${visitTypeMap[order.visitType] || order.visitType}</b>\n` +
         `🏙️ Город: ${order.city?.name || order.city}\n` +
         `📍 Адрес: ${order.address}\n` +
         `🛠️ Проблема: ${order.problem}\n` +
         `📞 Телефон: ${order.phone}\n` +
         `👤 Клиент: ${order.fullName}\n` +
-        `Листовка - ${order.leaflet?.name || 'Не указана'}\n\n`+
+        `Листовка - ${order.leaflet?.name || "Не указана"}\n\n` +
         `${SITE_URL}/admin/orders/${order.id}\n\n` +
         `@Broke_Name   @OxyMilles`;
 
@@ -82,45 +92,19 @@ async function notifyUpcomingOrders() {
   }
 }
 
-// Команда /notify — предупреждение об отключении
-bot.command("notify", async (ctx) => {
-  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
-
-  await ctx.telegram.sendMessage(
-    ADMIN_CHAT_ID,
-    "⚠️ Внимание! Плановое отключение через 10 минут.",
-    { parse_mode: "HTML" }
-  );
-  await ctx.reply("✅ Уведомление отправлено в чат.");
+// 🔧 cron на heartbeat раз в 4 часа
+cron.schedule("0 */4 * * *", () => {
+  heartbeat();
 });
 
-// Команда /work — сообщение, что сайт снова работает
-bot.command("work", async (ctx) => {
-  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
-
-  await ctx.telegram.sendMessage(
-    ADMIN_CHAT_ID,
-    "✅ Сайт снова работает!",
-    { parse_mode: "HTML" }
-  );
-  await ctx.reply("✅ Сообщение о восстановлении отправлено.");
+// 🔧 notifyUpcomingOrders раз в 30 минут
+cron.schedule("*/30 * * * *", async () => {
+  try {
+    await notifyUpcomingOrders();
+  } catch (e) {
+    logWithTime("🔥", "Ошибка в cron notify: " + e.message);
+  }
 });
-
-
-
-
-
-bot.command("callback", async (ctx) => {
-  if (ctx.from.id !== OWNER_ID) return ctx.reply("⛔ У тебя нет прав для этой команды.");
-
-  await ctx.telegram.sendMessage(
-    OWNER_ID,
-    "✅ Сайт  работает стабильно",
-    { parse_mode: "HTML" }
-  );
- 
-});
-
 
 async function heartbeat() {
   try {
@@ -135,16 +119,40 @@ async function heartbeat() {
   }
 }
 
-// Запускаем каждые 4 часа (0 */4 * * *)
-cron.schedule("0 */4 * * *", () => {
-  heartbeat();
+// Команда /notify
+bot.command("notify", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID)
+    return ctx.reply("⛔ У тебя нет прав для этой команды.");
+
+  await ctx.telegram.sendMessage(
+    ADMIN_CHAT_ID,
+    "⚠️ Внимание! Плановое отключение через 10 минут.",
+    { parse_mode: "HTML" }
+  );
+  await ctx.reply("✅ Уведомление отправлено в чат.");
 });
 
+// Команда /work
+bot.command("work", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID)
+    return ctx.reply("⛔ У тебя нет прав для этой команды.");
 
+  await ctx.telegram.sendMessage(
+    ADMIN_CHAT_ID,
+    "✅ Сайт снова работает!",
+    { parse_mode: "HTML" }
+  );
+  await ctx.reply("✅ Сообщение о восстановлении отправлено.");
+});
 
-// Запускаем проверку заказов каждую минуту
-cron.schedule("*/1 * * * *", () => {
-  notifyUpcomingOrders();
+// Команда /callback
+bot.command("callback", async (ctx) => {
+  if (ctx.from.id !== OWNER_ID)
+    return ctx.reply("⛔ У тебя нет прав для этой команды.");
+
+  await ctx.telegram.sendMessage(OWNER_ID, "✅ Сайт работает стабильно", {
+    parse_mode: "HTML",
+  });
 });
 
 // Запуск бота

@@ -35,6 +35,7 @@ export default function AdvertisingHeader({
       
                    <Link href="/advertising/leaflet"  className="hover:text-blue-300 transition">📰 Листовки</Link>
                        <Link href="/advertising" className="hover:text-blue-300 transition">Листопад</Link>
+                               <Link href="/advertising/statistics" className="hover:text-blue-300 transition">Статистика</Link>
                        {session.user.role ==="admin"&& <Link href="/admin" className="hover:text-blue-300 transition">Назад на админку</Link> }
                        
        

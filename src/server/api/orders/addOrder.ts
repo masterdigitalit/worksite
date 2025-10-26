@@ -10,9 +10,7 @@ export async function createNewOrder(data: {
   problem: string;
   arriveDate: string;
   visitType: string;
-  callRequired: boolean;
-  isProfessional: boolean;
-  equipmentType: string;
+ 
   paymentType: string;
   leaflet: string;
   whoDid:string
@@ -37,9 +35,6 @@ const order = await prisma.order.create({
     problem: data.problem,
     arriveDate: new Date(data.arriveDate),
     visitType: data.visitType,
-    callRequired: data.callRequired,
-    isProfessional: data.isProfessional,
-    equipmentType: data.equipmentType,
     status: "PENDING",
     paymentType: data.paymentType,
   },

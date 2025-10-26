@@ -271,7 +271,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
 
       <InfoBlock title="Тип визита" value={visitTypeMap[order.visitType] || order.visitType} />
       <InfoBlock title="Город" value={order.city.name} />
-      <InfoBlock title="Прибор" value={equipmentTypeMap[order.equipmentType] || order.equipmentType} />
+  
 
       {!isPending && isDone && (
         <>
@@ -288,7 +288,7 @@ function InfoTabContent({ order, setActiveTab }: { order: Order; setActiveTab: (
           />
         </>
       )}
-         <InfoBlock title="Нужен звонок" value={order.callRequired ? "✅ Да" : "❌ Нет"} />
+     
                   <InfoBlock title="Тип прибыли" value={payLabels[order.paymentType]} />
            <InfoBlock title="Описание проблемы" value={order.problem} />
              <InfoBlock title="Листовка" value={order.leaflet?.name || 'Не указана'} />

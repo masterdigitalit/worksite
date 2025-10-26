@@ -47,6 +47,7 @@ export async function createLeafletOrder(data: {
         createdBy:data.fullName,
         squareNumber:data.squareNumber
       },
+      include:{city:true,distributor:true,leaflet:true}
     });
   
     // Обновляем количество в листовке

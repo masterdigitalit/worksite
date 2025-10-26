@@ -55,10 +55,7 @@ model Order {
   problem        String
   arriveDate     DateTime
   visitType      String
-  callRequired   Boolean         @default(false)
-  isProfessional Boolean         @default(false)
   cityId         Int?            @default(1)
-  equipmentType  String
   branchComment  String?
   callCenterNote String?
   status         String          @default("PENDING")

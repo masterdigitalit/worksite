@@ -10,10 +10,13 @@ type FlyersStats = {
     flyersDelivered: number;
   };
   month: {
+    promoters: number;
     flyersIssued: number;
     flyersDelivered: number;
-    totalFlyers: number;
     flyersReturned: number;
+    ordersCount: number;
+    flyersPerOrder: number;
+    totalFlyers: number;
   };
 };
 
@@ -52,13 +55,16 @@ export default function StatisticsPage() {
         <p>Количество разнесенной рекламы: {stats.today.flyersDelivered}</p>
       </div>
 
-      {/* Общее количество */}
+      {/* Месяц */}
       <div className="mb-6">
         <p className="font-semibold mt-2">Общее количество:</p>
+        <p>Промоутеров: {stats.month.promoters}</p>
         <p>Количество выданной рекламы: {stats.month.flyersIssued}</p>
         <p>Количество разнесенной рекламы: {stats.month.flyersDelivered}</p>
+        <p>Количество возврата: {stats.month.flyersReturned}</p>
+        <p>Количество заказов: {stats.month.ordersCount}</p>
+        <p>Листовок на заказ: {stats.month.flyersPerOrder}</p>
         <p>Общее количество листовок: {stats.month.totalFlyers}</p>
-        <p>Общее количество возврата: {stats.month.flyersReturned}</p>
       </div>
 
       <div className="mt-6 text-center">
@@ -71,11 +77,14 @@ export default function StatisticsPage() {
 Количество выданной рекламы: ${stats.today.flyersIssued}
 Количество разнесенной рекламы: ${stats.today.flyersDelivered}
 
-Общее количество:
+Общее количество за месяц:
+Промоутеров: ${stats.month.promoters}
 Количество выданной рекламы: ${stats.month.flyersIssued}
 Количество разнесенной рекламы: ${stats.month.flyersDelivered}
+Количество возврата: ${stats.month.flyersReturned}
+Количество заказов: ${stats.month.ordersCount}
+Листовок на заказ: ${stats.month.flyersPerOrder}
 Общее количество листовок: ${stats.month.totalFlyers}
-Общее количество возврата: ${stats.month.flyersReturned}
             `.trim();
 
             navigator.clipboard.writeText(report);

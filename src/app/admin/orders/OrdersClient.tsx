@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 
 const visitTypeLabels = {
   FIRST: "Первичный",
   GARAGE: "Гарантийный",
   REPEAT: "Повторный",
-};
-
-const visitTypeRowColors = {
-  FIRST: "bg-pink-100",
-  REPEAT: "bg-teal-100",
-  GARAGE: "bg-slate-100",
 };
 
 const statusLabels = {
@@ -64,8 +58,18 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
   const [arriveDateTo, setArriveDateTo] = useState("");
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
+  // --- Авто подстановка фильтров из URL ---
+  useEffect(() => {
+    setStatus(searchParams.get("status") || "");
+    setVisitType(searchParams.get("visitType") || "");
+    setSearch(searchParams.get("search") || "");
+    setArriveDateFrom(searchParams.get("arriveDateFrom") || "");
+    setArriveDateTo(searchParams.get("arriveDateTo") || "");
+  }, [searchParams]);
 
+  // --- Загрузка заказов ---
   useEffect(() => {
     fetch("/api/orders")
       .then((res) => res.json())
@@ -75,18 +79,13 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
       });
   }, []);
 
+  // --- Фильтрация заказов ---
   useEffect(() => {
-    const filtered = orders.filter((o) => {
+    const filteredOrders = orders.filter((o) => {
       const orderStatus = o.status?.trim();
+      if (visibility === "MINIMAL" && hiddenStatuses.includes(orderStatus)) return false;
 
-      if (visibility === "MINIMAL" && hiddenStatuses.includes(orderStatus)) {
-        return false;
-      }
-
-      if (search.startsWith("#")) {
-        const idSearch = search.slice(1);
-        return o.id.toString().includes(idSearch);
-      }
+      if (search.startsWith("#")) return o.id.toString().includes(search.slice(1));
 
       const matchesSearch =
         o.fullName.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,25 +99,11 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
       const matchesFrom = !arriveDateFrom || orderDate >= arriveDateFrom;
       const matchesTo = !arriveDateTo || orderDate <= arriveDateTo;
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesVisitType &&
-        matchesFrom &&
-        matchesTo
-      );
+      return matchesSearch && matchesStatus && matchesVisitType && matchesFrom && matchesTo;
     });
 
-    setFiltered(filtered);
-  }, [
-    search,
-    status,
-    visitType,
-    arriveDateFrom,
-    arriveDateTo,
-    orders,
-    visibility,
-  ]);
+    setFiltered(filteredOrders);
+  }, [search, status, visitType, arriveDateFrom, arriveDateTo, orders, visibility]);
 
   return (
     <div className="space-y-4 p-4">
@@ -191,11 +176,11 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
               <th className="border p-2">Статус</th>
               <th className="border p-2">Дата визита</th>
               <th className="hidden border p-2 lg:table-cell">Город</th>
-              <th className="hidden border p-2 lg:table-cell">Прибор</th>
+
               <th className="hidden border p-2 md:table-cell">Прибыль</th>
               <th className="hidden border p-2 md:table-cell">Затраты</th>
               <th className="hidden border p-2 md:table-cell">Оплата</th>
-              <th className="hidden border p-2 md:table-cell">📞</th>
+             
             </tr>
           </thead>
           <tbody>
@@ -210,66 +195,25 @@ export default function OrdersClient({ visibility }: OrdersClientProps) {
                   onClick={() => router.push(`/admin/orders/${order.id}`)}
                 >
                   <td className="border p-2 text-center">{order.id}</td>
-                  <td className="truncate overflow-hidden border p-2 whitespace-nowrap">
-                    {order.fullName}
-                  </td>
-                  <td className="hidden border p-2 sm:table-cell">
-                    {order.phone}
-                  </td>
-                  <td className="max-w-[10rem] truncate overflow-hidden border p-2 whitespace-nowrap">
-                    {order.address}
-                  </td>
-                  <td className="hidden border p-2 text-center md:table-cell">
-                    {order.visitType ?? "-"}
-                  </td>
-                  
-                 {/* <td
-  className={clsx(
-    "border p-2 text-center",
-    order.wastimechanged !== 0 && "text-red-600 font-bold",
-    overdue && "overdue-blink"
-  )}
->
-  {overdue && <div className="text-xs">Просрочено</div>}
-  {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
-</td> */}
-                  <td
-                    className={clsx(
-                      "border p-2 font-medium",
-                      statusColors[order.status] || "",
-                    )}
-                  >
-                    {statusLabels[order.status] || order.status}
-                  </td>
+                  <td className="truncate overflow-hidden border p-2 whitespace-nowrap">{order.fullName}</td>
+                  <td className="hidden border p-2 sm:table-cell">{order.phone}</td>
+                  <td className="max-w-[10rem] truncate overflow-hidden border p-2 whitespace-nowrap">{order.address}</td>
+                  <td className="hidden border p-2 text-center md:table-cell">{order.visitType ?? "-"}</td>
+                  <td className={clsx("border p-2 font-medium", statusColors[order.status] || "")}>{statusLabels[order.status] || order.status}</td>
                   <td className="border p-2 text-center">
                     {overdue && <div className="overdue-blink">Просрочено</div>}
-                    {new Date(order.arriveDate)
-                      .toISOString()
-                      .replace("T", " ")
-                      .slice(0, 16)}
+                    {new Date(order.arriveDate).toISOString().replace("T", " ").slice(0, 16)}
                   </td>
-                  <td className="hidden border p-2 lg:table-cell">
-                    {order.city.name}
-                  </td>
-                  <td className="hidden border p-2 lg:table-cell">
-                    {order.equipmentType}
-                  </td>
+                  <td className="hidden border p-2 lg:table-cell">{order.city.name}</td>
+      
                   <td className="hidden border p-2 text-center md:table-cell">
-                    {order.received &&
-                    order.outlay != null &&
-                    order.receivedworker != null
+                    {order.received && order.outlay != null && order.receivedworker != null
                       ? order.received - order.outlay - order.receivedworker
                       : "-"}
                   </td>
-                  <td className="hidden border p-2 text-center md:table-cell">
-                    {order.outlay ?? "-"}
-                  </td>
-                  <td className="hidden border p-2 text-center md:table-cell">
-                    {order.received ?? "-"}
-                  </td>
-                  <td className="hidden border p-2 text-center md:table-cell">
-                    {order.callRequired ? "✅" : "❌"}
-                  </td>
+                  <td className="hidden border p-2 text-center md:table-cell">{order.outlay ?? "-"}</td>
+                  <td className="hidden border p-2 text-center md:table-cell">{order.received ?? "-"}</td>
+    
                 </tr>
               );
             })}

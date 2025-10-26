@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Step =
@@ -12,9 +12,6 @@ type Step =
   | "problem"
   | "arriveDate"
   | "visitType"
-  | "callRequired"
-  | "isProfessional"
-  | "equipmentType"
   | "paymentType"
   | "review";
 
@@ -27,9 +24,6 @@ const steps: Step[] = [
   "problem",
   "arriveDate",
   "visitType",
-  "callRequired",
-  "isProfessional",
-  "equipmentType",
   "paymentType",
   "review",
 ];
@@ -49,9 +43,6 @@ const stepLabels: Record<Step, string> = {
   problem: "Проблема",
   arriveDate: "Дата и время",
   visitType: "Тип визита",
-  callRequired: "Нужен звонок?",
-  isProfessional: "Профессионал?",
-  equipmentType: "Оборудование",
   paymentType: "Степень оплаты",
   review: "Обзор",
 };
@@ -73,17 +64,18 @@ export default function AddNewOrderPage({
   const [cities, setCities] = useState([]);
   const [leaflet, setLeaflet] = useState([]);
 
-
   useEffect(() => {
     fetch("/api/city/all")
       .then((res) => res.json())
       .then(setCities);
   }, []);
+
   useEffect(() => {
     fetch("/api/leaflet/all")
       .then((res) => res.json())
       .then(setLeaflet);
   }, []);
+
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,12 +91,8 @@ export default function AddNewOrderPage({
     problem: "",
     arriveDate: "",
     visitType: "",
-    callRequired: false,
-    isProfessional: false,
-    equipmentType: "",
     paymentType: "",
   });
- 
 
   const step = steps[stepIndex];
 
@@ -115,9 +103,7 @@ export default function AddNewOrderPage({
       return;
     }
     setError(null);
-    if (stepIndex < steps.length - 1) {
-      setStepIndex((i) => i + 1);
-    }
+    if (stepIndex < steps.length - 1) setStepIndex((i) => i + 1);
   };
 
   const handleBack = () => {
@@ -155,12 +141,10 @@ export default function AddNewOrderPage({
         return !form.arriveDate
           ? "Выберите дату"
           : new Date(form.arriveDate) < new Date()
-            ? "Дата должна быть в будущем"
-            : null;
+          ? "Дата должна быть в будущем"
+          : null;
       case "visitType":
         return required(form.visitType);
-      case "equipmentType":
-        return required(form.equipmentType);
       case "paymentType":
         return required(form.paymentType);
       default:
@@ -182,7 +166,6 @@ export default function AddNewOrderPage({
         ...form,
         arriveDate: preserveUserInputAsUTC(form.arriveDate),
         cityId: form.city,
-        city: form.city,
       };
 
       const response = await fetch("/api/orders/new", {
@@ -204,9 +187,6 @@ export default function AddNewOrderPage({
         problem: "",
         arriveDate: "",
         visitType: "",
-        callRequired: false,
-        isProfessional: false,
-        equipmentType: "",
         paymentType: "",
       });
       setStepIndex(0);
@@ -252,11 +232,11 @@ export default function AddNewOrderPage({
           <SelectStep
             label="Город"
             options={cities.map((el) => ({
-              value: String(el.id), // <-- обязательно строкой
+              value: String(el.id),
               label: el.name,
             }))}
             value={form.city}
-            onChange={(val) => handleChange("city", val)} // val = ID города
+            onChange={(val) => handleChange("city", val)}
           />
         );
       case "leaflet":
@@ -264,21 +244,17 @@ export default function AddNewOrderPage({
           <SelectStep
             label="Листовка"
             options={leaflet.map((el) => ({
-              value: String(el.id), // <-- обязательно строкой
+              value: String(el.id),
               label: el.name,
             }))}
             value={form.leaflet}
-            onChange={(val) => handleChange("leaflet", val)} // val = ID города
+            onChange={(val) => handleChange("leaflet", val)}
           />
         );
       case "problem":
         return textInput("problem", "Описание проблемы");
       case "arriveDate":
-        return textInput(
-          "arriveDate",
-          "Дата и время прибытия",
-          "datetime-local",
-        );
+        return textInput("arriveDate", "Дата и время прибытия", "datetime-local");
       case "visitType":
         return (
           <SelectStep
@@ -292,24 +268,6 @@ export default function AddNewOrderPage({
             ]}
           />
         );
-      case "callRequired":
-        return (
-          <CheckboxStep
-            label="Требуется звонок клиенту?"
-            checked={form.callRequired}
-            onChange={(val) => handleChange("callRequired", val)}
-          />
-        );
-      case "isProfessional":
-        return (
-          <CheckboxStep
-            label="Профессиональный заказ?"
-            checked={form.isProfessional}
-            onChange={(val) => handleChange("isProfessional", val)}
-          />
-        );
-      case "equipmentType":
-        return textInput("equipmentType", "Прибор");
       case "paymentType":
         return (
           <SelectStep
@@ -323,7 +281,6 @@ export default function AddNewOrderPage({
             onChange={(val) => handleChange("paymentType", val)}
           />
         );
-
       case "review":
         return (
           <div className="space-y-4">
@@ -333,30 +290,17 @@ export default function AddNewOrderPage({
               <ReviewItem label="Телефон">{form.phone}</ReviewItem>
               <ReviewItem label="Адрес">{form.address}</ReviewItem>
               <ReviewItem label="Город">
-                {cities.find((city) => city.id === parseInt(form.city))?.name ||
-                  "Не найдено"}
+                {cities.find((c) => c.id === parseInt(form.city))?.name || "Не найдено"}
               </ReviewItem>
-               <ReviewItem label="Листовка">
-                {leaflet.find((leaflet_) => leaflet_.id === parseInt(form.city))?.name ||
-                  "Не найдено"}
+              <ReviewItem label="Листовка">
+                {leaflet.find((l) => l.id === parseInt(form.leaflet))?.name || "Не найдено"}
               </ReviewItem>
               <ReviewItem label="Описание проблемы">{form.problem}</ReviewItem>
               <ReviewItem label="Дата визита">
-                {form.arriveDate
-                  ? new Date(form.arriveDate).toLocaleString()
-                  : ""}
+                {form.arriveDate ? new Date(form.arriveDate).toLocaleString() : ""}
               </ReviewItem>
               <ReviewItem label="Тип визита">{form.visitType}</ReviewItem>
-              <ReviewItem label="Требуется звонок">
-                {form.callRequired ? "Да" : "Нет"}
-              </ReviewItem>
-              <ReviewItem label="Профессиональный заказ">
-                {form.isProfessional ? "Да" : "Нет"}
-              </ReviewItem>
-              <ReviewItem label="Прибор">{form.equipmentType}</ReviewItem>
-              <ReviewItem label="Тип прибыли">
-                {payLabels[form.paymentType]}
-              </ReviewItem>
+              <ReviewItem label="Тип прибыли">{payLabels[form.paymentType]}</ReviewItem>
             </div>
           </div>
         );
@@ -426,56 +370,23 @@ export default function AddNewOrderPage({
   );
 }
 
-function InputStep({
-  label,
-  value,
-  onChange,
-  onEnter,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-  onEnter?: () => void;
-  type?: string;
-  placeholder?: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
+function InputStep({ label, value, onChange, onEnter, type = "text", placeholder }: any) {
   return (
     <div>
       <label className="mb-1 block font-medium">{label}</label>
       <input
-        ref={inputRef}
         type={type}
         placeholder={placeholder}
         className="w-full rounded border px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && onEnter) onEnter();
-        }}
+        onKeyDown={(e) => { if (e.key === "Enter" && onEnter) onEnter(); }}
       />
     </div>
   );
 }
 
-function SelectStep({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-  options: { value: string; label: string }[];
-}) {
+function SelectStep({ label, value, onChange, options }: any) {
   return (
     <div>
       <label className="mb-1 block font-medium">{label}</label>
@@ -485,45 +396,15 @@ function SelectStep({
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">Выберите...</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
     </div>
   );
 }
 
-function CheckboxStep({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (val: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center space-x-3">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-5 w-5"
-      />
-      <label className="text-sm">{label}</label>
-    </div>
-  );
-}
-
-function ReviewItem({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function ReviewItem({ label, children }: any) {
   return (
     <div className="flex justify-between border-b py-1">
       <span className="text-gray-500">{label}</span>

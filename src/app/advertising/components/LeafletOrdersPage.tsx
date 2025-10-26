@@ -17,8 +17,13 @@ interface Distributor {
   fullName: string;
 }
 
-type ProfitType = "MKD"|"CHS";
-type LeafletOrderState = "IN_PROCESS" | "DONE" | "DECLINED";
+type ProfitType = "MKD" | "CHS";
+type LeafletOrderState =
+  | "IN_PROCESS"
+  | "DONE"
+  | "DECLINED"
+  | "CANCELLED"
+  | "FORPAYMENT";
 
 interface LeafletOrdersPageProps {
   fullName: string;
@@ -40,16 +45,22 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
   const [cityId, setCityId] = useState<number | null>(null);
   const [distributorId, setDistributorId] = useState<number | null>(null);
   const [squareNumber, setSquareNumber] = useState<string>("");
+
+  const [filterState, setFilterState] = useState<
+    LeafletOrderState | "ALL"
+  >("ALL");
+
   const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
-      const [ordersRes, leafletsRes, citiesRes, distributorsRes] = await Promise.all([
-        fetch("/api/distribution/getAll"),
-        fetch("/api/leaflet/all"),
-        fetch("/api/city/all"),
-        fetch("/api/distributors/all"),
-      ]);
+      const [ordersRes, leafletsRes, citiesRes, distributorsRes] =
+        await Promise.all([
+          fetch("/api/distribution/getAll"),
+          fetch("/api/leaflet/all"),
+          fetch("/api/city/all"),
+          fetch("/api/distributors/all"),
+        ]);
       const orders = await ordersRes.json();
       const leafletsData = await leafletsRes.json();
       const citiesData = await citiesRes.json();
@@ -83,7 +94,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           cityId,
           distributorId,
           fullName,
-          squareNumber
+          squareNumber,
         }),
       });
 
@@ -93,7 +104,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
       setLeafletOrders([newOrder, ...leafletOrders]);
       setShowModal(false);
 
-      setProfitType("МКД");
+      setProfitType("MKD");
       setQuantity(1);
       setLeafletId(null);
       setCityId(null);
@@ -103,45 +114,47 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
     }
   }
 
+  const filteredOrders =
+    filterState === "ALL"
+      ? leafletOrders
+      : leafletOrders.filter((order) => order.state === filterState);
+
   if (loading) return <p>Загрузка...</p>;
 
   return (
     <div className="p-4 relative">
-            {showModal && (
+      {/* === Модалка создания === */}
+      {showModal && (
         <>
-          {/* Фон */}
           <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setShowModal(false)}
           ></div>
 
-          {/* Модалка */}
           <div
             className="fixed top-1/2 left-1/2 w-full max-w-lg bg-white rounded shadow-lg p-6 z-50"
             style={{ transform: "translate(-50%, -50%)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-semibold mb-4">Новый заказ листовки</h2>
-						 <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 mb-4">
               Создаёт заказ: <span className="font-semibold">{fullName}</span>
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Profit Type */}
+              {/* Поля формы */}
               <div>
                 <label className="block mb-1 font-semibold">Тип прибыли*</label>
                 <select
                   className="w-full border rounded px-3 py-2"
                   value={profitType}
                   onChange={(e) => setProfitType(e.target.value as ProfitType)}
-                  required
                 >
-                  <option value="MKD">МКД (много квартирный дом)</option>
-                  <option value="CHS">ЧС (частный сектор)</option>
+                  <option value="MKD">МКД</option>
+                  <option value="CHS">ЧС</option>
                 </select>
               </div>
 
-              {/* Quantity */}
               <div>
                 <label className="block mb-1 font-semibold">Количество*</label>
                 <input
@@ -150,32 +163,27 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value))}
                   className="w-full border rounded px-3 py-2"
-                  required
                 />
               </div>
-                   <div>
+
+              <div>
                 <label className="block mb-1 font-semibold">Номер блока</label>
                 <input
                   type="number"
                   value={squareNumber}
                   onChange={(e) => setSquareNumber(e.target.value)}
                   className="w-full border rounded px-3 py-2"
-                  required
                 />
               </div>
 
-              {/* Leaflet */}
               <div>
                 <label className="block mb-1 font-semibold">Листовка*</label>
                 <select
                   className="w-full border rounded px-3 py-2"
                   value={leafletId ?? ""}
                   onChange={(e) => setLeafletId(Number(e.target.value))}
-                  required
                 >
-                  <option value="" disabled>
-                    Выберите листовку
-                  </option>
+                  <option value="">Выберите листовку</option>
                   {leaflets.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}
@@ -184,18 +192,14 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                 </select>
               </div>
 
-              {/* City */}
               <div>
                 <label className="block mb-1 font-semibold">Город*</label>
                 <select
                   className="w-full border rounded px-3 py-2"
                   value={cityId ?? ""}
                   onChange={(e) => setCityId(Number(e.target.value))}
-                  required
                 >
-                  <option value="" disabled>
-                    Выберите город
-                  </option>
+                  <option value="">Выберите город</option>
                   {cities.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -204,18 +208,14 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                 </select>
               </div>
 
-              {/* Distributor */}
               <div>
                 <label className="block mb-1 font-semibold">Разносчик*</label>
                 <select
                   className="w-full border rounded px-3 py-2"
                   value={distributorId ?? ""}
                   onChange={(e) => setDistributorId(Number(e.target.value))}
-                  required
                 >
-                  <option value="" disabled>
-                    Выберите разносчика
-                  </option>
+                  <option value="">Выберите разносчика</option>
                   {distributors.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.fullName}
@@ -224,8 +224,6 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                 </select>
               </div>
 
-          
-            
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
@@ -245,16 +243,36 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           </div>
         </>
       )}
-      <h1 className="text-xl font-bold mb-4">Заказы листовок</h1>
 
-      <button
-        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}
-      >
-        Добавить листопад
-      </button>
+      {/* === Заголовок и фильтр === */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-bold">Заказы листовок</h1>
 
-      {/* Таблица для десктопа */}
+        <div className="flex items-center gap-2">
+          <label className="font-semibold">Фильтр:</label>
+          <select
+            className="border rounded px-3 py-2"
+            value={filterState}
+            onChange={(e) => setFilterState(e.target.value as LeafletOrderState | "ALL")}
+          >
+            <option value="ALL">Все</option>
+            <option value="IN_PROCESS">В процессе</option>
+            <option value="DONE">Успешно</option>
+            <option value="DECLINED">Провалено</option>
+            <option value="CANCELLED">Отменено</option>
+            <option value="FORPAYMENT">На оплату</option>
+          </select>
+
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => setShowModal(true)}
+          >
+            + Добавить
+          </button>
+        </div>
+      </div>
+
+      {/* === Таблица заказов === */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead>
@@ -272,7 +290,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
             </tr>
           </thead>
           <tbody>
-            {leafletOrders.map((order) => (
+            {filteredOrders.map((order) => (
               <tr
                 key={order.id}
                 className="cursor-pointer hover:bg-gray-200 transition"
@@ -289,69 +307,25 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                     order.state === "IN_PROCESS" && "text-orange-500"
                   } ${order.state === "DONE" && "text-green-600"} ${
                     order.state === "DECLINED" && "text-red-500"
+                  } ${order.state === "CANCELLED" && "text-gray-400"} ${
+                    order.state === "FORPAYMENT" && "text-blue-600"
                   }`}
                 >
                   {order.state === "IN_PROCESS" && "В процессе"}
                   {order.state === "DONE" && "Успешно"}
                   {order.state === "DECLINED" && "Провалено"}
+                  {order.state === "CANCELLED" && "Отменено"}
+                  {order.state === "FORPAYMENT" && "На оплату"}
                 </td>
-                <td className="p-2 border">{new Date(order.createdAt).toLocaleString()}</td>
+                <td className="p-2 border">
+                  {new Date(order.createdAt).toLocaleString()}
+                </td>
                 <td className="p-2 border">{order.distributorProfit || "-"}</td>
                 <td className="p-2 border">{order.createdBy || "-"}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Карточки для мобильных */}
-      <div className="grid gap-4 md:hidden">
-        {leafletOrders.map((order) => (
-          <div
-            key={order.id}
-            className="border rounded p-4 shadow-sm cursor-pointer hover:bg-gray-50"
-            onClick={() => router.push(`/advertising/${order.id}`)}
-          >
-            <p>
-              <span className="font-semibold">ID:</span> {order.id}
-            </p>
-            <p>
-              <span className="font-semibold">Тип прибыли:</span> {order.profitType}
-            </p>
-            <p>
-              <span className="font-semibold">Количество:</span> {order.quantity}
-            </p>
-            <p>
-              <span className="font-semibold">Листовка:</span> {order.leaflet?.name || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Город:</span> {order.city?.name || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Разносчик:</span>{" "}
-              {order.distributor?.fullName || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Статус:</span>{" "}
-              {order.state === "IN_PROCESS" && (
-                <span className="text-orange-500">В процессе</span>
-              )}
-              {order.state === "DONE" && <span className="text-green-600">Успешно</span>}
-              {order.state === "DECLINED" && <span className="text-red-500">Провалено</span>}
-            </p>
-            <p>
-              <span className="font-semibold">Создан:</span>{" "}
-              {new Date(order.createdAt).toLocaleString()}
-            </p>
-            <p>
-              <span className="font-semibold">Заработал:</span>{" "}
-              {order.distributorProfit || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Создал:</span> {order.createdBy || "-"}
-            </p>
-          </div>
-        ))}
       </div>
     </div>
   );

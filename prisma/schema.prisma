@@ -123,6 +123,7 @@ enum LeafletOrderState {
   DONE
   DECLINED
   CANCELLED
+  FORPAYMENT
 }
 
 model LeafletOrder {

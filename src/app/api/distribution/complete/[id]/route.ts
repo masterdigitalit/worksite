@@ -10,12 +10,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     
   try {
     const id = parseInt(params.id);
-    const { success, returnedLeaflets, distributed, returned } = await req.json();
+    const { state, distributed, returned } = await req.json();
 
     const result = await completeLeafletOrder({
       id,
-      success,
-      returnedLeaflets,
+      state,
       distributed,
       returned,
       whoDid: session.user.fullName,

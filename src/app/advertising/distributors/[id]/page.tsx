@@ -132,7 +132,7 @@ export default function DistributorPage({ params }: { params: { id: string } }) 
                       <th className="px-3 py-2 border">ID</th>
                       <th className="px-3 py-2 border">Тип прибыли</th>
                       <th className="px-3 py-2 border">Кол-во</th>
-                      <th className="px-3 py-2 border">Отдано</th>
+                      <th className="px-3 py-2 border">Раздано</th>
                       <th className="px-3 py-2 border">Возврат</th>
                       <th className="px-3 py-2 border">Прибыль</th>
                       <th className="px-3 py-2 border">Листовка</th>

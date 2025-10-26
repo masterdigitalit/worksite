@@ -12,11 +12,11 @@ interface LeafletOrder {
   leaflet: { name: string; value: number } | null;
   city: { name: string } | null;
   distributor: { id: number; fullName: string } | null;
-  state: "IN_PROCESS" | "DONE" | "DECLINED" | string;
+  state: string;
   createdAt: string;
-  distributorProfit: number;
-  given: number;
-  returned: number;
+  distributorProfit: number | null;
+  given: number | null;
+  returned: number | null;
   squareNumber: string | null;
 }
 
@@ -25,135 +25,165 @@ export default function LeafletOrderPage() {
   const [order, setOrder] = useState<LeafletOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [finishStep, setFinishStep] = useState<null | "partial">(null);
+  const [finishMode, setFinishMode] = useState<null | "partial">(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [partialDistributed, setPartialDistributed] = useState<number | null>(null);
-  const [partialReturned, setPartialReturned] = useState<number | null>(null);
+  const [partialDistributed, setPartialDistributed] = useState<number | "">("");
+  const [partialReturned, setPartialReturned] = useState<number | "">("");
 
+  // === Загрузка данных ===
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/distribution/${id}`)
-      .then((res) => res.json())
-      .then((data) => setOrder(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+
+    async function fetchOrder() {
+      try {
+        const res = await fetch(`/api/distribution/${id}`);
+        if (!res.ok) throw new Error("Ошибка при загрузке данных");
+        const data = await res.json();
+        setOrder(data);
+      } catch (err: any) {
+        setError(err.message || "Ошибка при загрузке");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchOrder();
   }, [id]);
 
-  async function finishOrder(success: boolean, partialData?: { distributed: number; returned: number }) {
+  // === Завершение заказа ===
+  async function finishOrder(state: string, extraData?: { distributed?: number; returned?: number }) {
+    console.log("📤 Отправка данных:", {
+  id,
+  state,
+  distributed: extraData?.distributed,
+  returned: extraData?.returned,
+});
     if (!id || submitting) return;
     setSubmitting(true);
 
     try {
+      const body = { state, ...extraData };
+      console.log(body)
+
+      console.log("📤 Отправка:", body);
+
       const res = await fetch(`/api/distribution/complete/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(partialData ? { success, ...partialData } : { success }),
+        body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Ошибка завершения заказа");
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Ошибка обновления заказа");
+      }
 
       const updated = await res.json();
       setOrder(updated);
-      setFinishStep(null);
-      setPartialDistributed(null);
-      setPartialReturned(null);
+      setFinishMode(null);
+      setPartialDistributed("");
+      setPartialReturned("");
     } catch (err: any) {
-      alert(err.message);
+      alert(err.message || "Ошибка выполнения действия");
     } finally {
       setSubmitting(false);
     }
   }
 
-  const translateStatus = (status: string) => {
-    switch (status) {
+  // === Перевод статуса ===
+  const translateStatus = (state: string) => {
+    switch (state) {
       case "IN_PROCESS":
-        return "🟡 В РАБОТЕ";
-      case "DONE":
-        return "🟢 ВЫПОЛНЕН";
-      case "DECLINED":
-        return "🔴 ПРОВАЛЕН";
+        return "🟡 В работе";
+      case "SUCCESS":
+        return "🟢 Выполнен";
+      case "":
+        return "🟠 Частично";
+      case "CANCELLED":
+        return "⚫ Отменён";
       default:
-        return status;
+        return state;
     }
   };
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
       </div>
     );
 
-  if (error) return <p className="p-4 text-red-600 font-semibold">Ошибка: {error}</p>;
+  if (error) return <p className="p-4 text-red-600 font-semibold">{error}</p>;
   if (!order) return <p className="p-4">Заказ не найден</p>;
 
+  // === Основной интерфейс ===
   return (
-    <div className="p-6 max-w-3xl mx-auto bg-white rounded-2xl shadow-md">
-  <div className="flex items-center justify-between mb-6">
-    <h1 className="text-3xl font-extrabold">📄 Заказ №{order.id}</h1>
-    <Link
-     href={`/advertising/${order.id}/edit`}
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-    >
-      ✏️ Редактировать
-    </Link>
-  </div>
-      <div className="grid grid-cols-2 gap-4 text-gray-700">
-        <p><span className="font-semibold">Тип прибыли:</span> {order.profitType}</p>
-        <p><span className="font-semibold">Количество:</span> {order.quantity}</p>
-        <p><span className="font-semibold">Листовка:</span> {order.leaflet?.name || "-"}</p>
-        <p><span className="font-semibold">Город:</span> {order.city?.name || "-"}</p>
-              <p><span className="font-semibold">Номер блока:</span> {order.squareNumber || "-"}</p>
+    <div className="p-6 max-w-3xl mx-auto bg-white rounded-2xl shadow">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">📄 Заказ №{order.id}</h1>
+        {/* <Link
+          href={`/advertising/${order.id}/edit`}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          ✏️ Редактировать
+        </Link> */}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 text-gray-800">
+        <p><strong>Тип прибыли:</strong> {order.profitType}</p>
+        <p><strong>Количество:</strong> {order.quantity}</p>
+        <p><strong>Листовка:</strong> {order.leaflet?.name || "-"}</p>
+        <p><strong>Город:</strong> {order.city?.name || "-"}</p>
+        <p><strong>Номер блока:</strong> {order.squareNumber || "-"}</p>
         <p>
-          <span className="font-semibold">Разносчик:</span>{" "}
+          <strong>Разносчик:</strong>{" "}
           {order.distributor ? (
-            <Link
-              href={`/advertising/distributors/${order.distributor.id}`}
-              className="text-blue-600 hover:underline font-medium"
-            >
+            <Link href={`/advertising/distributors/${order.distributor.id}`} className="text-blue-600 hover:underline">
               {order.distributor.fullName}
             </Link>
           ) : (
             "-"
           )}
         </p>
-        <p><span className="font-semibold">Статус:</span> {translateStatus(order.state)}</p>
-       
+        <p><strong>Статус:</strong> {translateStatus(order.state)}</p>
+        <p><strong>Создан:</strong> {new Date(order.createdAt).toLocaleString()}</p>
       </div>
-           <div className="mt-4 text-gray-700">
-       <p><span className="font-semibold">Создан:</span> {new Date(order.createdAt).toLocaleString()}</p>
-</div>
+
+      {/* === Блок результатов === */}
       {order.state !== "IN_PROCESS" && (
-        <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-          <h2 className="font-bold text-lg mb-2">📊 Результаты</h2>
-          <p><strong>Заработал:</strong> {order.distributorProfit || "-"}</p>
-          <p><strong>Раздал:</strong> {order.given || "-"}</p>
-          <p><strong>Вернул:</strong> {order.returned || "-"}</p>
+        <div className="mt-6 p-4 bg-gray-50 border rounded-xl">
+          <h2 className="font-semibold mb-2 text-lg">📊 Результаты</h2>
+          <p><strong>Раздал:</strong> {order.given ?? "-"}</p>
+          <p><strong>Вернул:</strong> {order.returned ?? "-"}</p>
+          <p><strong>Заработал:</strong> {order.distributorProfit ?? "-"}</p>
         </div>
       )}
 
+      {/* === Действия (если заказ в работе) === */}
       {order.state === "IN_PROCESS" && (
-        <div className="mt-6 space-y-4">
-          {finishStep === null && (
+        <div className="mt-8 space-y-4">
+          {finishMode === null && (
             <div className="flex gap-3">
               <button
-                onClick={() => finishOrder(true)}
-                className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+                onClick={() => finishOrder("success")}
+                className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 disabled={submitting}
               >
                 <CheckCircle className="w-5 h-5" /> Раздал всё
               </button>
+
               <button
-                onClick={() => setFinishStep("partial")}
-                className="flex items-center gap-2 px-5 py-2 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition"
+                onClick={() => setFinishMode("partial")}
+                className="flex items-center gap-2 px-5 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
                 disabled={submitting}
               >
                 <Package className="w-5 h-5" /> Частично
               </button>
+
               <button
-                onClick={() => finishOrder(false, { distributed: 0, returned: order.quantity })}
-                className="flex items-center gap-2 px-5 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition"
+                onClick={() => finishOrder("cancelled")}
+                className="flex items-center gap-2 px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 disabled={submitting}
               >
                 <XCircle className="w-5 h-5" /> Отмена
@@ -161,48 +191,48 @@ export default function LeafletOrderPage() {
             </div>
           )}
 
-          {finishStep === "partial" && (
+          {finishMode === "partial" && (
             <div className="space-y-3">
               <input
                 type="number"
                 placeholder="Сколько раздал"
                 className="border p-3 w-full rounded-lg focus:ring focus:ring-blue-200"
-                value={partialDistributed ?? ""}
-                onChange={(e) => setPartialDistributed(Number(e.target.value))}
+                value={partialDistributed}
+                onChange={(e) => setPartialDistributed(e.target.value ? Number(e.target.value) : "")}
               />
               <input
                 type="number"
                 placeholder="Сколько вернул"
                 className="border p-3 w-full rounded-lg focus:ring focus:ring-blue-200"
-                value={partialReturned ?? ""}
-                onChange={(e) => setPartialReturned(Number(e.target.value))}
+                value={partialReturned}
+                onChange={(e) => setPartialReturned(e.target.value ? Number(e.target.value) : "")}
               />
+
               <div className="flex gap-3">
                 <button
                   onClick={() => {
-                    if (
-                      partialDistributed === null ||
-                      partialReturned === null ||
-                      isNaN(partialDistributed) ||
-                      isNaN(partialReturned)
-                    ) {
-                      alert("Заполните оба поля!");
+                    if (partialDistributed === "" || partialReturned === "") {
+                      alert("Заполни оба поля");
                       return;
                     }
-                    finishOrder(false, { distributed: partialDistributed, returned: partialReturned });
+                    finishOrder("", {
+                      distributed: Number(partialDistributed),
+                      returned: Number(partialReturned),
+                    });
                   }}
-                  className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+                  className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   disabled={submitting}
                 >
                   Отправить
                 </button>
+
                 <button
                   onClick={() => {
-                    setFinishStep(null);
-                    setPartialDistributed(null);
-                    setPartialReturned(null);
+                    setFinishMode(null);
+                    setPartialDistributed("");
+                    setPartialReturned("");
                   }}
-                  className="px-5 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition"
+                  className="px-5 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                 >
                   Отмена
                 </button>

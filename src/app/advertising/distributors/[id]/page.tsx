@@ -44,6 +44,7 @@ export default function DistributorPage({ params }: { params: { id: string } }) 
   const [tab, setTab] = useState<"info" | "documents">("info");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  console.log(distributor)
 
   useEffect(() => {
     const loadDistributor = async () => {
@@ -155,8 +156,8 @@ export default function DistributorPage({ params }: { params: { id: string } }) 
                         <td className="px-3 py-2 border">{order.given}</td>
                         <td className="px-3 py-2 border">{order.returned}</td>
                         <td className="px-3 py-2 border">{order.distributorProfit}</td>
-                        <td className="px-3 py-2 border">{order.leafletId}</td>
-                        <td className="px-3 py-2 border">{order.cityId}</td>
+                        <td className="px-3 py-2 border">{order.leaflet.name}</td>
+                        <td className="px-3 py-2 border">{order.city.name}</td>
                         <td className="px-3 py-2 border text-green-700 font-medium">{order.state}</td>
                         <td className="px-3 py-2 border">{new Date(order.createdAt).toLocaleString()}</td>
                         <td className="px-3 py-2 border">{new Date(order.doneAt).toLocaleString()}</td>

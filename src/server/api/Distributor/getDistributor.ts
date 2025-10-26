@@ -5,7 +5,12 @@ export async function getDistributorById(id: number) {
     where: { id },
     include: {
       documents: true,
-      leafletOrders: true,
+      leafletOrders: {include:{
+        city: true,
+        distributor: true,
+        leaflet:true,
+      }},
+
     },
   });
 

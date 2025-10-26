@@ -146,7 +146,7 @@ export default function DistributorPage({ params }: { params: { id: string } }) 
                     {distributor.leafletOrders.map((order) => (
                       <tr
                         key={order.id}
-                        onClick={() => router.push(`/leaflet/${order.id}`)}
+                        onClick={() => router.push(`/advertising/${order.id}`)}
                         className="cursor-pointer hover:bg-blue-50 transition-colors"
                       >
                         <td className="px-3 py-2 border text-blue-700 font-medium">{order.id}</td>

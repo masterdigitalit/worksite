@@ -39,6 +39,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
   const [leafletId, setLeafletId] = useState<number | null>(null);
   const [cityId, setCityId] = useState<number | null>(null);
   const [distributorId, setDistributorId] = useState<number | null>(null);
+  const [squareNumber, setSquareNumber] = useState<string>("");
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           cityId,
           distributorId,
           fullName,
+          squareNumber
         }),
       });
 
@@ -147,6 +149,16 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
                   min={1}
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value))}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+                   <div>
+                <label className="block mb-1 font-semibold">Номер блока</label>
+                <input
+                  type="number"
+                  value={squareNumber}
+                  onChange={(e) => setSquareNumber(e.target.value)}
                   className="w-full border rounded px-3 py-2"
                   required
                 />

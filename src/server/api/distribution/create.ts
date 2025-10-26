@@ -8,6 +8,7 @@ export async function createLeafletOrder(data: {
   cityId: number;
   distributorId: number;
   fullName:string;
+  squareNumber:string;
   
 }) {
     const distributor = await  prisma.distributor.findUnique({
@@ -43,7 +44,8 @@ export async function createLeafletOrder(data: {
         cityId: data.cityId,
         distributorId: data.distributorId,
         state: LeafletOrderState.IN_PROGRESS,
-        createdBy:data.fullName
+        createdBy:data.fullName,
+        squareNumber:data.squareNumber
       },
     });
   

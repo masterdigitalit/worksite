@@ -125,6 +125,7 @@ enum LeafletOrderState {
   IN_PROCESS
   DONE
   DECLINED
+  CANCELLED
 }
 
 model LeafletOrder {
@@ -144,6 +145,7 @@ model LeafletOrder {
   returned      Int?
   given         Int?
   createdBy     String?
+  squareNumber  String?
 
 }
 

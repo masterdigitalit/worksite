@@ -17,6 +17,7 @@ interface LeafletOrder {
   distributorProfit: number;
   given: number;
   returned: number;
+  squareNumber: string | null;
 }
 
 export default function LeafletOrderPage() {
@@ -103,6 +104,7 @@ export default function LeafletOrderPage() {
         <p><span className="font-semibold">Количество:</span> {order.quantity}</p>
         <p><span className="font-semibold">Листовка:</span> {order.leaflet?.name || "-"}</p>
         <p><span className="font-semibold">Город:</span> {order.city?.name || "-"}</p>
+              <p><span className="font-semibold">Номер блока:</span> {order.squareNumber || "-"}</p>
         <p>
           <span className="font-semibold">Разносчик:</span>{" "}
           {order.distributor ? (

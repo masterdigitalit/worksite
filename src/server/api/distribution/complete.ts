@@ -43,6 +43,7 @@ if (typeof distributed === "number" && typeof returned === "number") {
       data: {
         value: order.leaflet.value + returned,
       },
+      include: {leafletOrders:true, orders:true},
     });
   }
 
@@ -61,6 +62,7 @@ if (typeof distributed === "number" && typeof returned === "number") {
       distributorProfit: (multiplier * distributed).toString(),
       doneAt,
     },
+            include: {distributor:true, leaflet:true, city:true},
   });
 }
 
@@ -81,6 +83,7 @@ if (success) {
       returned: 0,
       doneAt,
     },
+     include: {distributor:true, leaflet:true, city:true},
   });
 }
 
@@ -107,6 +110,7 @@ if (returnedLeaflets && order.leaflet) {
       returned: order.quantity,
       doneAt,
     },
+     include: {distributor:true, leaflet:true, city:true},
   });
 }
 
@@ -125,4 +129,5 @@ return prisma.leafletOrder.update({
     returned: 0,
     doneAt,
   },
+     include: {distributor:true, leaflet:true, city:true},
 })}

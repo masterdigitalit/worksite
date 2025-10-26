@@ -10,14 +10,11 @@ type FlyersStats = {
     flyersDelivered: number;
   };
   month: {
-    promoters: number;
     flyersIssued: number;
     flyersDelivered: number;
+    totalFlyers: number;
     flyersReturned: number;
-    ordersCount: number;
-    flyersNotReturned: number;
   };
-  totalFlyers: number;
 };
 
 export default function StatisticsPage() {
@@ -43,57 +40,42 @@ export default function StatisticsPage() {
   if (loading) return <p className="text-center mt-10">Загрузка...</p>;
   if (!stats) return <p className="text-center mt-10 text-red-500">Ошибка загрузки данных</p>;
 
-  const avgFlyersPerOrder = stats.month.ordersCount
-    ? (stats.month.flyersDelivered / stats.month.ordersCount).toFixed(2)
-    : "—";
-
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white shadow p-6 rounded-xl">
+    <div className="max-w-3xl mx-auto mt-10 bg-white shadow p-6 rounded-xl font-sans">
       <h1 className="text-2xl font-bold text-center mb-6">📋 Отчёт по листовкам</h1>
 
       {/* Сегодня */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Общее количество листовок:</h2>
-        <p>Дата: {stats.date} 📆</p>
+        <p>Дата {stats.date} 📆</p>
         <p>Промоутеров: {stats.today.promoters}</p>
         <p>Количество выданной рекламы: {stats.today.flyersIssued}</p>
         <p>Количество разнесенной рекламы: {stats.today.flyersDelivered}</p>
       </div>
 
-      {/* За месяц */}
+      {/* Общее количество */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Отчёт за месяц:</h2>
+        <p className="font-semibold mt-2">Общее количество:</p>
         <p>Количество выданной рекламы: {stats.month.flyersIssued}</p>
         <p>Количество разнесенной рекламы: {stats.month.flyersDelivered}</p>
-        <p>Общее количество листовок: {stats.totalFlyers}</p>
+        <p>Общее количество листовок: {stats.month.totalFlyers}</p>
         <p>Общее количество возврата: {stats.month.flyersReturned}</p>
-        <p>Промоутеров за месяц: {stats.month.promoters}</p>
-        <p>Кол-во заказов за месяц: {stats.month.ordersCount}</p>
-        <p>Не возвращено: {stats.month.flyersNotReturned}</p>
-        <p className="text-indigo-600 font-medium">
-          Среднее количество листовок на 1 заказ: <b>{Math.round(avgFlyersPerOrder)}</b>
-        </p>
       </div>
 
       <div className="mt-6 text-center">
         <button
           onClick={() => {
+            if (!stats) return;
             const report = `
-Общее количество листовок:
-Дата: ${stats.date} 📆
+Дата ${stats.date} 📆
 Промоутеров: ${stats.today.promoters}
 Количество выданной рекламы: ${stats.today.flyersIssued}
 Количество разнесенной рекламы: ${stats.today.flyersDelivered}
 
-Отчёт за месяц:
+Общее количество:
 Количество выданной рекламы: ${stats.month.flyersIssued}
 Количество разнесенной рекламы: ${stats.month.flyersDelivered}
-Общее количество листовок: ${stats.totalFlyers}
+Общее количество листовок: ${stats.month.totalFlyers}
 Общее количество возврата: ${stats.month.flyersReturned}
-Промоутеров за месяц: ${stats.month.promoters}
-Кол-во заказов за месяц: ${stats.month.ordersCount}
-Не возвращено: ${stats.month.flyersNotReturned}
-Среднее количество листовок на 1 заказ: ${Math.round(avgFlyersPerOrder)}
             `.trim();
 
             navigator.clipboard.writeText(report);

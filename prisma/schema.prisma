@@ -144,6 +144,7 @@ model LeafletOrder {
   given         Int?
   createdBy     String?
   squareNumber  String?
+  paymentPhoto       String?
 
 }
 

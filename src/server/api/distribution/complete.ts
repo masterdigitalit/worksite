@@ -39,7 +39,7 @@ export async function completeLeafletOrder({
   if (state ==="success" ) {
     await Create({
       whoDid,
-      whatHappend: `Закрыт заказ ${id}: все ${order.quantity} разданы`,
+      whatHappend: `Заказ ${id} выполнен поностью ${id}: все ${order.quantity} разданыб ожидает оплату`,
       type: "advertising",
     });
 
@@ -65,7 +65,7 @@ if (state === 'cancelled') {
 
     await Create({
       whoDid,
-      whatHappend: `Отменён заказ ${id}: вернули все ${order.quantity}`,
+      whatHappend: `Отменён заказ ${id}: вернули все ${order.quantity}, отменил офис`,
       type: "advertising",
     });
 
@@ -94,7 +94,7 @@ if (state === 'cancelled') {
 
     await Create({
       whoDid,
-      whatHappend: `Частично закрыт заказ ${id}: раздали ${distributed}, вернули ${returned}`,
+      whatHappend: `Частично закрыт заказ ${id}: раздали ${distributed}, вернули ${returned}, ожидает оплату`,
       type: "advertising",
     });
 

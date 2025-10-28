@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Leaflet {
@@ -46,11 +46,20 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
   const [distributorId, setDistributorId] = useState<number | null>(null);
   const [squareNumber, setSquareNumber] = useState<string>("");
 
-  const [filterState, setFilterState] = useState<
-    LeafletOrderState | "ALL"
-  >("ALL");
-
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [filterState, setFilterState] = useState<LeafletOrderState | "ALL">("ALL");
+
+  // === Получаем состояние фильтра из URL ===
+  useEffect(() => {
+    const urlState = searchParams.get("status") as LeafletOrderState | null;
+    if (urlState && ["IN_PROCESS", "DONE", "DECLINED", "CANCELLED", "FORPAYMENT"].includes(urlState)) {
+      setFilterState(urlState);
+    } else {
+      setFilterState("ALL");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchData() {
@@ -114,6 +123,18 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
     }
   }
 
+  // === Обновление фильтра и URL ===
+  function handleFilterChange(value: LeafletOrderState | "ALL") {
+    setFilterState(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value === "ALL") {
+      params.delete("status");
+    } else {
+      params.set("status", value);
+    }
+    router.push(`?${params.toString()}`);
+  }
+
   const filteredOrders =
     filterState === "ALL"
       ? leafletOrders
@@ -142,7 +163,6 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Поля формы */}
               <div>
                 <label className="block mb-1 font-semibold">Тип прибыли*</label>
                 <select
@@ -253,7 +273,7 @@ export default function LeafletOrdersPage({ fullName }: LeafletOrdersPageProps) 
           <select
             className="border rounded px-3 py-2"
             value={filterState}
-            onChange={(e) => setFilterState(e.target.value as LeafletOrderState | "ALL")}
+            onChange={(e) => handleFilterChange(e.target.value as LeafletOrderState | "ALL")}
           >
             <option value="ALL">Все</option>
             <option value="IN_PROCESS">В процессе</option>

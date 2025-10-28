@@ -7,7 +7,9 @@ import { getTodayStats } from "@/server/api/stats/getDailyStats";
 import { getMonthStats } from "@/server/api/stats/getMonthStats";
 import { getProfitStats } from "@/server/api/stats/getProfitStats";
 import { getStatusCounts } from "@/server/api/stats/countByStatus";
+import {getLeafletOrderStats} from "@/server/api/stats/page/leafletStat";
 import Link from "next/link";
+import { Key } from "lucide-react";
 
 // UI configs
 const statusesUI: Record<string, { label: string; color: string }> = {
@@ -33,6 +35,27 @@ const groupTitleMap: Record<string, string> = {
   finished: "✅ Завершённые / Отменённые",
 };
 
+
+
+interface LeafletStatsProps {
+  stats: {
+    IN_PROCESS: number;
+    FORPAYMENT: number;
+    DONE: number;
+    CANCELLED: number;
+    DECLINED: number;
+    totalDistributorProfitTOpay: number;
+    totalDistributorProfitPaid: number;
+  };
+}
+
+const statusesUILeaflet = {
+  IN_PROCESS: { label: "В процессе", color: "text-yellow-600" },
+  FORPAYMENT: { label: "Ожидает оплаты", color: "text-orange-600" },
+  DONE: { label: "Выполнено", color: "text-green-600" },
+  CANCELLED: { label: "Отменено", color: "text-gray-500" },
+  DECLINED: { label: "Отклонено", color: "text-red-600" },
+};
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
   
@@ -43,13 +66,14 @@ export default async function AdminPage() {
       ? "Салам Алейкум Апти"
       : "Привет, " + (session?.user?.fullName || "Админ");
 
-  const [targetRaw, todayStats, monthStats, profitStats, statusCounts] =
+  const [targetRaw, todayStats, monthStats, profitStats, statusCounts, leafletStats] =
     await Promise.all([
       getGoal(),
       getTodayStats(),
       getMonthStats(),
       getProfitStats(),
       getStatusCounts(),
+      getLeafletOrderStats(),
     ]);
 
   const target = targetRaw
@@ -119,7 +143,51 @@ export default async function AdminPage() {
           );
         })}
       </div>
+   <div className="bg-white p-6 rounded-xl shadow-md">
+  <h2 className="text-lg font-bold mb-4">📦 Статистика по листовкам</h2>
+
+
+
+ <div className="space-y-2 text-gray-700">
+  {/* Ссылки по статусам */}
+  <div className="space-y-1">
+    {Object.entries(statusesUILeaflet).map(([key, { label, color }]) => (
+      <Link
+        key={key}
+        href={`/advertising?status=${key}`}
+        className="flex justify-between items-center py-1 text-sm hover:underline transition border-t-1 border-gray-100"
+      >
+        <span>{label}</span>
+        <span className={`${color} font-semibold`}>
+          {leafletStats[key as keyof typeof leafletStats] || 0}
+        </span>
+      </Link>
+    ))}
+  </div>
+
+  {/* Итоговая часть */}
+  <div className="pt-3 text-sm space-y-1 border-t-2 border-gray-300">
+    <div className="flex justify-between items-center">
+      <span className="text-gray-600">💰 Всего к выплате:</span>
+      <span className="text-orange-600 font-semibold">
+        {leafletStats.totalDistributorProfitTOpay.toLocaleString()} ₽
+      </span>
     </div>
+
+    <div className="flex justify-between items-center">
+      <span className="text-gray-600">✅ Выплачено:</span>
+      <span className="text-green-600 font-semibold">
+        {leafletStats.totalDistributorProfitPaid.toLocaleString()} ₽
+      </span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</div>
+
+  
   );
 }
 

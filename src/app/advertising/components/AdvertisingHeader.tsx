@@ -2,7 +2,7 @@
 import { SessionProvider } from "next-auth/react";
 import CheckValidSession from "@/app/admin/components/useCheckValidSession";
 import Link from "next/link";
-import { useState } from "react";
+import { useState , useEffect} from "react";
 
 export default function AdvertisingHeader({
   fullName,
@@ -16,6 +16,18 @@ export default function AdvertisingHeader({
   const [open, setOpen] = useState(false);
 
   const closeMenu = () => setOpen(false);
+useEffect(() => {
+  if (session.user.role === 'advertising') {
+    document.body.style.cursor = "url('/penis_animated.ani'), url('/penis.cur'), auto";
+  }
+
+  return () => {
+    // Возвращаем стандартный курсор при размонтировании
+    document.body.style.cursor = '';
+  };
+}, [session.user.role]);
+
+   
 
   return (
     
@@ -37,7 +49,7 @@ export default function AdvertisingHeader({
                        <Link href="/advertising" className="hover:text-blue-300 transition">Листопад</Link>
                                <Link href="/advertising/statistics" className="hover:text-blue-300 transition">Статистика</Link>
                        {session.user.role ==="admin"&& <Link href="/admin" className="hover:text-blue-300 transition">Назад на админку</Link> }
-                       
+                        
        
         </nav>
 

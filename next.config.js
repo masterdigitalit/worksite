@@ -5,6 +5,18 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {  images: {
+    domains: ['localhost', '127.0.0.1'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/photos/**',
+      },
+    ],
+  },};
 
 export default config;
+
+

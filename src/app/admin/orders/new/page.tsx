@@ -1,414 +1,513 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "lib/api-client";
+import { toast } from "react-toastify";
+import { validatePhone, formatPhone, normalizePhone } from "utils/phone-utils";
+import 'react-toastify/dist/ReactToastify.css';
 
-type Step =
-  | "fullName"
-  | "phone"
-  | "address"
-  | "city"
-  | "leaflet"
-  | "problem"
-  | "arriveDate"
-  | "visitType"
-  | "paymentType"
-  | "review";
-
-const steps: Step[] = [
-  "fullName",
-  "phone",
-  "address",
-  "city",
-  "leaflet",
-  "problem",
-  "arriveDate",
-  "visitType",
-  "paymentType",
-  "review",
-];
-
-const payLabels: Record<string, string> = {
-  HIGH: "Высокая",
-  MEDIUM: "Средняя",
-  LOW: "Низкая",
-};
-
-const stepLabels: Record<Step, string> = {
-  fullName: "ФИО",
-  phone: "Телефон",
-  address: "Адрес",
-  city: "Город",
-  leaflet: "Тип визитки",
-  problem: "Проблема",
-  arriveDate: "Дата и время",
-  visitType: "Тип визита",
-  paymentType: "Степень оплаты",
-  review: "Обзор",
-};
-
-function formatPhone(input: string): string {
-  const digits = input.replace(/\D/g, "").replace(/^8/, "7");
-  if (digits.length !== 11 || !digits.startsWith("7")) return input;
-  const match = digits.match(/^(\d)(\d{3})(\d{3})(\d{2})(\d{2})$/);
-  return match
-    ? `+${match[1]}(${match[2]})${match[3]}-${match[4]}-${match[5]}`
-    : input;
+interface City {
+  id: string;
+  name: string;
 }
 
-export default function AddNewOrderPage({
-  shouldValidate = true,
-}: {
-  shouldValidate?: boolean;
-}) {
-  const [cities, setCities] = useState([]);
-  const [leaflet, setLeaflet] = useState([]);
+interface Worker {
+  id: string;
+  full_name: string;
+  phone: string;
+  telegramUsername?: string;
+  ordersCompleted: number;
+  totalEarned: number;
+}
 
-  useEffect(() => {
-    fetch("/api/city/all")
-      .then((res) => res.json())
-      .then(setCities);
-  }, []);
+interface Leaflet {
+  id: string;
+  name: string;
+  value?: number;
+}
 
-  useEffect(() => {
-    fetch("/api/leaflet/all")
-      .then((res) => res.json())
-      .then(setLeaflet);
-  }, []);
+interface OrderFormData {
+  address: string;
+  full_name: string;
+  phone: string;
+  problem: string;
+  arrive_date: string;
+  visit_type: string;
+  branch_comment: string;
+  call_center_note: string;
+  city: string | null;
+  master: string | null;
+  leaflet: string | null;
+  payment_type: string;
+}
 
-  const router = useRouter();
-  const [stepIndex, setStepIndex] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    fullName: "",
-    phone: "",
+export default function NewOrderPage() {
+  const [formData, setFormData] = useState<OrderFormData>({
     address: "",
-    city: "",
-    leaflet: "",
+    full_name: "",
+    phone: "",
     problem: "",
-    arriveDate: "",
-    visitType: "",
-    paymentType: "",
+    arrive_date: "",
+    visit_type: "FIRST",
+    branch_comment: "",
+    call_center_note: "",
+    city: null,
+    master: null,
+    leaflet: null,
+    payment_type: "HIGH",
   });
 
-  const step = steps[stepIndex];
+  const [cities, setCities] = useState<City[]>([]);
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
-  const handleNext = () => {
-    const errorMsg = validateStep(step);
-    if (shouldValidate && errorMsg) {
-      setError(errorMsg);
-      return;
+  const router = useRouter();
+
+  useEffect(() => {
+    loadDropdownData();
+  }, []);
+
+  const loadDropdownData = async () => {
+    try {
+      setLoading(true);
+      
+      const [citiesData, workersData, leafletsData] = await Promise.all([
+        apiClient.get<City[]>('/api/v1/cities/'),
+        apiClient.get<Worker[]>('/api/v1/workers/'),
+        apiClient.get<Leaflet[]>('/api/v1/leaflets/')
+      ]);
+
+      setCities(citiesData);
+      setWorkers(workersData);
+      setLeaflets(leafletsData);
+    } catch (error: any) {
+      console.error('Failed to load dropdown data:', error);
+      toast.error("Ошибка загрузки данных для формы");
+    } finally {
+      setLoading(false);
     }
-    setError(null);
-    if (stepIndex < steps.length - 1) setStepIndex((i) => i + 1);
   };
 
-  const handleBack = () => {
-    if (stepIndex > 0) {
-      setStepIndex((i) => i - 1);
+  // Обработчик изменения телефона с валидацией
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+    
+    // Валидация в реальном времени
+    const error = validatePhone(formatted);
+    setPhoneError(error);
+    
+    if (error) {
       setError(null);
     }
   };
 
-  const handleChange = (field: keyof typeof form, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const validateForm = (): string | null => {
+    // Обязательные поля
+    if (!formData.address.trim()) return "Адрес обязателен для заполнения";
+    if (!formData.full_name.trim()) return "ФИО обязательно для заполнения";
+    if (!formData.phone.trim()) return "Телефон обязателен для заполнения";
+    if (!formData.arrive_date) return "Дата прибытия обязательна";
 
-  const validateStep = (step: Step): string | null => {
-    const required = (val: string) =>
-      !val.trim() ? "Поле не может быть пустым" : null;
-
-    switch (step) {
-      case "fullName":
-        return required(form.fullName);
-      case "phone": {
-        const cleaned = form.phone.replace(/\D/g, "");
-        const valid = cleaned.length === 11 && cleaned.startsWith("7");
-        return !valid ? "Введите корректный номер" : null;
-      }
-      case "address":
-        return required(form.address);
-      case "city":
-        return required(form.city);
-      case "leaflet":
-        return required(form.leaflet);
-      case "problem":
-        return required(form.problem);
-      case "arriveDate":
-        return !form.arriveDate
-          ? "Выберите дату"
-          : new Date(form.arriveDate) < new Date()
-          ? "Дата должна быть в будущем"
-          : null;
-      case "visitType":
-        return required(form.visitType);
-      case "paymentType":
-        return required(form.paymentType);
-      default:
-        return null;
+    // Проверка телефона
+    const phoneValidationError = validatePhone(formData.phone);
+    if (phoneValidationError) {
+      return phoneValidationError;
     }
+
+    // Проверка даты (должна быть в будущем)
+    const selectedDate = new Date(formData.arrive_date);
+    const now = new Date();
+    
+    if (selectedDate <= now) {
+      return "Дата прибытия должна быть в будущем";
+    }
+
+    return null;
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      function preserveUserInputAsUTC(datetimeStr: string): Date {
-        const [datePart, timePart] = datetimeStr.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute] = timePart.split(":").map(Number);
-        return new Date(Date.UTC(year, month - 1, day, hour, minute));
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Валидация формы
+    const validationError = validateForm();
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
 
-      const body = {
-        ...form,
-        arriveDate: preserveUserInputAsUTC(form.arriveDate),
-        cityId: form.city,
+    try {
+      setSaving(true);
+      setError(null);
+
+      const payload = {
+        address: formData.address.trim(),
+        full_name: formData.full_name.trim(),
+        phone: normalizePhone(formData.phone), // Нормализуем телефон для сервера
+        problem: formData.problem.trim(),
+        arrive_date: formData.arrive_date,
+        visit_type: formData.visit_type,
+        branch_comment: formData.branch_comment.trim() || null,
+        call_center_note: formData.call_center_note.trim() || null,
+        city: formData.city,
+        master: formData.master,
+        leaflet: formData.leaflet,
+        payment_type: formData.payment_type,
       };
 
-      const response = await fetch("/api/orders/new", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      console.log('Sending payload:', payload);
 
-      if (!response.ok) throw new Error("Ошибка при создании");
-
-      const created = await response.json();
-      setSubmitSuccess(true);
-      setForm({
-        fullName: "",
-        phone: "",
-        address: "",
-        city: "",
-        leaflet: "",
-        problem: "",
-        arriveDate: "",
-        visitType: "",
-        paymentType: "",
-      });
-      setStepIndex(0);
-
+      const response = await apiClient.post("/api/v1/orders/", payload);
+      console.log('Order created successfully:', response);
+      
+      toast.success("Заказ успешно создан!");
+      
+      // Задержка перед переходом чтобы пользователь увидел сообщение
       setTimeout(() => {
-        router.push(`/admin/orders/${created.id}`);
+        router.push("/admin/orders");
+        router.refresh();
       }, 1000);
-    } catch (e) {
-      alert("Произошла ошибка");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const renderStep = () => {
-    const textInput = (
-      field: keyof typeof form,
-      label: string,
-      type = "text",
-      placeholder?: string,
-    ) => (
-      <InputStep
-        label={label}
-        value={form[field]}
-        type={type}
-        placeholder={placeholder}
-        onChange={(val) =>
-          handleChange(field, field === "phone" ? formatPhone(val) : val)
+      
+    } catch (error: any) {
+      console.error('Failed to create order:', error);
+      
+      // Обработка ошибок API
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (typeof errorData === 'object') {
+          // Обработка ошибок валидации Django
+          const errorMessages = Object.values(errorData).flat().join(', ');
+          toast.error(`Ошибка валидации: ${errorMessages}`);
+        } else if (typeof errorData === 'string') {
+          toast.error(errorData);
+        } else {
+          toast.error("Ошибка при создании заказа");
         }
-        onEnter={handleNext}
-      />
-    );
-
-    switch (step) {
-      case "fullName":
-        return textInput("fullName", "ФИО клиента");
-      case "phone":
-        return textInput("phone", "Телефон", "tel", "+7(999)123-45-67");
-      case "address":
-        return textInput("address", "Адрес");
-      case "city":
-        return (
-          <SelectStep
-            label="Город"
-            options={cities.map((el) => ({
-              value: String(el.id),
-              label: el.name,
-            }))}
-            value={form.city}
-            onChange={(val) => handleChange("city", val)}
-          />
-        );
-      case "leaflet":
-        return (
-          <SelectStep
-            label="Листовка"
-            options={leaflet.map((el) => ({
-              value: String(el.id),
-              label: el.name,
-            }))}
-            value={form.leaflet}
-            onChange={(val) => handleChange("leaflet", val)}
-          />
-        );
-      case "problem":
-        return textInput("problem", "Описание проблемы");
-      case "arriveDate":
-        return textInput("arriveDate", "Дата и время прибытия", "datetime-local");
-      case "visitType":
-        return (
-          <SelectStep
-            label="Тип визита"
-            value={form.visitType}
-            onChange={(val) => handleChange("visitType", val)}
-            options={[
-              { value: "FIRST", label: "Первичный визит" },
-              { value: "GARAGE", label: "Гарантия" },
-              { value: "REPEAT", label: "Повторный визит" },
-            ]}
-          />
-        );
-      case "paymentType":
-        return (
-          <SelectStep
-            label="Тип прибыли"
-            options={[
-              { value: "HIGH", label: "Высокая" },
-              { value: "MEDIUM", label: "Средняя" },
-              { value: "LOW", label: "Низкая" },
-            ]}
-            value={form.paymentType}
-            onChange={(val) => handleChange("paymentType", val)}
-          />
-        );
-      case "review":
-        return (
-          <div className="space-y-4">
-            <h2 className="mb-2 text-xl font-bold">Проверьте данные</h2>
-            <div className="space-y-2 rounded border bg-white p-4 text-sm shadow-sm">
-              <ReviewItem label="ФИО">{form.fullName}</ReviewItem>
-              <ReviewItem label="Телефон">{form.phone}</ReviewItem>
-              <ReviewItem label="Адрес">{form.address}</ReviewItem>
-              <ReviewItem label="Город">
-                {cities.find((c) => c.id === parseInt(form.city))?.name || "Не найдено"}
-              </ReviewItem>
-              <ReviewItem label="Листовка">
-                {leaflet.find((l) => l.id === parseInt(form.leaflet))?.name || "Не найдено"}
-              </ReviewItem>
-              <ReviewItem label="Описание проблемы">{form.problem}</ReviewItem>
-              <ReviewItem label="Дата визита">
-                {form.arriveDate ? new Date(form.arriveDate).toLocaleString() : ""}
-              </ReviewItem>
-              <ReviewItem label="Тип визита">{form.visitType}</ReviewItem>
-              <ReviewItem label="Тип прибыли">{payLabels[form.paymentType]}</ReviewItem>
-            </div>
-          </div>
-        );
+      } else if (error.response?.status === 500) {
+        toast.error("Внутренняя ошибка сервера");
+      } else {
+        toast.error(error.message || "Ошибка создания заказа");
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
-  const progressPercent = Math.round((stepIndex / (steps.length - 1)) * 100);
+  const handleChange = (field: keyof OrderFormData, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    if (error) setError(null);
+  };
 
-  return (
-    <div className="mx-auto max-w-md space-y-6 p-6">
-      <h1 className="text-center text-2xl font-bold">➕ Новый заказ</h1>
+  const handleCancel = () => {
+    router.push("/orders");
+  };
 
-      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-        <div
-          className="h-full bg-blue-500 transition-all duration-300"
-          style={{ width: `${progressPercent}%` }}
-        ></div>
-      </div>
 
-      <div className="mb-2 text-center text-sm text-gray-500">
-        Шаг {stepIndex + 1} из {steps.length}: {stepLabels[step]}
-      </div>
-
-      {submitSuccess && (
-        <div className="rounded bg-green-100 p-4 text-center text-green-800">
-          Заказ успешно создан! Перенаправление...
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-white">📋 Создание заказа</h1>
+            <button
+              onClick={handleCancel}
+              className="rounded bg-gray-600 px-4 py-2 text-white transition hover:bg-gray-700"
+            >
+              Назад к списку
+            </button>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Загрузка данных...</p>
+          </div>
         </div>
-      )}
-
-      {error && (
-        <div className="rounded bg-red-100 p-3 text-sm text-red-800">
-          {error}
-        </div>
-      )}
-
-      {renderStep()}
-
-      <div className="mt-4 flex justify-between">
-        <button
-          type="button"
-          className="rounded bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400 disabled:opacity-50"
-          onClick={handleBack}
-          disabled={stepIndex === 0}
-        >
-          Назад
-        </button>
-
-        {step === "review" ? (
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-          >
-            {isSubmitting ? "Создание..." : "Создать"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleNext}
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            Далее
-          </button>
-        )}
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-function InputStep({ label, value, onChange, onEnter, type = "text", placeholder }: any) {
   return (
-    <div>
-      <label className="mb-1 block font-medium">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full rounded border px-3 py-2"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && onEnter) onEnter(); }}
-      />
-    </div>
-  );
-}
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-white">📋 Создание заказа</h1>
+          <button
+            onClick={handleCancel}
+            className="rounded bg-gray-600 px-4 py-2 text-white transition hover:bg-gray-700"
+          >
+            Назад к списку
+          </button>
+        </div>
 
-function SelectStep({ label, value, onChange, options }: any) {
-  return (
-    <div>
-      <label className="mb-1 block font-medium">{label}</label>
-      <select
-        className="w-full rounded border px-3 py-2"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">Выберите...</option>
-        {options.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
+        <div className="bg-gray-800 rounded-lg shadow-md p-6">
+          {error && (
+            <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
 
-function ReviewItem({ label, children }: any) {
-  return (
-    <div className="flex justify-between border-b py-1">
-      <span className="text-gray-500">{label}</span>
-      <span className="max-w-[60%] text-right font-medium">{children}</span>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Основная информация */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+                  Основная информация
+                </h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    ФИО клиента *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => handleChange('full_name', e.target.value)}
+                    placeholder="Введите ФИО клиента..."
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Телефон *
+                    {phoneError && (
+                      <span className="text-red-400 text-xs ml-2">({phoneError})</span>
+                    )}
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder="+7 (XXX) XXX-XX-XX"
+                    className={`w-full p-3 border ${
+                      phoneError ? 'border-red-500' : 'border-gray-600'
+                    } bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    disabled={saving}
+                  />
+                  {!phoneError && formData.phone && (
+                    <p className="text-xs text-green-400 mt-1">
+                      ✓ Формат корректен
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Адрес *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => handleChange('address', e.target.value)}
+                    placeholder="Введите адрес..."
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Проблема *
+                  </label>
+                  <textarea
+                    required={true}
+                    value={formData.problem}
+                    onChange={(e) => handleChange('problem', e.target.value)}
+                    placeholder="Опишите проблему..."
+                    rows={3}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+
+              {/* Дополнительная информация */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+                  Дополнительная информация
+                </h3>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-300">
+                      Дата прибытия *
+                    </label>
+                  
+                  </div>
+                  <input
+                    type="datetime-local"
+                    value={formData.arrive_date}
+                    onChange={(e) => handleChange('arrive_date', e.target.value)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                    min={new Date().toISOString().slice(0, 16)} // Запрет выбора прошедших дат
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Город *
+                  </label>
+                  <select
+                    required={true}
+                    value={formData.city || ""}
+                    onChange={(e) => handleChange('city', e.target.value || null)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  >
+                    <option value="">Выберите город</option>
+                    {cities.map(city => (
+                      <option key={city.id} value={city.id}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Мастер
+                  </label>
+                  <select
+                    value={formData.master || ""}
+                    onChange={(e) => handleChange('master', e.target.value || null)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  >
+                    <option value="">Выберите мастера</option>
+                    {workers.map(worker => (
+                      <option key={worker.id} value={worker.id}>
+                        {worker.full_name} ({worker.phone})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Листовка *
+                  </label>
+                  <select
+                    required={true}
+                    value={formData.leaflet || ""}
+                    onChange={(e) => handleChange('leaflet', e.target.value || null)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  >
+                    <option value="">Выберите листовку</option>
+                    {leaflets.map(leaflet => (
+                      <option key={leaflet.id} value={leaflet.id}>
+                        {leaflet.name} {leaflet.value && `(${leaflet.value} ₽)`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Тип визита
+                  </label>
+                  <select
+                    value={formData.visit_type}
+                    onChange={(e) => handleChange('visit_type', e.target.value)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  >
+                    <option value="FIRST">Первичный</option>
+                    <option value="REPEAT">Повторный</option>
+                    <option value="CHECK">Проверка</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Тип оплаты
+                  </label>
+                  <select
+                    value={formData.payment_type}
+                    onChange={(e) => handleChange('payment_type', e.target.value)}
+                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={saving}
+                  >
+                    <option value="LOW">Низкий</option>
+                    <option value="MEDIUM">Средний</option>
+                    <option value="HIGH">Высокий</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Комментарии */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+                Комментарии
+              </h3>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Комментарий филиала
+                </label>
+                <textarea
+                  value={formData.branch_comment}
+                  onChange={(e) => handleChange('branch_comment', e.target.value)}
+                  placeholder="Комментарий от филиала..."
+                  rows={2}
+                  className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={saving}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Заметка колл-центра
+                </label>
+                <textarea
+                  value={formData.call_center_note}
+                  onChange={(e) => handleChange('call_center_note', e.target.value)}
+                  placeholder="Заметка от колл-центра..."
+                  rows={2}
+                  className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={saving}
+                />
+              </div>
+            </div>
+
+            {/* Кнопки действий */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-600">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-700 transition disabled:opacity-50"
+                disabled={saving}
+              >
+                Отмена
+              </button>
+              <button
+                type="submit"
+                disabled={saving || !formData.address.trim() || !formData.full_name.trim() || !formData.phone.trim() || !formData.arrive_date || phoneError !== null}
+                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <span className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Создание...
+                  </span>
+                ) : (
+                  "Создать заказ"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

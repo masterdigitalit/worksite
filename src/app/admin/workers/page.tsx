@@ -1,191 +1,223 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { apiClient } from "lib/api-client";
 
-type Worker = {
-  id: number;
-  fullName: string;
-  telegramUsername?: string;
-  phone: string;
-  ordersCompleted: number;
-  totalEarned: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type Manager = {
+interface Worker {
   id: string;
-  username: string;
-  fullName?: string;
-  telegramUsername?: string;
-  phone?: string;
-  role: string;
-  createdAt?: string;
-};
+  full_name: string;
+  telegramUsername: string | null;
+  phone: string;
+  orders_completed: number;
+  total_earned: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function WorkersPage() {
-  const [tab, setTab] = useState<"workers" | "managers">("workers");
   const [workers, setWorkers] = useState<Worker[]>([]);
-  const [managers, setManagers] = useState<Manager[]>([]);
-  const [filter, setFilter] = useState({
-    fullName: "",
-    phone: "",
-    telegramUsername: "",
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  console.log(workers)
+
+  const router = useRouter();
 
   useEffect(() => {
-    const endpoint = tab === "workers" ? "/api/workers" : "/api/managers";
-    fetch(endpoint)
-      .then((res) => res.json())
-      .then((data) => {
-        if (tab === "workers") setWorkers(data);
-        else setManagers(data);
-      })
-      .catch(console.error);
-  }, [tab]);
+    loadWorkers();
+  }, [search]);
 
-  const filteredWorkers = workers.filter((w) => {
-    return (
-      (!filter.fullName || w.fullName.toLowerCase().includes(filter.fullName.toLowerCase())) &&
-      (!filter.phone || w.phone.includes(filter.phone)) &&
-      (!filter.telegramUsername ||
-        (w.telegramUsername ?? "").toLowerCase().includes(filter.telegramUsername.toLowerCase()))
-    );
-  });
+  const loadWorkers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = search ? `?search=${encodeURIComponent(search)}` : '';
+      const url = `/api/v1/workers/${params}`;
+      
+      const workersData = await apiClient.get<Worker[]>(url);
+      setWorkers(workersData);
+    } catch (error: any) {
+      console.error('Failed to load workers:', error);
+      setError(error.message || "Ошибка загрузки работников");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filteredManagers = managers.filter((m) => {
+  const handleAddWorker = () => {
+    router.push("/admin/workers/new");
+  };
+
+  const handleWorkerClick = (workerId: string) => {
+    router.push(`/admin/workers/${workerId}`);
+  };
+
+  const formatMoney = (amount: number) => {
+    return new Intl.NumberFormat('ru-RU').format(amount) + ' ₽';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ru-RU');
+  };
+
+  if (loading && workers.length === 0) {
     return (
-      (!filter.fullName ||
-        (m.fullName ?? "").toLowerCase().includes(filter.fullName.toLowerCase()) ||
-        m.username.toLowerCase().includes(filter.fullName.toLowerCase())) &&
-      (!filter.phone || (m.phone ?? "").includes(filter.phone)) &&
-      (!filter.telegramUsername ||
-        (m.telegramUsername ?? "").toLowerCase().includes(filter.telegramUsername.toLowerCase()))
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-bold">Работники</h1>
+          <button
+            onClick={handleAddWorker}
+            className="rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700 disabled:opacity-50"
+            disabled
+          >
+            Добавить работника
+          </button>
+        </div>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Загрузка работников...</span>
+        </div>
+      </div>
     );
-  });
+  }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">👥 Сотрудники</h1>
-
-      {/* Add Button */}
-      <div>
-        <Link
-          href={tab === "workers" ? "/admin/workers/new" : "/admin/managers/new"}
-          className="inline-block bg-black text-white text-sm font-medium px-4 py-2 rounded hover:bg-gray-800 transition"
-        >
-          {tab === "workers" ? "➕ Добавить работника" : "➕ Добавить менеджера"}
-        </Link>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-bold">Работники</h1>
         <button
-          className={`px-4 py-2 font-medium border-b-2 ${
-            tab === "workers" ? "border-black" : "border-transparent text-gray-500"
-          }`}
-          onClick={() => setTab("workers")}
+          onClick={handleAddWorker}
+          className="rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
         >
-          Работники
-        </button>
-        <button
-          className={`px-4 py-2 font-medium border-b-2 ${
-            tab === "managers" ? "border-black" : "border-transparent text-gray-500"
-          }`}
-          onClick={() => setTab("managers")}
-        >
-          Менеджеры
+          Добавить работника
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow p-4">
-        <table className="min-w-full table-fixed text-sm text-left">
-          <thead className="bg-gray-100 text-xs font-semibold text-gray-600">
-            <tr>
-              <th className="px-2 py-1 w-[40px]">ID</th>
-              <th className="px-2 py-1 w-[200px]">
-                <input
-                  placeholder="ФИО / Имя пользователя"
-                  value={filter.fullName}
-                  onChange={(e) => setFilter({ ...filter, fullName: e.target.value })}
-                  className="w-full p-1 border rounded text-xs"
-                />
-              </th>
-              <th className="px-2 py-1 w-[140px]">
-                <input
-                  placeholder="Телеграм"
-                  value={filter.telegramUsername}
-                  onChange={(e) =>
-                    setFilter({ ...filter, telegramUsername: e.target.value })
-                  }
-                  className="w-full p-1 border rounded text-xs"
-                />
-              </th>
-              <th className="px-2 py-1 w-[140px]">
-                <input
-                  placeholder="Телефон"
-                  value={filter.phone}
-                  onChange={(e) => setFilter({ ...filter, phone: e.target.value })}
-                  className="w-full p-1 border rounded text-xs"
-                />
-              </th>
+      {/* Поиск */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div className="max-w-md">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Поиск работников
+          </label>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск по имени, telegram или телефону..."
+              className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+              >
+                Сбросить
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-              {tab === "workers" ? (
-                <>
-                  <th className="px-2 py-2 w-[100px] text-center">Заказов</th>
-                  <th className="px-2 py-2 w-[120px] text-center">Заработано</th>
-                  <th className="px-2 py-2 w-[120px] text-center">Создан</th>
-                </>
-              ) : (
-                <>
-                  <th className="px-2 py-2 w-[120px]">Роль</th>
-                  <th className="px-2 py-2 w-[120px] text-center">Создан</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody className="text-gray-700">
-            {tab === "workers"
-              ? filteredWorkers.map((w) => (
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
+          {error}
+          <button 
+            onClick={loadWorkers}
+            className="ml-4 text-red-800 underline hover:text-red-900"
+          >
+            Попробовать снова
+          </button>
+        </div>
+      )}
+
+      {/* Таблица работников */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {workers.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            {search ? (
+              <>
+                <p>Работники не найдены</p>
+                <button 
+                  onClick={() => setSearch("")}
+                  className="mt-2 text-blue-600 underline hover:text-blue-700"
+                >
+                  Показать всех работников
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Нет добавленных работников</p>
+                <button 
+                  onClick={handleAddWorker}
+                  className="mt-2 text-green-600 underline hover:text-green-700"
+                >
+                  Добавить первого работника
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Работник</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Контакты</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Статистика</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Добавлен</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {workers.map((worker) => (
                   <tr
-                    key={w.id}
-                    className="border-t border-gray-200 hover:bg-gray-50"
+                    key={worker.id}
+                    className="cursor-pointer hover:bg-gray-50 transition"
+                    onClick={() => handleWorkerClick(worker.id)}
                   >
-                    <td className="px-2 py-2">{w.id}</td>
-                    <td className="px-2 py-2 truncate">{w.fullName}</td>
-                    <td className="px-2 py-2 truncate">
-                      {w.telegramUsername ? `${w.telegramUsername}` : "—"}
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900">{worker.full_name}</div>
+                      <div className="text-sm text-gray-500">ID: {worker.id.slice(0, 8)}...</div>
                     </td>
-                    <td className="px-2 py-2 truncate">{w.phone}</td>
-                    <td className="px-2 py-2 text-center">{w.ordersCompleted}</td>
-                    <td className="px-2 py-2 text-center">{w.totalEarned} ₽</td>
-                    <td className="px-2 py-2 text-center">
-                      {new Date(w.createdAt).toLocaleDateString("ru-RU")}
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-gray-900">{worker.phone}</div>
+                      {worker.telegramUsername && (
+                        <div className="text-sm text-blue-600">
+                          @{worker.telegramUsername}
+                        </div>
+                      )}
                     </td>
-                  </tr>
-                ))
-              : filteredManagers.map((m) => (
-                  <tr
-                    key={m.id}
-                    className="border-t border-gray-200 hover:bg-gray-50"
-                  >
-                    <td className="px-2 py-2">{m.id}</td>
-                    <td className="px-2 py-2 truncate">{m.fullName ?? m.username}</td>
-                    <td className="px-2 py-2 truncate">
-                      {m.telegramUsername ? `${m.telegramUsername}` : "—"}
+                    <td className="px-4 py-3">
+                      <div className="space-y-1">
+                        <div className="text-sm">
+                          <span className="font-medium text-gray-900">{worker.orders_completed}</span>
+                          <span className="text-gray-500"> заказов</span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="font-medium text-green-600">{formatMoney(worker.total_earned)}</span>
+                          <span className="text-gray-500"> заработано</span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-2 py-2 truncate">{m.phone ?? "—"}</td>
-                    <td className="px-2 py-2">{m.role}</td>
-                    <td className="px-2 py-2 text-center">
-                      {m.createdAt ? new Date(m.createdAt).toLocaleDateString("ru-RU") : "—"}
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {formatDate(worker.created_at)}
                     </td>
                   </tr>
                 ))}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {loading && workers.length > 0 && (
+        <div className="flex justify-center items-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-sm text-gray-600">Обновление...</span>
+        </div>
+      )}
     </div>
   );
 }

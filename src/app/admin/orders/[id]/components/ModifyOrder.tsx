@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { apiClient } from "lib/api-client";
 
 interface Props {
   order: {
     id: number;
     status: string;
-    masterId?: number;
-    paymentType?: "LOW" | "MEDIUM" | "HIGH";
+    master?: { id: number } | null;
+    payment_type?: "LOW" | "MEDIUM" | "HIGH";
   };
   setTab: (tab: string) => void;
   refetch: () => void;
@@ -16,7 +17,7 @@ interface Props {
 
 interface Worker {
   id: number;
-  fullName: string;
+  full_name: string;
 }
 
 export default function ModifyTabContent({ order, setTab, refetch }: Props) {
@@ -33,12 +34,19 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
 
   useEffect(() => {
     if (order.status === "PENDING") {
-      fetch("/api/workers/getworkers")
-        .then((res) => res.json())
-        .then(setWorkers)
-        .catch(() => toast.error("Ошибка загрузки работников"));
+      const fetchWorkers = async () => {
+        try {
+          const data = await apiClient.get<Worker[]>("/api/v1/workers/");
+          setWorkers(data);
+        } catch (err) {
+          console.error("Failed to fetch workers:", err);
+          toast.error("Ошибка загрузки работников");
+        }
+      };
+      fetchWorkers();
     }
   }, [order.status]);
+  console.log(workers)
 
   useEffect(() => {
     const r = parseInt(received);
@@ -46,12 +54,12 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
     if (!isNaN(r) && !isNaN(o)) {
       const profit = r - o;
       let percent = 0.5;
-      if (order.paymentType === "LOW") percent = 0.7;
-      else if (order.paymentType === "MEDIUM") percent = 0.6;
+      if (order.payment_type === "LOW") percent = 0.7;
+      else if (order.payment_type === "MEDIUM") percent = 0.6;
       const calculated = Math.floor(profit * percent);
       setReceivedWorker(calculated.toString());
     }
-  }, [received, outlay, order.paymentType]);
+  }, [received, outlay, order.payment_type]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -61,25 +69,39 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
     if (!nextStatus) return;
     setLoading(true);
     try {
-      const payload: Record<string, any> = { status: nextStatus };
+      const whoDid = "admin"; // Замените на реального пользователя
 
       if (nextStatus === "ON_THE_WAY") {
         const worker = workers.find(
-          (w) => w.fullName.toLowerCase() === inputValue.toLowerCase()
+          (w) => w.full_name.toLowerCase() === inputValue.toLowerCase()
         );
         if (!worker) {
           toast.error("Работник не найден");
           setLoading(false);
           return;
         }
-        payload.masterId = worker.id;
-      }
 
-      if (nextStatus === "IN_PROGRESS") {
-        payload.dateStarted = new Date().toISOString();
+        await apiClient.patch(
+          `/api/v1/orders/${order.id}/set-pending-to-on-the-way/`,
+          {
+            masterId: worker.id,
+            whoDid
+          }
+        );
       }
-
-      if (nextStatus === "DONE") {
+      else if (nextStatus === "IN_PROGRESS") {
+        await apiClient.patch(
+          `/api/v1/orders/${order.id}/set-on-the-way-to-in-progress/`,
+          { whoDid }
+        );
+      }
+      else if (nextStatus === "IN_PROGRESS_SD") {
+        await apiClient.patch(
+          `/api/v1/orders/${order.id}/set-progress-sd/`,
+          { whoDid }
+        );
+      }
+      else if (nextStatus === "DONE") {
         const r = parseInt(received);
         const o = parseInt(outlay);
         const rw = parseInt(receivedWorker);
@@ -87,36 +109,28 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
         if (isNaN(r)) return toastError("Введите корректную сумму получена");
         if (isNaN(o)) return toastError("Введите корректные расходы");
         if (isNaN(rw)) return toastError("Введите корректную сумму выплаты мастеру");
-        if (!order.masterId) return toastError("Не назначен мастер");
+        if (!order.master?.id) return toastError("Не назначен мастер");
         if (r < o) return toastError("Прибыль должна быть положительной");
         if (rw > r - o) return toastError("Выплата мастеру не может превышать прибыль");
 
-        Object.assign(payload, {
-          received: r,
-          outlay: o,
-          receivedworker: rw,
-          dateDone: new Date().toISOString(),
-          masterId: order.masterId,
-        });
-     
+        await apiClient.patch(
+          `/api/v1/orders/${order.id}/complete/`,
+          {
+            received: r,
+            outlay: o,
+            masterId: order.master.id,
+            receivedworker: rw,
+            whoDid
+          }
+        );
       }
 
-      const res = await fetch(`/api/orders/${order.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        toast.error("Ошибка обновления статуса");
-      } else {
-        toast.success("Статус успешно обновлен");
-        refetch();
-        setTab("info");
-      }
-    } catch (err) {
-      toast.error("Ошибка обновления статуса");
-      console.error(err);
+      toast.success("Статус успешно обновлен");
+      refetch();
+      setTab("info");
+    } catch (err: any) {
+      console.error("Failed to update order status:", err);
+      toast.error(err.message || "Ошибка обновления статуса");
     } finally {
       setLoading(false);
     }
@@ -205,8 +219,12 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
               <button onClick={() => setStep(2)} className={grayBtn}>
                 Назад
               </button>
-              <button onClick={handleAction} className={greenBtn}>
-                Закрыть заказ
+              <button 
+                onClick={handleAction} 
+                disabled={loading}
+                className={`${greenBtn} disabled:opacity-50`}
+              >
+                {loading ? "Закрытие..." : "Закрыть заказ"}
               </button>
             </div>
           </div>
@@ -225,10 +243,11 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             className="w-full border px-4 py-2 rounded"
+            placeholder="Введите ФИО мастера"
           />
           <datalist id="workers">
             {workers.map((w) => (
-              <option key={w.id} value={w.fullName} />
+              <option key={w.id} value={w.full_name} />
             ))}
           </datalist>
           <button
@@ -252,7 +271,8 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
               setNextStatus("IN_PROGRESS");
               handleAction();
             }}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+            disabled={loading}
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Обновление..." : "Мастер на месте"}
           </button>
@@ -268,9 +288,10 @@ export default function ModifyTabContent({ order, setTab, refetch }: Props) {
                 setNextStatus("IN_PROGRESS_SD");
                 handleAction();
               }}
-              className="px-4 py-2 rounded bg-yellow-500 text-white hover:bg-yellow-600 transition"
+              disabled={loading}
+              className="px-4 py-2 rounded bg-yellow-500 text-white hover:bg-yellow-600 transition disabled:opacity-50"
             >
-              Мастер забрал с собой
+              {loading ? "Обновление..." : "Мастер забрал с собой"}
             </button>
             <button
               onClick={() => {

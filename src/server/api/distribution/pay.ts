@@ -2,7 +2,7 @@ import { prisma } from "@/server/db";
 import { Create } from "../logs/create";
 import path from "path";
 import { mkdir, writeFile } from "fs/promises";
-
+import { sendPhotoToAdmin } from "bot/bot";
 interface UploadPaymentProofInput {
   id: number;
   file: File;
@@ -33,6 +33,8 @@ export async function uploadPaymentProof({ id, file, whoDid }: UploadPaymentProo
     },
     include: { distributor: true, leaflet: true, city: true },
   });
+  await sendPhotoToAdmin(fileName, `Фото оплаты для заказа #${id}`);
+  
 
   // --- Лог ---
   await Create({

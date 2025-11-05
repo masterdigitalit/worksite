@@ -1,91 +1,180 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { apiClient } from "lib/api-client";
 
 export default function NewWorkerPage() {
-  const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [telegramUsername, setTelegramUsername] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    full_name: "",
+    telegram_username: "",
+    phone: ""
+  });
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Валидация
+    if (!formData.full_name.trim()) {
+      toast.error("Введите полное имя работника");
+      return;
+    }
 
-    if (!fullName || !phone) {
-      setError("Заполните обязательные поля: имя и телефон");
+    if (!formData.phone.trim()) {
+      toast.error("Введите номер телефона");
+      return;
+    }
+
+    // Простая валидация телефона
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]+$/;
+    if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      toast.error("Введите корректный номер телефона");
       return;
     }
 
     setLoading(true);
-    setError("");
-
     try {
-      const res = await fetch("/api/workers/new", {
-        method: "POST",
-        body: JSON.stringify({ fullName, phone, telegramUsername }),
-        headers: { "Content-Type": "application/json" },
+      await apiClient.post('/api/v1/workers/', {
+        full_name: formData.full_name.trim(),
+        telegram_username: formData.telegram_username.trim() || null,
+        phone: formData.phone.trim()
       });
-
-      if (!res.ok) {
-        const { error } = await res.json();
-        throw new Error(error || "Ошибка при создании");
-      }
-
+      
+      toast.success("Работник успешно добавлен");
       router.push("/admin/workers");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error: any) {
+      console.error('Failed to create worker:', error);
+      toast.error(error.message || "Ошибка при добавлении работника");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    router.push("/admin/workers");
+  };
+
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-semibold mb-4">Добавить работника</h1>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Добавить нового работника</h1>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Полное имя */}
+            <div>
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
+                Полное имя *
+              </label>
+              <input
+                id="full_name"
+                name="full_name"
+                type="text"
+                value={formData.full_name}
+                onChange={handleChange}
+                placeholder="Введите полное имя работника"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+                required
+              />
+            </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label>ФИО *</label>
-          <input
-            className="w-full p-2 border rounded"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
+            {/* Telegram username */}
+            <div>
+              <label htmlFor="telegram_username" className="block text-sm font-medium text-gray-700 mb-2">
+                Telegram username
+              </label>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  @
+                </span>
+                <input
+                  id="telegram_username"
+                  name="telegram_username"
+                  type="text"
+                  value={formData.telegram_username}
+                  onChange={handleChange}
+                  placeholder="username"
+                  className="flex-1 p-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                />
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Необязательное поле. Только имя пользователя без @
+              </p>
+            </div>
+
+            {/* Телефон */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Номер телефона *
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+7 (999) 123-45-67"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+                required
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Формат: +7 (999) 123-45-67 или 89991234567
+              </p>
+            </div>
+
+            {/* Кнопки */}
+            <div className="flex space-x-4 pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Добавление...
+                  </div>
+                ) : (
+                  "Добавить работника"
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={loading}
+                className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                Отмена
+              </button>
+            </div>
+          </form>
+
+          {/* Информация о полях */}
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+            <h3 className="font-medium text-blue-800 mb-2">Информация:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Поля помеченные * обязательны для заполнения</li>
+              <li>• Telegram username можно добавить позже</li>
+              <li>• Статистика заказов и заработка будет обновляться автоматически</li>
+            </ul>
+          </div>
         </div>
-
-        <div>
-          <label>Телефон *</label>
-          <input
-            className="w-full p-2 border rounded"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label>Telegram (необязательно)</label>
-          <input
-            className="w-full p-2 border rounded"
-            value={telegramUsername}
-            onChange={(e) => setTelegramUsername(e.target.value)}
-          />
-        </div>
-
-        {error && <p className="text-red-500">{error}</p>}
-
-        <button
-          type="submit"
-          className="w-full p-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
-          disabled={loading}
-        >
-          {loading ? "Создание..." : "Создать"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

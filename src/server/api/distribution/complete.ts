@@ -81,9 +81,10 @@ if (state === 'cancelled') {
     });
   }
 
+  console.log(distributed, returned);
   
   // --- Частичное выполнение ---
-  if (typeof distributed === "number" && typeof returned === "number" && distributed > 0 && returned > 0) {
+  if (typeof distributed === "number" && typeof returned === "number" && distributed > 0 && returned >= 0) {
     // Вернули часть
     if (returned > 0 && order.leaflet) {
       await prisma.leaflet.update({

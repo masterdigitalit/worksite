@@ -1,7 +1,7 @@
 const isProduction = process.env.NEXT_PUBLIC_MODE === 'production';
 console.log(process.env.NEXT_PUBLIC_MODE )
 export const API_BASE_URL = isProduction 
-  ?  'http://31.129.96.163:8000'
+  ?  'https://tamsyam.su'
   : 'http://localhost:8000';
 
 export interface User {

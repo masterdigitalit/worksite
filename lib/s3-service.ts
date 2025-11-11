@@ -1,8 +1,19 @@
 // lib/s3-service.ts
 import { jwtAuthService } from './jwt-auth';
 
-const API_BASE_URL = 'http://localhost:8000';
-const MINIO_URL = 'http://localhost:9000';
+const isProduction = process.env.NEXT_PUBLIC_MODE  === 'production';
+
+export const API_BASE_URL = isProduction 
+  ?  'http://31.129.96.163:8000'
+  : 'http://localhost:8000';
+
+
+
+
+export const MINIO_URL = isProduction 
+  ?  'http://31.129.96.163:9000'
+  : 'http://localhost:9000';
+
 
 interface OrderDocument {
   id: number;
@@ -328,6 +339,154 @@ class S3Service {
     // Для других случаев
     return `${MINIO_URL}/photos/${fileKeyOrUrl}`;
   }
+
+
+
+
+
+
+
+async uploadDistributorDocument(distributorId: number, file: File, name?: string): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (name) {
+  formData.append('photo', file); 
+  }
+
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/upload/`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Distributor document upload failed: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Получает все документы распространителя
+ */
+async getDistributorDocuments(distributorId: number): Promise<OrderDocument[]> {
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/`
+  );
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Get distributor documents failed: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Удаляет документ распространителя
+ */
+async deleteDistributorDocument(distributorId: number, documentId: number): Promise<void> {
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/${documentId}/delete/`,
+    {
+      method: 'DELETE',
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Delete distributor document failed: ${response.status} - ${errorText}`);
+  }
+}
+
+
+// В lib/s3-service.ts, добавьте эти методы:
+
+// ========== МЕТОДЫ ДЛЯ ФОТО РАСПРОСТРАНИТЕЛЕЙ ==========
+
+/**
+ * Загружает фото для распространителя
+ */
+async uploadDistributorPhoto(distributorId: number, file: File, name?: string): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append('photo', file);
+  if (name) {
+    formData.append('name', name);
+  }
+
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/upload/`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Distributor photo upload failed: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Получает все фото распространителя
+ */
+async getDistributorPhotos(distributorId: number): Promise<OrderDocument[]> {
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/`
+  );
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Get distributor photos failed: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.photos || [];
+}
+
+/**
+ * Удаляет фото распространителя
+ */
+async deleteDistributorPhoto(distributorId: number, photoId: number): Promise<void> {
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/${photoId}/`,
+    {
+      method: 'DELETE',
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Delete distributor photo failed: ${response.status} - ${errorText}`);
+  }
+}
+
+/**
+ * Устанавливает фото как основное
+ */
+async setMainDistributorPhoto(distributorId: number, photoId: number): Promise<void> {
+  const response = await this.requestWithAuth(
+    `${this.baseUrl}/distributors/${distributorId}/photos/${photoId}/set-main/`,
+    {
+      method: 'POST',
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Set main distributor photo failed: ${response.status} - ${errorText}`);
+  }
+}
+
+
+
+
 }
 
 export const s3Service = new S3Service();

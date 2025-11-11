@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { apiClient } from "lib/api-client"; 
 import { useRouter } from 'next/navigation';
-import { useAuth } from "contexts/AuthContext"; // добавь useAuth
+import { useAuth } from "contexts/AuthContext";
 
 interface Goal {
-  id: string;
-  all: number | null;
-  month: number | null;
-  day: number | null;
-  created_at: string;
+  id: number;
+  day: number;
+  month: number;
+  all: number;
+  day_label: string;
+  month_label: string;
+  total_label: string;
   updated_at: string;
+  created_at: string;
 }
 
 export default function TargetForm() {
@@ -24,7 +27,7 @@ export default function TargetForm() {
   const [submitting, setSubmitting] = useState(false);
   const [currentGoal, setCurrentGoal] = useState<Goal | null>(null);
 
-  const { isAuthenticated, loading: authLoading } = useAuth(); // добавь useAuth
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Редирект если не авторизован
@@ -77,15 +80,8 @@ export default function TargetForm() {
       if (month !== "" && month !== initial.month) payload.month = Number(month);
       if (day !== "" && day !== initial.day) payload.day = Number(day);
 
-      let response: Goal;
-
-      if (currentGoal && currentGoal.id !== 'default') {
-        // Обновляем существующую цель
-        response = await apiClient.put(`/api/v1/goals/${currentGoal.id}/`, payload);
-      } else {
-        // Создаем новую цель
-        response = await apiClient.post('/api/v1/goals/', payload);
-      }
+      // Всегда используем PUT для обновления существующей цели
+      const response: Goal = await apiClient.put('/api/v1/goals/update/', payload);
 
       toast.success("Цель обновлена");
       setInitial({ all, month, day });
@@ -98,12 +94,43 @@ export default function TargetForm() {
     }
   };
 
+  const handleResetToDefault = async () => {
+    try {
+      setSubmitting(true);
+      const response: Goal = await apiClient.get('/api/v1/goals/');
+      
+      setCurrentGoal(response);
+      setAll(response.all?.toString() ?? "");
+      setMonth(response.month?.toString() ?? "");
+      setDay(response.day?.toString() ?? "");
+      setInitial({
+        all: response.all?.toString() ?? "",
+        month: response.month?.toString() ?? "",
+        day: response.day?.toString() ?? "",
+      });
+      
+      toast.success("Обновлено");
+    } catch (error: any) {
+      console.error('Failed to reset goals:', error);
+      toast.error(error.message || "Ошибка при сбросе");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (authLoading || loading) {
-    return <p className="text-center py-10">Загрузка...</p>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Загрузка...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    return null; // Редирект уже произойдет
+    return null;
   }
 
   return (
@@ -121,6 +148,7 @@ export default function TargetForm() {
             value={all}
             onChange={(e) => setAll(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            min="0"
           />
         </div>
 
@@ -134,6 +162,7 @@ export default function TargetForm() {
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            min="0"
           />
         </div>
 
@@ -147,25 +176,54 @@ export default function TargetForm() {
             value={day}
             onChange={(e) => setDay(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            min="0"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-        >
-          {submitting ? "Сохранение..." : "Сохранить цели"}
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {submitting ? "Сохранение..." : "Сохранить цели"}
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleResetToDefault}
+            disabled={submitting}
+            className="px-4 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            title="Сбросить к значениям по умолчанию"
+          >
+            🔄
+          </button>
+        </div>
 
         {/* Текущие значения */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-medium text-gray-700 mb-2">Текущие цели:</h3>
           <div className="text-sm text-gray-600 space-y-1">
-            <p>📊 Общая: <span className="font-semibold">{currentGoal?.all?.toLocaleString() || 'Не установлена'}</span></p>
-            <p>🗓️ Месяц: <span className="font-semibold">{currentGoal?.month?.toLocaleString() || 'Не установлена'}</span></p>
-            <p>📆 День: <span className="font-semibold">{currentGoal?.day?.toLocaleString() || 'Не установлена'}</span></p>
+            <p>📊 Общая: <span className="font-semibold">{currentGoal?.all?.toLocaleString('ru-RU') || 'Не установлена'} ₽</span></p>
+            <p>🗓️ Месяц: <span className="font-semibold">{currentGoal?.month?.toLocaleString('ru-RU') || 'Не установлена'} ₽</span></p>
+            <p>📆 День: <span className="font-semibold">{currentGoal?.day?.toLocaleString('ru-RU') || 'Не установлена'} ₽</span></p>
           </div>
+          
+          {currentGoal?.updated_at && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                Обновлено: {new Date(currentGoal.updated_at).toLocaleString('ru-RU')}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Информация о работе */}
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-xs text-blue-700">
+            💡 Цели используются для отображения прогресса на главной странице администратора.
+            Изменения применяются сразу ко всем пользователям.
+          </p>
         </div>
       </form>
     </div>

@@ -1,11 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react'; // Убрали React из импорта
 import { useRouter } from 'next/navigation';
 import { useAuth } from 'contexts/AuthContext';
-import AdminHeader from '@/app/admin/components/AdminHeader';
+import AdminHeader from './AdminHeader';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Создаем контекст для пользователя
+const UserContext = createContext<any>(null);
+
+// Хук для использования пользователя в дочерних компонентах
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a AdminLayoutClient');
+  }
+  return context;
+};
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const { user, loading, isAuthenticated } = useAuth();
@@ -20,8 +32,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     if (!loading && !isAuthenticated) {
       router.push('/login');
     }
+    console.log(user)
     
-    // Проверка роли
     if (!loading && user && user.role !== 'ADMIN') {
       if (user.role === 'MANAGER') {
         router.push('/advertising');
@@ -43,26 +55,27 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     return null;
   }
 
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <AdminHeader
-        fullName={user.username ?? "?"}
-        visibility={user.visibility}
-      />
-      <main className="flex-1  bg-gray-50">
-        {children}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
+    <UserContext.Provider value={user}>
+      <div className="min-h-screen flex flex-col">
+        <AdminHeader
+          fullName={user.username ?? "?"}
+          visibility={user.visibility}
         />
-      </main>
-    </div>
+        <main className="flex-1 bg-gray-50">
+          {children}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+        </main>
+      </div>
+    </UserContext.Provider>
   );
 }

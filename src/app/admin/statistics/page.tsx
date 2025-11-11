@@ -53,15 +53,15 @@ type StatisticsResponse = {
 };
 
 const paymentTypeMap: Record<string, string> = {
-  CASH: "Наличные",
-  CARD: "Карта", 
-  TRANSFER: "Перевод",
+     'LOW' :'Низкий',
+        'MEDIUM' :'Средний',
+        'HIGH': 'Высокий',
 };
 
 const visitTypeMap: Record<string, string> = {
-  URGENT: "Срочный",
-  PLANNED: "Плановый",
-  CONSULTATION: "Консультация",
+'FIRST': 'Первичный',
+        'REPEAT': 'Повторный',
+        'GARAGE': 'Гарантийный',
 };
 
 export default function StatisticsPage() {

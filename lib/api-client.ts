@@ -2,7 +2,7 @@ import { jwtAuthService } from './jwt-auth';
 const isProduction = process.env.NEXT_PUBLIC_MODE  === 'production';
 
 export const API_BASE_URL = isProduction 
-  ?  'https://tamsyam.su'
+  ? process.env.NEXT_PUBLIC_API
   : 'http://localhost:8000';
 
 class ApiClient {

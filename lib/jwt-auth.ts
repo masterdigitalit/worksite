@@ -1,7 +1,7 @@
 const isProduction = process.env.NEXT_PUBLIC_MODE === 'production';
-console.log(process.env.NEXT_PUBLIC_MODE )
+console.log(process.env.NEXT_PUBLIC_MODE)
 export const API_BASE_URL = isProduction 
-  ?  'https://tamsyam.su'
+  ? process.env.NEXT_PUBLIC_API
   : 'http://localhost:8000';
 
 export interface User {
@@ -17,16 +17,19 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
-  tokens: {
+  tokens?: {
     access: string;
     refresh: string;
   };
 }
 
-class JwtAuthService {
+class JwtAuthService  {
   private async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    
+    // Добавляем credentials для cookies
     const config = {
+      credentials: 'include' as RequestCredentials, // Важно для сессий!
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -50,9 +53,13 @@ class JwtAuthService {
       body: JSON.stringify({ username, password }),
     });
 
-    // Сохраняем токены в localStorage И cookies
-    this.setTokens(data.tokens);
+    // Сохраняем пользователя в localStorage для фронтенда
     this.setUser(data.user);
+    
+    // Для JWT сохраняем токены (если используешь)
+    if (data.tokens) {
+      this.setTokens(data.tokens);
+    }
 
     return data;
   }
@@ -72,80 +79,35 @@ class JwtAuthService {
       body: JSON.stringify(userData),
     });
 
-    this.setTokens(data.tokens);
     this.setUser(data.user);
+    
+    if (data.tokens) {
+      this.setTokens(data.tokens);
+    }
 
     return data;
   }
 
-  async refreshToken(): Promise<string> {
-    const refreshToken = this.getRefreshToken();
-    
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const data = await this.request('/api/v1/auth/token/refresh/', {
-      method: 'POST',
-      body: JSON.stringify({ refresh: refreshToken }),
-    });
-
-    // Обновляем access token
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', data.access);
-    }
-    this.setCookie('access_token', data.access, 1); // 1 hour
-
-    return data.access;
-  }
-
   async getProfile(): Promise<User> {
-    const token = this.getAccessToken();
-    
-    if (!token) {
-      throw new Error('No authentication token');
-    }
-
     return await this.request('/api/v1/auth/profile/', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      method: 'GET',
     });
   }
 
-  // Методы для работы с токенами
-  setTokens(tokens: { access: string; refresh: string }) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(tokens.user));
+  async checkAuth(): Promise<boolean> {
+    try {
+      await this.getProfile();
+      return true;
+    } catch (error) {
+      return false;
     }
-    
-    // Сохраняем в cookies для серверных компонентов
-    this.setCookie('access_token', tokens.access, 1); // 1 hour
-    this.setCookie('refresh_token', tokens.refresh, 7 * 24); // 7 days
-    this.setCookie('user_data', JSON.stringify(tokens.user), 7 * 24); // 7 days
   }
 
-  getAccessToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('access_token');
-    }
-    return null;
-  }
-
-  getRefreshToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('refresh_token');
-    }
-    return null;
-  }
-
+  // Методы для работы с пользователем
   setUser(user: User) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(user));
     }
-    this.setCookie('user_data', JSON.stringify(user), 7 * 24);
   }
 
   getUser(): User | null {
@@ -156,39 +118,40 @@ class JwtAuthService {
     return null;
   }
 
+  // Методы для JWT (если используешь)
+  setTokens(tokens: { access: string; refresh: string }) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', tokens.access);
+      localStorage.setItem('refresh_token', tokens.refresh);
+    }
+  }
+
+  getAccessToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('access_token');
+    }
+    return null;
+  }
+
   logout() {
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
     }
 
-    
-    // Удаляем cookies
-    this.deleteCookie('access_token');
-    this.deleteCookie('refresh_token');
-    this.deleteCookie('user_data');
-    window.location.reload();
+    // Делаем запрос на logout для очистки сессии
+    fetch(`${API_BASE_URL}/api/v1/auth/logout/`, {
+      method: 'POST',
+      credentials: 'include',
+    }).finally(() => {
+      window.location.href = '/login';
+    });
   }
 
   isAuthenticated(): boolean {
-    return !!this.getAccessToken();
-  }
-
-  // Вспомогательные методы для работы с cookies
-  private setCookie(name: string, value: string, hours: number) {
-    if (typeof document !== 'undefined') {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + hours * 60 * 60 * 1000);
-      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-    }
-  }
-
-  private deleteCookie(name: string) {
-    if (typeof document !== 'undefined') {
-      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-    }
+    // Проверяем наличие пользователя в localStorage
+    return !!this.getUser();
   }
 }
-
 export const jwtAuthService = new JwtAuthService();

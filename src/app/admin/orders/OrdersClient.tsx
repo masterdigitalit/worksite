@@ -309,10 +309,13 @@ console.log(orders)
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-sm text-white">
-                        { new Date(order.arrive_date)
-          .toISOString()
-          .replace("T", " ")
-          .slice(0, 16)}
+                        { new Date(order.arrive_date).toLocaleString('ru-RU', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+}).replace(',', '')}
                       </div>
                       {overdue && (
                         <div className="text-xs text-red-400 mt-1">Просрочено</div>

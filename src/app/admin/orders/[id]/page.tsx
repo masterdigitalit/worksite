@@ -145,10 +145,13 @@ export default function OrderPage({ params }: Props) {
 
   const copyText = order
     ? `Заявка #${order.id} ${visitTypeMap[order.visit_type] || order.visit_type}
-${new Date(order.arrive_date)
-          .toISOString()
-          .replace("T", " ")
-          .slice(0, 16)} 
+${ new Date(order.arrive_date).toLocaleString('ru-RU', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+}).replace(',', '')} 
 ${order.city?.name}
 ${order.address}
 ${order.problem}
@@ -387,10 +390,13 @@ function InfoTabContent({ order, setActiveTab, onCopy, copied, onCancel, canceli
           <InfoBlock title="Статус" value={order.status_display || statusMap[order.status] || order.status} icon={<CheckCircle className="w-5 h-5" />} />
           <InfoBlock
             title="Дата визита"
-            value={  new Date(order.arrive_date)
-          .toISOString()
-          .replace("T", " ")
-          .slice(0, 16)}
+            value={ new Date(order.arrive_date).toLocaleString('ru-RU', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+}).replace(',', '')}
             icon={<Calendar className="w-5 h-5" />}
           />
           <InfoBlock title="Тип визита" value={order.visit_type_display || visitTypeMap[order.visit_type] || order.visit_type} icon={<MapPin className="w-5 h-5" />} />

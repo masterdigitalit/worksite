@@ -27,8 +27,14 @@ interface Order {
   } ;
 }
 
+import { PageProps } from "next";
 
-export default function RepeatOrderPage({ params }: { params: { id: string } }) {
+interface OrderPageParams {
+  id: string;
+}
+
+export default function RepeatOrderPage({ params, searchParams }: PageProps<OrderPageParams>) {
+
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [problem, setProblem] = useState("");

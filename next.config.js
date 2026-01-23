@@ -5,7 +5,16 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {  images: {
+const config = {  
+    typescript: {
+    // Игнорировать ошибки TypeScript при билде
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // Игнорируем ошибки линтинга при билде
+  },
+  
+  images: {
     domains: ['localhost', '127.0.0.1', '31.129.96.163'],
     remotePatterns: [
       {

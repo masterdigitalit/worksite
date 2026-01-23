@@ -108,13 +108,17 @@ interface Order {
   payment_type_display?: string;
 }
 
-interface Props {
-  params: { id: string };
-}
+
 
 type Tab = "info" | "documents" | "master" | "modify";
 
-export default function OrderPage({ params }: Props) {
+import {  PageProps } from "next";
+
+interface OrderPageParams {
+  id: string;
+}
+
+export default function OrderPage({ params, searchParams }: PageProps<OrderPageParams>) {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

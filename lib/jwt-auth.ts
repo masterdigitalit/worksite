@@ -114,7 +114,7 @@ class JwtAuthService {
   }
 
   // Методы для работы с токенами
-  setTokens(tokens: { access: string; refresh: string }) {
+  setTokens(tokens: { access: string; refresh: string, user: User }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('access_token', tokens.access);
       localStorage.setItem('refresh_token', tokens.refresh);

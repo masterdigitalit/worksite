@@ -140,13 +140,13 @@ export default function LogsPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'workers': return 'bg-blue-100 text-blue-800';
-      case 'orders': return 'bg-green-100 text-green-800';
-      case 'leaflets': return 'bg-yellow-100 text-yellow-800';
-      case 'cities': return 'bg-purple-100 text-purple-800';
-      case 'system': return 'bg-red-100 text-red-800';
-      case 'distributors': return 'bg-yellow-400 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'workers': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'orders': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'leaflets': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'cities': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+      case 'system': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'distributors': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -158,7 +158,6 @@ export default function LogsPage() {
       case 'cities': return 'Города';
       case 'system': return 'Система';
       case 'distributors': return 'Разносчики';
-      
       default: return type;
     }
   };
@@ -172,29 +171,29 @@ export default function LogsPage() {
 
   if (loading && logs.length === 0) {
     return (
-      <div className="p-6">
-        <h1 className="text-xl font-bold mb-4">Логи системы</h1>
+      <div className="p-6 bg-background min-h-screen">
+        <h1 className="text-xl font-bold mb-4 text-foreground">Логи системы</h1>
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Загрузка логов...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2 text-foreground">Загрузка логов...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-6">Логи системы</h1>
+    <div className="p-6 bg-background min-h-screen">
+      <h1 className="text-xl font-bold mb-6 text-foreground">Логи системы</h1>
 
       {/* Фильтры */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+      <div className="bg-card p-4 rounded-lg shadow-md mb-6 border border-border">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Тип лога</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Тип лога</label>
             <select
               value={filters.type}
               onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary"
             >
               <option value="">Все типы</option>
               <option value="workers">Работники</option>
@@ -202,13 +201,12 @@ export default function LogsPage() {
               <option value="leaflets">Листовки</option>
               <option value="cities">Города</option>
               <option value="system">Система</option>
-                 <option value="distributors">Разносчики</option>
-              distributors
+              <option value="distributors">Разносчики</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Поиск {debouncedSearch && debouncedSearch !== filters.search && "⏳"}
             </label>
             <input
@@ -216,16 +214,16 @@ export default function LogsPage() {
               value={filters.search}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Поиск по действию или пользователю..."
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Период</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Период</label>
             <select
               value={filters.days}
               onChange={(e) => setFilters(prev => ({ ...prev, days: e.target.value }))}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary"
             >
               <option value="">Все время</option>
               <option value="1">Последние 24 часа</option>
@@ -237,7 +235,7 @@ export default function LogsPage() {
           <div className="flex items-end">
             <button
               onClick={handleResetFilters}
-              className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
+              className="w-full bg-muted text-foreground py-2 px-4 rounded hover:bg-muted/80 transition"
             >
               Сбросить
             </button>
@@ -247,17 +245,17 @@ export default function LogsPage() {
 
       {/* Пагинация - верхняя */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           Показано {logs.length} из {pagination.count} записей
         </div>
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">На странице:</label>
+            <label className="text-sm text-muted-foreground">На странице:</label>
             <select
               value={pagination.pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="p-1 border border-gray-300 rounded text-sm"
+              className="p-1 border border-input bg-background text-foreground rounded text-sm"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -272,14 +270,14 @@ export default function LogsPage() {
               disabled={!pagination.previous}
               className={`px-3 py-1 rounded text-sm ${
                 pagination.previous 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
               Назад
             </button>
             
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               Страница {pagination.page} из {totalPages}
             </span>
             
@@ -288,8 +286,8 @@ export default function LogsPage() {
               disabled={!pagination.next}
               className={`px-3 py-1 rounded text-sm ${
                 pagination.next 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
               Вперед
@@ -299,11 +297,11 @@ export default function LogsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded mb-4">
           {error}
           <button 
             onClick={() => loadLogs(1)}
-            className="ml-4 text-red-800 underline hover:text-red-900"
+            className="ml-4 text-red-700 dark:text-red-300 underline hover:text-red-800 dark:hover:text-red-200"
           >
             Попробовать снова
           </button>
@@ -311,14 +309,14 @@ export default function LogsPage() {
       )}
 
       {/* Таблица логов */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
         {logs.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <p>Логи не найдены</p>
             {filters.type || filters.search || filters.days ? (
               <button 
                 onClick={handleResetFilters}
-                className="mt-2 text-blue-600 underline hover:text-blue-700"
+                className="mt-2 text-primary underline hover:text-primary/80"
               >
                 Показать все логи
               </button>
@@ -327,33 +325,33 @@ export default function LogsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-100">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Тип</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Кто выполнил</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Что произошло</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Дата</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Тип</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Кто выполнил</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Что произошло</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Дата</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition">
+                  <tr key={log.id} className="hover:bg-muted/50 transition">
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(log.type)}`}>
                         {getTypeLabel(log.type)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-foreground">
                         {log.whoDid || 'Не указано'}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-foreground">
                         {log.whatHappend || 'Не указано'}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {formatDate(log.createdAt)}
                     </td>
                   </tr>
@@ -373,14 +371,14 @@ export default function LogsPage() {
               disabled={!pagination.previous}
               className={`px-4 py-2 rounded ${
                 pagination.previous 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
               Назад
             </button>
             
-            <span className="px-4 py-2 text-sm text-gray-600">
+            <span className="px-4 py-2 text-sm text-muted-foreground">
               {pagination.page} из {totalPages}
             </span>
             
@@ -389,8 +387,8 @@ export default function LogsPage() {
               disabled={!pagination.next}
               className={`px-4 py-2 rounded ${
                 pagination.next 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
               Вперед
@@ -401,8 +399,8 @@ export default function LogsPage() {
 
       {loading && logs.length > 0 && (
         <div className="flex justify-center items-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-sm text-gray-600">Загрузка...</span>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span className="ml-2 text-sm text-muted-foreground">Загрузка...</span>
         </div>
       )}
     </div>

@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { useAuth } from "contexts/AuthContext";
 
-
 import { useUser } from "./components/AdminLayoutClient";
 import {
   Users,
@@ -45,7 +44,7 @@ import type {
 
 // UI configs (остаются в компоненте)
 const statusesUI = {
-  PENDING: { label: "Ожидает", color: "text-gray-600", bgColor: "bg-gray-100", icon: Clock },
+  PENDING: { label: "Ожидает", color: "text-muted-foreground", bgColor: "bg-muted", icon: Clock },
   ON_THE_WAY: { label: "В пути", color: "text-blue-600", bgColor: "bg-blue-100", icon: MapPin },
   IN_PROGRESS: { label: "В работе", color: "text-orange-600", bgColor: "bg-orange-100", icon: Users },
   IN_PROGRESS_SD: { label: "В работе + SD", color: "text-orange-500", bgColor: "bg-orange-50", icon: Users },
@@ -69,7 +68,7 @@ const statusesUILeaflet = {
   IN_PROCESS: { label: "В процессе", color: "text-yellow-600", bgColor: "bg-yellow-100", icon: Clock },
   FORPAYMENT: { label: "Ожидает оплаты", color: "text-orange-600", bgColor: "bg-orange-100", icon: DollarSign },
   DONE: { label: "Выполнено", color: "text-green-600", bgColor: "bg-green-100", icon: CheckCircle },
-  CANCELLED: { label: "Отменено", color: "text-gray-500", bgColor: "bg-gray-100", icon: XCircle },
+  CANCELLED: { label: "Отменено", color: "text-muted-foreground", bgColor: "bg-muted", icon: XCircle },
   DECLINED: { label: "Отклонено", color: "text-red-600", bgColor: "bg-red-100", icon: AlertCircle },
 };
 
@@ -259,10 +258,10 @@ export default function AdminPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Загрузка данных...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground text-lg">Загрузка данных...</p>
         </div>
       </div>
     );
@@ -286,19 +285,19 @@ export default function AdminPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <div className="container mx-auto px-4 py-8">
         {/* Заголовок */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-card rounded-2xl shadow-lg p-6 mb-8 border border-border">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{fullName}</h1>
-              <p className="text-gray-600 flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">{fullName}</h1>
+              <p className="text-muted-foreground flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
                 Обзор статистики и метрик
               </p>
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full">
+            <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full">
               <Sparkles className="w-5 h-5" />
               <span className="font-semibold">Админ панель</span>
             </div>
@@ -312,17 +311,15 @@ export default function AdminPage() {
             stats={todayStats} 
             target={target?.day || 0} 
             icon={<Calendar className="w-6 h-6" />}
-            gradient="from-blue-500 to-blue-600"
           />
           <StatCard 
             title="🗓️ За месяц" 
             stats={monthStats} 
             target={target?.month || 0} 
             icon={<Calendar className="w-6 h-6" />}
-            gradient="from-green-500 to-green-600"
           />
           
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg p-6 text-primary-foreground">
             <div className="flex items-center gap-3 mb-4">
               <TrendingUp className="w-6 h-6" />
               <h2 className="text-xl font-bold">💎 Чистая прибыль</h2>
@@ -331,7 +328,7 @@ export default function AdminPage() {
               {(profitStats?.totalProfit || 0).toLocaleString()} ₽
             </p>
             
-            <div className="space-y-2 text-purple-100">
+            <div className="space-y-2 text-primary-foreground/90">
               <div className="flex justify-between items-center">
                 <span className="flex items-center gap-2">
                   <Wallet className="w-4 h-4" />
@@ -389,15 +386,15 @@ export default function AdminPage() {
         </div>
 
         {/* Статистика по листовкам */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-card rounded-2xl shadow-lg p-6 mb-8 border border-border">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <FileText className="w-6 h-6 text-orange-600" />
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <FileText className="w-6 h-6 text-accent" />
               📦 Статистика по листовкам
             </h2>
             <Link 
               href="/advertising"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
+              className="flex items-center gap-2 text-primary hover:text-primary/80 font-semibold"
             >
               Перейти к листовкам
               <ArrowRight className="w-4 h-4" />
@@ -411,32 +408,32 @@ export default function AdminPage() {
                 <Link
                   key={key}
                   href={`/advertising?status=${key}`}
-                  className="flex justify-between items-center p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
+                  className="flex justify-between items-center p-4 rounded-xl border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 group bg-card"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${bgColor}`}>
                       <Icon className={`w-5 h-5 ${color}`} />
                     </div>
-                    <span className="font-medium text-gray-700 group-hover:text-blue-600">{label}</span>
+                    <span className="font-medium text-foreground group-hover:text-primary">{label}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-lg font-bold ${color}`}>
                       {(leafletStats[key as keyof Omit<LeafletStatsData, 'totalDistributorProfitTOpay' | 'totalDistributorProfitPaid'>] || 0).toLocaleString()}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                   </div>
                 </Link>
               ))}
             </div>
 
             {/* Финансовая часть */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+            <div className="bg-gradient-to-br from-accent to-accent/80 rounded-xl p-6 text-accent-foreground">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
                 Финансы разносчиков
               </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-orange-400 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-accent/60 rounded-lg">
                   <span className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Всего к выплате:
@@ -445,7 +442,7 @@ export default function AdminPage() {
                     {(leafletStats?.totalDistributorProfitTOpay || 0).toLocaleString()} ₽
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-green-500 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-green-500/80 rounded-lg">
                   <span className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     Выплачено:
@@ -475,7 +472,7 @@ export default function AdminPage() {
 }
 
 // Компонент карточки статистики
-function StatCard({ title, stats, target, icon, gradient }: StatCardProps) {
+function StatCard({ title, stats, target, icon }: StatCardProps) {
   // Безопасное извлечение данных
   const { profit = 0, count = 0, received = 0, outlay = 0, receivedworker = 0 } = stats || {};
 
@@ -487,27 +484,27 @@ function StatCard({ title, stats, target, icon, gradient }: StatCardProps) {
   const avgProfit = count && count > 0 ? Math.round((received - outlay) / count) : 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="bg-card rounded-2xl shadow-lg p-6 border border-border">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
           {icon}
           {title}
         </h2>
-        <Target className="w-5 h-5 text-gray-400" />
+        <Target className="w-5 h-5 text-muted-foreground" />
       </div>
 
-      <p className="text-2xl font-bold text-gray-800 mb-2">
+      <p className="text-2xl font-bold text-foreground mb-2">
         {received.toLocaleString()} ₽
       </p>
-      <p className="text-sm text-gray-600 mb-4">Сумма закрытия</p>
+      <p className="text-sm text-muted-foreground mb-4">Сумма закрытия</p>
 
       {/* Прогресс бар */}
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-4 flex overflow-hidden relative group">
+      <div className="w-full bg-muted rounded-full h-3 mb-4 flex overflow-hidden relative group">
         <div
           className="bg-green-500 h-3 transition-all duration-300"
           style={{ width: `${profitPercent}%` }}
         >
-          <div className="absolute left-0 -top-8 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+          <div className="absolute left-0 -top-8 bg-card text-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none border border-border shadow-lg">
             Прибыль: {profitPercent}% от цели ({base.toLocaleString("ru-RU")} ₽)
           </div>
         </div>
@@ -519,27 +516,27 @@ function StatCard({ title, stats, target, icon, gradient }: StatCardProps) {
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">📈 Прибыль:</span>
+          <span className="text-muted-foreground">📈 Прибыль:</span>
           <span className="font-semibold text-green-600">{profit.toLocaleString()} ₽</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">📦 Заказов:</span>
+          <span className="text-muted-foreground">📦 Заказов:</span>
           <span className="font-semibold">{count}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">📊 Средний чек:</span>
+          <span className="text-muted-foreground">📊 Средний чек:</span>
           <span className="font-semibold text-blue-600">{avgCheck.toLocaleString()} ₽</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">💰 Чистый чек:</span>
+          <span className="text-muted-foreground">💰 Чистый чек:</span>
           <span className="font-semibold text-green-600">{avgProfit.toLocaleString()} ₽</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">🏢 Расходы:</span>
+          <span className="text-muted-foreground">🏢 Расходы:</span>
           <span className="font-semibold text-red-600">{outlay.toLocaleString()} ₽</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">👷 Зарплатам мастеров:</span>
+          <span className="text-muted-foreground">👷 Зарплатам мастеров:</span>
           <span className="font-semibold text-orange-600">{receivedworker.toLocaleString()} ₽</span>
         </div>
       </div>
@@ -550,13 +547,13 @@ function StatCard({ title, stats, target, icon, gradient }: StatCardProps) {
 // Компонент группы статусов
 function StatusGroupCard({ groupKey, statuses, totalCount, statusCounts }: StatusGroupCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <Package className="w-5 h-5 text-blue-600" />
+    <div className="bg-card rounded-2xl shadow-lg p-6 border border-border">
+      <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+        <Package className="w-5 h-5 text-primary" />
         {groupTitleMap[groupKey as keyof typeof groupTitleMap]}
       </h2>
       
-      <div className="text-4xl font-bold text-blue-600 mb-6 text-center">
+      <div className="text-4xl font-bold text-primary mb-6 text-center">
         {totalCount}
       </div>
 
@@ -569,13 +566,13 @@ function StatusGroupCard({ groupKey, statuses, totalCount, statusCounts }: Statu
             <Link
               key={status}
               href={`/admin/orders?status=${status}`}
-              className="flex justify-between items-center p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
+              className="flex justify-between items-center p-3 rounded-xl border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 group bg-card"
             >
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
                   <Icon className={`w-4 h-4 ${statusConfig.color}`} />
                 </div>
-                <span className="text-gray-700 group-hover:text-blue-600">
+                <span className="text-foreground group-hover:text-primary">
                   {statusConfig.label}
                 </span>
               </div>
@@ -583,7 +580,7 @@ function StatusGroupCard({ groupKey, statuses, totalCount, statusCounts }: Statu
                 <span className={`font-semibold ${statusConfig.color}`}>
                   {(statusCounts[status] || 0).toLocaleString()}
                 </span>
-                <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
               </div>
             </Link>
           );

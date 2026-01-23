@@ -66,15 +66,15 @@ export default function NewWorkerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Добавить нового работника</h1>
+        <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+          <h1 className="text-2xl font-bold text-foreground mb-6">Добавить нового работника</h1>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Полное имя */}
             <div>
-              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="full_name" className="block text-sm font-medium text-foreground mb-2">
                 Полное имя *
               </label>
               <input
@@ -84,7 +84,7 @@ export default function NewWorkerPage() {
                 value={formData.full_name}
                 onChange={handleChange}
                 placeholder="Введите полное имя работника"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 disabled={loading}
                 required
               />
@@ -92,11 +92,11 @@ export default function NewWorkerPage() {
 
             {/* Telegram username */}
             <div>
-              <label htmlFor="telegram_username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="telegram_username" className="block text-sm font-medium text-foreground mb-2">
                 Telegram username
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
                   @
                 </span>
                 <input
@@ -106,18 +106,18 @@ export default function NewWorkerPage() {
                   value={formData.telegram_username}
                   onChange={handleChange}
                   placeholder="username"
-                  className="flex-1 p-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 p-3 border border-input bg-background text-foreground rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   disabled={loading}
                 />
               </div>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Необязательное поле. Только имя пользователя без @
               </p>
             </div>
 
             {/* Телефон */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
                 Номер телефона *
               </label>
               <input
@@ -127,11 +127,11 @@ export default function NewWorkerPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+7 (999) 123-45-67"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 disabled={loading}
                 required
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Формат: +7 (999) 123-45-67 или 89991234567
               </p>
             </div>
@@ -141,11 +141,11 @@ export default function NewWorkerPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex-1 bg-primary text-primary-foreground py-3 px-4 rounded-lg hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
                     Добавление...
                   </div>
                 ) : (
@@ -157,7 +157,7 @@ export default function NewWorkerPage() {
                 type="button"
                 onClick={handleCancel}
                 disabled={loading}
-                className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex-1 bg-muted text-foreground py-3 px-4 rounded-lg hover:bg-muted/80 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 Отмена
               </button>
@@ -165,9 +165,9 @@ export default function NewWorkerPage() {
           </form>
 
           {/* Информация о полях */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-medium text-blue-800 mb-2">Информация:</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
+          <div className="mt-8 p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <h3 className="font-medium text-primary mb-2">Информация:</h3>
+            <ul className="text-sm text-primary space-y-1">
               <li>• Поля помеченные * обязательны для заполнения</li>
               <li>• Telegram username можно добавить позже</li>
               <li>• Статистика заказов и заработка будет обновляться автоматически</li>

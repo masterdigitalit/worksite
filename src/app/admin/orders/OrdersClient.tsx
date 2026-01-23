@@ -138,31 +138,31 @@ console.log(orders)
     return (
       <div className="p-6">
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Загрузка заказов...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2 text-foreground">Загрузка заказов...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-white">📋 Заказы</h1>
+        <h1 className="text-2xl font-bold text-foreground">📋 Заказы</h1>
         <button
           onClick={() => router.push("/admin/orders/new")}
-          className="rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+          className="rounded bg-primary px-4 py-2 text-primary-foreground transition hover:bg-primary/90"
         >
           Добавить заказ
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-6">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded mb-6">
           {error}
           <button 
             onClick={() => window.location.reload()}
-            className="ml-4 text-red-300 underline hover:text-red-100"
+            className="ml-4 text-red-700 dark:text-red-300 underline hover:text-red-800 dark:hover:text-red-200"
           >
             Попробовать снова
           </button>
@@ -170,28 +170,28 @@ console.log(orders)
       )}
 
       {/* Фильтры */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6">
+      <div className="bg-card rounded-lg p-4 mb-6 border border-border">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Поиск
             </label>
             <input
               placeholder="ФИО, адрес, телефон, #ID"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Статус
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Все статусы</option>
               {Object.entries(statusLabels).map(([value, label]) => (
@@ -203,13 +203,13 @@ console.log(orders)
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Тип визита
             </label>
             <select
               value={visitType}
               onChange={(e) => setVisitType(e.target.value)}
-              className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Все типы</option>
               {Object.entries(visitTypeLabels).map(([value, label]) => (
@@ -222,25 +222,25 @@ console.log(orders)
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Дата с
               </label>
               <input
                 type="date"
                 value={arriveDateFrom}
                 onChange={(e) => setArriveDateFrom(e.target.value)}
-                className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Дата по
               </label>
               <input
                 type="date"
                 value={arriveDateTo}
                 onChange={(e) => setArriveDateTo(e.target.value)}
-                className="w-full p-2 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-2 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -248,25 +248,25 @@ console.log(orders)
       </div>
 
       {/* Таблица */}
-      <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="bg-card rounded-lg shadow-md overflow-hidden border border-border">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-700">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">ФИО</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Телефон</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Адрес</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Тип</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Статус</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Дата визита</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Город</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Прибыль</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Затраты</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Оплата</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">ID</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">ФИО</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Телефон</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Адрес</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Тип</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Статус</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Дата визита</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Город</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Прибыль</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Затраты</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Оплата</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-600">
+            <tbody className="divide-y divide-border">
               {filtered.map((order) => {
                 const highlight = canHighlight(order.status);
                 const overdue = highlight && isOverdue(order.arrive_date);
@@ -279,60 +279,60 @@ console.log(orders)
                 return (
                   <tr
                     key={order.id}
-                    className="cursor-pointer hover:bg-gray-700 transition"
+                    className="cursor-pointer hover:bg-muted/50 transition"
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
                     <td className="px-4 py-3">
-                      <div className="font-medium text-white">#{order.id}</div>
+                      <div className="font-medium text-foreground">#{order.id}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-white">{order.full_name}</div>
+                      <div className="font-medium text-foreground">{order.full_name}</div>
                     </td>
-                    <td className="px-4 py-3 text-white">{order.phone}</td>
+                    <td className="px-4 py-3 text-foreground">{order.phone}</td>
                     <td className="px-4 py-3">
-                      <div className="text-white text-sm max-w-xs truncate">
+                      <div className="text-foreground text-sm max-w-xs truncate">
                         {order.address}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-300">
+                      <span className="text-sm text-muted-foreground">
                         {visitTypeLabels[order.visit_type as keyof typeof visitTypeLabels] || order.visit_type}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={clsx(
                         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        statusColors[order.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+                        statusColors[order.status as keyof typeof statusColors] || "bg-muted text-muted-foreground"
                       )}>
                         {statusLabels[order.status as keyof typeof statusLabels] || order.status}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-white">
+                      <div className="text-sm text-foreground">
                         { new Date(order.arrive_date).toLocaleString('ru-RU', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit'
-}).replace(',', '')}
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }).replace(',', '')}
                       </div>
                       {overdue && (
-                        <div className="text-xs text-red-400 mt-1">Просрочено</div>
+                        <div className="text-xs text-red-500 dark:text-red-400 mt-1">Просрочено</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-300">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {order.city?.name || "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-green-400">
+                      <div className="text-sm font-medium text-green-600 dark:text-green-400">
                         {profit !== null ? `${profit} ₽` : "-"}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-red-400">
+                    <td className="px-4 py-3 text-sm text-red-600 dark:text-red-400">
                       {order.outlay ? `${order.outlay} ₽` : "-"}
                     </td>
-                    <td className="px-4 py-3 text-sm text-blue-400">
+                    <td className="px-4 py-3 text-sm text-blue-600 dark:text-blue-400">
                       {order.received ? `${order.received} ₽` : "-"}
                     </td>
                   </tr>
@@ -343,7 +343,7 @@ console.log(orders)
         </div>
 
         {filtered.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             {search || status || visitType || arriveDateFrom || arriveDateTo 
               ? "Заказы по вашему запросу не найдены" 
               : "Заказы не найдены"

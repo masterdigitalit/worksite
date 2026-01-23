@@ -210,23 +210,22 @@ export default function NewOrderPage() {
     router.push("/orders");
   };
 
-
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-background min-h-screen">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-white">📋 Создание заказа</h1>
+            <h1 className="text-2xl font-bold text-foreground">📋 Создание заказа</h1>
             <button
               onClick={handleCancel}
-              className="rounded bg-gray-600 px-4 py-2 text-white transition hover:bg-gray-700"
+              className="rounded bg-muted px-4 py-2 text-foreground transition hover:bg-muted/80"
             >
               Назад к списку
             </button>
           </div>
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-400">Загрузка данных...</p>
+          <div className="bg-card rounded-lg p-8 text-center border border-border">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Загрузка данных...</p>
           </div>
         </div>
       </div>
@@ -234,21 +233,21 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">📋 Создание заказа</h1>
+          <h1 className="text-2xl font-bold text-foreground">📋 Создание заказа</h1>
           <button
             onClick={handleCancel}
-            className="rounded bg-gray-600 px-4 py-2 text-white transition hover:bg-gray-700"
+            className="rounded bg-muted px-4 py-2 text-foreground transition hover:bg-muted/80"
           >
             Назад к списку
           </button>
         </div>
 
-        <div className="bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-card rounded-lg shadow-md p-6 border border-border">
           {error && (
-            <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-6">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded mb-6">
               {error}
             </div>
           )}
@@ -257,12 +256,12 @@ export default function NewOrderPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Основная информация */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+                <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                   Основная информация
                 </h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     ФИО клиента *
                   </label>
                   <input
@@ -270,16 +269,16 @@ export default function NewOrderPage() {
                     value={formData.full_name}
                     onChange={(e) => handleChange('full_name', e.target.value)}
                     placeholder="Введите ФИО клиента..."
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Телефон *
                     {phoneError && (
-                      <span className="text-red-400 text-xs ml-2">({phoneError})</span>
+                      <span className="text-red-500 dark:text-red-400 text-xs ml-2">({phoneError})</span>
                     )}
                   </label>
                   <input
@@ -288,19 +287,19 @@ export default function NewOrderPage() {
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="+7 (XXX) XXX-XX-XX"
                     className={`w-full p-3 border ${
-                      phoneError ? 'border-red-500' : 'border-gray-600'
-                    } bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                      phoneError ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent`}
                     disabled={saving}
                   />
                   {!phoneError && formData.phone && (
-                    <p className="text-xs text-green-400 mt-1">
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                       ✓ Формат корректен
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Адрес *
                   </label>
                   <input
@@ -308,13 +307,13 @@ export default function NewOrderPage() {
                     value={formData.address}
                     onChange={(e) => handleChange('address', e.target.value)}
                     placeholder="Введите адрес..."
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Проблема *
                   </label>
                   <textarea
@@ -323,7 +322,7 @@ export default function NewOrderPage() {
                     onChange={(e) => handleChange('problem', e.target.value)}
                     placeholder="Опишите проблему..."
                     rows={3}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   />
                 </div>
@@ -331,36 +330,35 @@ export default function NewOrderPage() {
 
               {/* Дополнительная информация */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+                <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                   Дополнительная информация
                 </h3>
 
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-300">
+                    <label className="block text-sm font-medium text-foreground">
                       Дата прибытия *
                     </label>
-                  
                   </div>
                   <input
                     type="datetime-local"
                     value={formData.arrive_date}
                     onChange={(e) => handleChange('arrive_date', e.target.value)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                     min={new Date().toISOString().slice(0, 16)} // Запрет выбора прошедших дат
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Город *
                   </label>
                   <select
                     required={true}
                     value={formData.city || ""}
                     onChange={(e) => handleChange('city', e.target.value || null)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   >
                     <option value="">Выберите город</option>
@@ -373,13 +371,13 @@ export default function NewOrderPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Мастер
                   </label>
                   <select
                     value={formData.master || ""}
                     onChange={(e) => handleChange('master', e.target.value || null)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   >
                     <option value="">Выберите мастера</option>
@@ -392,14 +390,14 @@ export default function NewOrderPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Листовка *
                   </label>
                   <select
                     required={true}
                     value={formData.leaflet || ""}
                     onChange={(e) => handleChange('leaflet', e.target.value || null)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   >
                     <option value="">Выберите листовку</option>
@@ -412,13 +410,13 @@ export default function NewOrderPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Тип визита
                   </label>
                   <select
                     value={formData.visit_type}
                     onChange={(e) => handleChange('visit_type', e.target.value)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   >
                     <option value="FIRST">Первичный</option>
@@ -428,13 +426,13 @@ export default function NewOrderPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Тип оплаты
                   </label>
                   <select
                     value={formData.payment_type}
                     onChange={(e) => handleChange('payment_type', e.target.value)}
-                    className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                     disabled={saving}
                   >
                     <option value="LOW">Низкий</option>
@@ -447,12 +445,12 @@ export default function NewOrderPage() {
 
             {/* Комментарии */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white border-b border-gray-600 pb-2">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                 Комментарии
               </h3>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Комментарий филиала
                 </label>
                 <textarea
@@ -460,13 +458,13 @@ export default function NewOrderPage() {
                   onChange={(e) => handleChange('branch_comment', e.target.value)}
                   placeholder="Комментарий от филиала..."
                   rows={2}
-                  className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                   disabled={saving}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Заметка колл-центра
                 </label>
                 <textarea
@@ -474,18 +472,18 @@ export default function NewOrderPage() {
                   onChange={(e) => handleChange('call_center_note', e.target.value)}
                   placeholder="Заметка от колл-центра..."
                   rows={2}
-                  className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded focus:ring-2 focus:ring-primary focus:border-transparent"
                   disabled={saving}
                 />
               </div>
             </div>
 
             {/* Кнопки действий */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-600">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-border">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-700 transition disabled:opacity-50"
+                className="px-6 py-2 border border-input text-foreground bg-background rounded hover:bg-muted transition disabled:opacity-50"
                 disabled={saving}
               >
                 Отмена
@@ -493,11 +491,11 @@ export default function NewOrderPage() {
               <button
                 type="submit"
                 disabled={saving || !formData.address.trim() || !formData.full_name.trim() || !formData.phone.trim() || !formData.arrive_date || phoneError !== null}
-                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <span className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
                     Создание...
                   </span>
                 ) : (

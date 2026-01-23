@@ -42,13 +42,13 @@ interface User {
 }
 
 const roles = {
-  ADMIN: { label: 'Админ', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-  ADVERTISING: { label: 'Рекламщик', color: 'bg-green-100 text-green-800 border-green-200' },
+  ADMIN: { label: 'Админ', color: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-800' },
+  ADVERTISING: { label: 'Рекламщик', color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800' },
 };
 
 const visibilityLabels = {
-  FULL: { label: 'Полная', icon: Eye, color: 'text-blue-600' },
-  LIMITED: { label: 'Ограниченная', icon: EyeOff, color: 'text-orange-600' }
+  FULL: { label: 'Полная', icon: Eye, color: 'text-blue-600 dark:text-blue-400' },
+  LIMITED: { label: 'Ограниченная', icon: EyeOff, color: 'text-orange-600 dark:text-orange-400' }
 };
 
 // Функция для форматирования даты
@@ -272,21 +272,21 @@ export default function ManagersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className=" mx-auto">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mx-auto">
         {/* Заголовок и кнопки */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Shield className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Shield className="w-6 h-6 text-primary" />
                 Управление пользователями
               </h1>
-              <p className="text-gray-600 mt-1">Создание и управление учетными записями пользователей</p>
+              <p className="text-muted-foreground mt-1">Создание и управление учетными записями пользователей</p>
             </div>
             <button
               onClick={() => openForm()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
             >
               <UserPlus className="w-4 h-4" />
               Добавить пользователя
@@ -295,25 +295,25 @@ export default function ManagersPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-            <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-            <p className="text-red-700">{error}</p>
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* Панель фильтров и поиска */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="mb-6 bg-card rounded-xl shadow-sm border border-border p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Поиск */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Поиск по имени, username, телефону..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function ManagersPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as Role | "")}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">Все роли</option>
                 <option value="ADMIN">Админ</option>
@@ -333,7 +333,7 @@ export default function ManagersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="all">Все статусы</option>
                 <option value="active">Активные</option>
@@ -342,7 +342,7 @@ export default function ManagersPage() {
 
               <button
                 onClick={fetchUsers}
-                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 border border-input bg-background text-foreground rounded-lg hover:bg-muted transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Обновить
@@ -353,56 +353,56 @@ export default function ManagersPage() {
 
         {/* Статистика */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="w-4 h-4 text-blue-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <User className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                <p className="text-sm text-gray-600">Всего пользователей</p>
+                <p className="text-2xl font-bold text-foreground">{users.length}</p>
+                <p className="text-sm text-muted-foreground">Всего пользователей</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="w-4 h-4 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {users.filter(u => u.is_active).length}
                 </p>
-                <p className="text-sm text-gray-600">Активных</p>
+                <p className="text-sm text-muted-foreground">Активных</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Shield className="w-4 h-4 text-purple-600" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {users.filter(u => u.role === 'ADMIN').length}
                 </p>
-                <p className="text-sm text-gray-600">Администраторов</p>
+                <p className="text-sm text-muted-foreground">Администраторов</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <User className="w-4 h-4 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <User className="w-4 h-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {users.filter(u => u.role === 'ADVERTISING').length}
                 </p>
-                <p className="text-sm text-gray-600">Рекламщиков</p>
+                <p className="text-sm text-muted-foreground">Рекламщиков</p>
               </div>
             </div>
           </div>
@@ -410,36 +410,36 @@ export default function ManagersPage() {
 
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
           <>
             {/* Десктоп: таблица */}
-            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="hidden lg:block bg-card rounded-xl shadow-sm border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Пользователь</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Роль</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Контакты</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visibility</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Активность</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                    <tr className="bg-muted border-b border-border">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Пользователь</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Роль</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Контакты</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Visibility</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Активность</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Статус</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Действия</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-border">
                     {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={user.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-primary-foreground font-semibold">
                               {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{user.fullName || user.username}</p>
-                              <p className="text-sm text-gray-500">@{user.username}</p>
+                              <p className="font-medium text-foreground">{user.fullName || user.username}</p>
+                              <p className="text-sm text-muted-foreground">@{user.username}</p>
                             </div>
                           </div>
                         </td>
@@ -452,14 +452,14 @@ export default function ManagersPage() {
                           <div className="space-y-1">
                             {user.telegramUsername && (
                               <div className="flex items-center gap-2 text-sm">
-                                <Mail className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-600">{user.telegramUsername}</span>
+                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">{user.telegramUsername}</span>
                               </div>
                             )}
                             {user.phone && (
                               <div className="flex items-center gap-2 text-sm">
-                                <Phone className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-600">{user.phone}</span>
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">{user.phone}</span>
                               </div>
                             )}
                           </div>
@@ -468,29 +468,29 @@ export default function ManagersPage() {
                           {user.role !== "ADVERTISING" ? (
                             <div className="flex items-center gap-2">
                               <VisibilityIcon visibility={user.visibility} />
-                              <span className="text-sm text-gray-600">{visibilityLabels[user.visibility].label}</span>
+                              <span className="text-sm text-muted-foreground">{visibilityLabels[user.visibility].label}</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400">-</span>
+                            <span className="text-sm text-muted-foreground">-</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">{formatDate(user.date_joined)}</span>
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">{formatDate(user.date_joined)}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">{formatRelativeTime(user.last_login || '')}</span>
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">{formatRelativeTime(user.last_login || '')}</span>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                             user.is_active 
-                              ? 'bg-green-100 text-green-800 border border-green-200' 
-                              : 'bg-red-100 text-red-800 border border-red-200'
+                              ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800' 
+                              : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800'
                           }`}>
                             {user.is_active ? (
                               <CheckCircle className="w-3 h-3" />
@@ -504,7 +504,7 @@ export default function ManagersPage() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openForm(user)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors"
                             >
                               <Edit className="w-4 h-4" />
                               Редактировать
@@ -513,8 +513,8 @@ export default function ManagersPage() {
                               onClick={() => handleDeactivate(user)}
                               className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                                 user.is_active 
-                                  ? 'text-red-600 hover:bg-red-50' 
-                                  : 'text-green-600 hover:bg-green-50'
+                                  ? 'text-red-600 hover:bg-red-500/10' 
+                                  : 'text-green-600 hover:bg-green-500/10'
                               }`}
                             >
                               <Power className="w-4 h-4" />
@@ -534,16 +534,16 @@ export default function ManagersPage() {
               {filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
+                  className="bg-card rounded-xl shadow-sm border border-border p-4"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-primary-foreground font-semibold text-lg">
                         {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{user.fullName || user.username}</p>
-                        <p className="text-sm text-gray-500">@{user.username}</p>
+                        <p className="font-semibold text-foreground">{user.fullName || user.username}</p>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
                       </div>
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${roles[user.role].color}`}>
@@ -556,14 +556,14 @@ export default function ManagersPage() {
                       <div className="flex items-center gap-4">
                         {user.telegramUsername && (
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-600">{user.telegramUsername}</span>
+                            <Mail className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{user.telegramUsername}</span>
                           </div>
                         )}
                         {user.phone && (
                           <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-600">{user.phone}</span>
+                            <Phone className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{user.phone}</span>
                           </div>
                         )}
                       </div>
@@ -571,20 +571,20 @@ export default function ManagersPage() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="font-medium text-gray-700 mb-1">Регистрация</p>
-                        <p className="text-xs text-gray-500">{formatDate(user.date_joined)}</p>
+                        <p className="font-medium text-foreground mb-1">Регистрация</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(user.date_joined)}</p>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-700 mb-1">Последний вход</p>
-                        <p className="text-xs text-gray-500">{formatRelativeTime(user.last_login || '')}</p>
+                        <p className="font-medium text-foreground mb-1">Последний вход</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(user.last_login || '')}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                         user.is_active 
-                          ? 'bg-green-100 text-green-800 border border-green-200' 
-                          : 'bg-red-100 text-red-800 border border-red-200'
+                          ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-800' 
+                          : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800'
                       }`}>
                         {user.is_active ? (
                           <CheckCircle className="w-3 h-3" />
@@ -597,7 +597,7 @@ export default function ManagersPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openForm(user)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -605,8 +605,8 @@ export default function ManagersPage() {
                           onClick={() => handleDeactivate(user)}
                           className={`p-2 rounded-lg transition-colors ${
                             user.is_active 
-                              ? 'text-red-600 hover:bg-red-50' 
-                              : 'text-green-600 hover:bg-green-50'
+                              ? 'text-red-600 hover:bg-red-500/10' 
+                              : 'text-green-600 hover:bg-green-500/10'
                           }`}
                         >
                           <Power className="w-4 h-4" />
@@ -624,11 +624,11 @@ export default function ManagersPage() {
         {showForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div
-              className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              className="bg-card rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <div className="p-6 border-b border-border">
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                   {editingUser ? <Edit className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
                   {editingUser ? "Редактировать пользователя" : "Добавить пользователя"}
                 </h2>
@@ -636,10 +636,10 @@ export default function ManagersPage() {
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Полное имя</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Полное имя</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.fullName}
                     onChange={(e) => handleFormChange('fullName', e.target.value)}
                     required
@@ -648,10 +648,10 @@ export default function ManagersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Username (Логин)</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Username (Логин)</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.username}
                     onChange={(e) => handleFormChange('username', e.target.value)}
                     required
@@ -659,9 +659,9 @@ export default function ManagersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Роль</label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.role}
                     onChange={(e) => handleFormChange('role', e.target.value as Role)}
                     required
@@ -673,9 +673,9 @@ export default function ManagersPage() {
 
                 {showVisibilityField && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Visibility</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Visibility</label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       value={formData.visibility}
                       onChange={(e) => handleFormChange('visibility', e.target.value as Visibility)}
                       required
@@ -687,10 +687,10 @@ export default function ManagersPage() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Телеграм username</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Телеграм username</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.telegramUsername}
                     onChange={(e) => handleFormChange('telegramUsername', e.target.value)}
                     placeholder="@username"
@@ -698,10 +698,10 @@ export default function ManagersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Телефон</label>
                   <input
                     type="tel"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.phone}
                     onChange={(e) => handleFormChange('phone', e.target.value)}
                     placeholder="+7 XXX XXX XX XX"
@@ -709,12 +709,12 @@ export default function ManagersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Пароль {editingUser && "(оставьте пустым, чтобы не менять)"}
                   </label>
                   <input
                     type="password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.password}
                     onChange={(e) => handleFormChange('password', e.target.value)}
                     required={!editingUser}
@@ -722,27 +722,27 @@ export default function ManagersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Подтверждение пароля</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Подтверждение пароля</label>
                   <input
                     type="password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     value={formData.password_confirm}
                     onChange={(e) => handleFormChange('password_confirm', e.target.value)}
                     required={!editingUser}
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <div className="flex gap-3 pt-4 border-t border-border">
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-input bg-background text-foreground rounded-lg hover:bg-muted transition-colors"
                     onClick={() => setShowForm(false)}
                   >
                     Отмена
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     {editingUser ? "Обновить" : "Создать"}
                   </button>

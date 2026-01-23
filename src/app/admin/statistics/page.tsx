@@ -53,15 +53,15 @@ type StatisticsResponse = {
 };
 
 const paymentTypeMap: Record<string, string> = {
-     'LOW' :'Низкий',
-        'MEDIUM' :'Средний',
-        'HIGH': 'Высокий',
+  'LOW': 'Низкий',
+  'MEDIUM': 'Средний',
+  'HIGH': 'Высокий',
 };
 
 const visitTypeMap: Record<string, string> = {
-'FIRST': 'Первичный',
-        'REPEAT': 'Повторный',
-        'GARAGE': 'Гарантийный',
+  'FIRST': 'Первичный',
+  'REPEAT': 'Повторный',
+  'GARAGE': 'Гарантийный',
 };
 
 export default function StatisticsPage() {
@@ -162,62 +162,62 @@ export default function StatisticsPage() {
 
   if (loading && data.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Загрузка статистики...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground text-lg">Загрузка статистики...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className=" px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 py-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         {/* Заголовок и общая статистика */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 Аналитика заказов</h1>
-          <p className="text-gray-600 mb-6">Детальная статистика по завершенным заказам</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">📊 Аналитика заказов</h1>
+          <p className="text-muted-foreground mb-6">Детальная статистика по завершенным заказам</p>
           
           {/* Карточки общей статистики - теперь 5 окошек */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-blue-100">
-              <div className="text-2xl font-bold text-blue-600">{totalStats.totalOrders}</div>
-              <div className="text-sm text-gray-500">Всего заказов</div>
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-blue-200 dark:border-blue-800">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalStats.totalOrders}</div>
+              <div className="text-sm text-muted-foreground">Всего заказов</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-green-100">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-green-200 dark:border-green-800">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {Math.round(totalStats.totalReceived).toLocaleString()} ₽
               </div>
-              <div className="text-sm text-gray-500">Общая выручка</div>
+              <div className="text-sm text-muted-foreground">Общая выручка</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-purple-100">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-purple-200 dark:border-purple-800">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {Math.round(totalStats.totalProfit).toLocaleString()} ₽
               </div>
-              <div className="text-sm text-gray-500">Чистая прибыль</div>
+              <div className="text-sm text-muted-foreground">Чистая прибыль</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-orange-100">
-              <div className="text-2xl font-bold text-orange-600">{totalStats.totalTransfers}</div>
-              <div className="text-sm text-gray-500">Перенесено заказов</div>
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-orange-200 dark:border-orange-800">
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totalStats.totalTransfers}</div>
+              <div className="text-sm text-muted-foreground">Перенесено заказов</div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-red-100">
-              <div className="text-2xl font-bold text-red-600">
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-red-200 dark:border-red-800">
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {Math.round(totalStats.totalOutlay).toLocaleString()} ₽
               </div>
-              <div className="text-sm text-gray-500">Общие расходы</div>
+              <div className="text-sm text-muted-foreground">Общие расходы</div>
             </div>
           </div>
         </div>
 
         {/* Панель управления */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-card rounded-2xl shadow-lg p-6 mb-8 border border-border">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Год:</label>
+                <label className="text-sm font-medium text-foreground whitespace-nowrap">Год:</label>
                 <select
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                  className="rounded-lg border border-input bg-background px-4 py-2 text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                   value={selectedYear}
                   onChange={(e) => {
                     setSelectedYear(e.target.value);
@@ -234,9 +234,9 @@ export default function StatisticsPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Месяц:</label>
+                <label className="text-sm font-medium text-foreground whitespace-nowrap">Месяц:</label>
                 <select
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                  className="rounded-lg border border-input bg-background px-4 py-2 text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
                   disabled={loading}
@@ -258,21 +258,21 @@ export default function StatisticsPage() {
                   id="showReceived"
                   checked={showReceived}
                   onChange={(e) => setShowReceived(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
                   disabled={loading}
                 />
-                <label htmlFor="showReceived" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="showReceived" className="ml-2 text-sm text-foreground">
                   Показывать выручку и средний чек
                 </label>
               </div>
 
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-muted rounded-lg p-1">
                 <button
                   onClick={() => setActiveTab("charts")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                     activeTab === "charts"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "bg-background text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   📈 Графики
@@ -281,8 +281,8 @@ export default function StatisticsPage() {
                   onClick={() => setActiveTab("numbers")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                     activeTab === "numbers"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "bg-background text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   🔢 Цифры
@@ -293,8 +293,8 @@ export default function StatisticsPage() {
 
           {loading && data.length > 0 && (
             <div className="flex justify-center items-center py-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-sm text-gray-600">Обновление данных...</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span className="ml-2 text-sm text-muted-foreground">Обновление данных...</span>
             </div>
           )}
         </div>
@@ -302,22 +302,22 @@ export default function StatisticsPage() {
         {activeTab === "charts" ? (
           <>
             {/* Основной график */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <div className="bg-card rounded-2xl shadow-lg p-6 mb-8 border border-border">
+              <h2 className="text-xl font-semibold text-foreground mb-6">
                 {selectedMonth ? "Динамика по дням" : "Динамика по месяцам"}
               </h2>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={dataWithAverages} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis 
                       dataKey="month" 
-                      tick={{ fill: '#6B7280' }}
-                      axisLine={{ stroke: '#E5E7EB' }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
                     />
                     <YAxis 
-                      tick={{ fill: '#6B7280' }}
-                      axisLine={{ stroke: '#E5E7EB' }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
                       tickFormatter={(value) => `${value.toLocaleString()} ₽`}
                     />
                     <Tooltip content={<CustomTooltip />} />
@@ -374,17 +374,17 @@ export default function StatisticsPage() {
               </div>
 
               {/* Дополнительная статистика */}
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Ключевые метрики</h3>
+              <div className="bg-card rounded-2xl shadow-lg p-6 border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-4">📈 Ключевые метрики</h3>
                 <div className="space-y-4">
                   {dataWithAverages.slice(-5).reverse().map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">{item.month}</span>
+                    <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="text-sm font-medium text-foreground">{item.month}</span>
                       <div className="text-right">
-                        <div className="text-sm font-semibold text-green-600">
+                        <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                           {Math.round(item.profit).toLocaleString()} ₽
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {item.count} заказов • {item.avgCheck?.toLocaleString()} ₽/чек
                         </div>
                       </div>
@@ -396,57 +396,57 @@ export default function StatisticsPage() {
           </>
         ) : (
           /* Табличное представление */
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Детальная статистика</h2>
+          <div className="bg-card rounded-2xl shadow-lg p-6 border border-border">
+            <h2 className="text-xl font-semibold text-foreground mb-6">Детальная статистика</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-border">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <tr className="bg-muted">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Период
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Заказы
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Выручка
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Прибыль
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Средний чек
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Расходы
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Переносы
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-border">
                   {dataWithAverages.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={index} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {item.month}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {item.count}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-semibold">
                         {Math.round(item.received).toLocaleString()} ₽
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 font-semibold">
                         {Math.round(item.profit).toLocaleString()} ₽
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600 dark:text-purple-400 font-semibold">
                         {item.avgCheck?.toLocaleString()} ₽
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">
                         {Math.round(item.outlay).toLocaleString()} ₽
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-600 dark:text-orange-400">
                         {item.wastimechanged}
                       </td>
                     </tr>
@@ -466,31 +466,31 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const data = payload[0].payload;
 
     return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-4 space-y-2">
-        <p className="font-bold text-gray-900 text-sm border-b pb-2">{label}</p>
+      <div className="bg-card border border-border rounded-xl shadow-xl p-4 space-y-2">
+        <p className="font-bold text-foreground text-sm border-b border-border pb-2">{label}</p>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <span className="text-gray-600">Выручка:</span>
-          <span className="font-semibold text-green-600 text-right">{data.received.toLocaleString()} ₽</span>
+          <span className="text-muted-foreground">Выручка:</span>
+          <span className="font-semibold text-green-600 dark:text-green-400 text-right">{data.received.toLocaleString()} ₽</span>
           
-          <span className="text-gray-600">Прибыль:</span>
-          <span className="font-semibold text-blue-600 text-right">{data.profit.toLocaleString()} ₽</span>
+          <span className="text-muted-foreground">Прибыль:</span>
+          <span className="font-semibold text-blue-600 dark:text-blue-400 text-right">{data.profit.toLocaleString()} ₽</span>
           
-          <span className="text-gray-600">Заказов:</span>
+          <span className="text-muted-foreground">Заказов:</span>
           <span className="font-semibold text-right">{data.count}</span>
           
-          <span className="text-gray-600">Средний чек:</span>
-          <span className="font-semibold text-purple-600 text-right">{data.avgCheck?.toLocaleString()} ₽</span>
+          <span className="text-muted-foreground">Средний чек:</span>
+          <span className="font-semibold text-purple-600 dark:text-purple-400 text-right">{data.avgCheck?.toLocaleString()} ₽</span>
           
-          <span className="text-gray-600">Средняя прибыль:</span>
+          <span className="text-muted-foreground">Средняя прибыль:</span>
           <span className="font-semibold text-right">
             {data.avgProfitPerOrder?.toLocaleString()} ₽
           </span>
           
-          <span className="text-gray-600">Расходы:</span>
-          <span className="font-semibold text-red-600 text-right">{data.outlay.toLocaleString()} ₽</span>
+          <span className="text-muted-foreground">Расходы:</span>
+          <span className="font-semibold text-red-600 dark:text-red-400 text-right">{data.outlay.toLocaleString()} ₽</span>
           
-          <span className="text-gray-600">Переносы:</span>
-          <span className="font-semibold text-orange-600 text-right">{data.wastimechanged}</span>
+          <span className="text-muted-foreground">Переносы:</span>
+          <span className="font-semibold text-orange-600 dark:text-orange-400 text-right">{data.wastimechanged}</span>
         </div>
       </div>
     );

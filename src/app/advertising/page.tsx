@@ -1,11 +1,16 @@
 // app/leaflet-orders/page.tsx
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/api/auth/auth";
+'use client'
 import LeafletOrdersPage from "./components/LeafletOrdersPage";
+import { useAuth } from 'contexts/AuthContext';
 
-export default async function Page() {
-  const session = await getServerSession(authOptions);
-  const fullName = session?.user?.fullName || "Неизвестный пользователь";
+
+
+
+
+export default  function Page() {
+   const { user} = useAuth();
+  
+  const fullName = user?.fullName || "Неизвестный пользователь";
 
   return <LeafletOrdersPage fullName={fullName} />;
 }

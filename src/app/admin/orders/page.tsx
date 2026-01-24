@@ -1,12 +1,14 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/api/auth/auth";
+'use client'
 import OrdersClient from "./OrdersClient";
+import { useAuth } from 'contexts/AuthContext';
 
-export default async function OrdersPage() {
-  const session = await getServerSession(authOptions);
+
+
+export default  function OrdersPage() {
+ const { user} = useAuth();
 
   // Пример: на основе роли или чего-то ещё выбираем видимость
-  const visibility = session?.user?.visibility 
+  const visibility = user?.visibility;
 
 
   return <OrdersClient visibility={visibility} />;
